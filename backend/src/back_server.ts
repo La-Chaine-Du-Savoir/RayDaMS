@@ -1,5 +1,5 @@
-import { Application, Router} from "https://deno.land/x/oak@v17.1.6/mod.ts"
-import { oakCors } from "https://deno.land/x/cors@v1.2.2/mod.ts";
+import { Application, Router } from "oak";
+import { oakCors } from "cors";
 import authRoutes from "./Routes/AuthRoutes.ts"
 
 import config from "./Config/config.ts"
@@ -14,16 +14,18 @@ if (Deno.args.length < 1) {
     Deno.exit();
 }
 
-const options = {port: Deno.args[0]}
+const listenOptions: Deno.ListenOptions = {
+    port: Number(Deno.args[0]),
+};
+const tlsOptions: { cert?: string; key?: string } = {};
 
 if (Deno.args.length >= 3) {
-    options.secure = true;
-    options.cert = await Deno.readTextFile(Deno.args[1]);
-    options.key = await Deno.readTextFile(Deno.args[2]);
+    tlsOptions.cert = await Deno.readTextFile(Deno.args[1]);
+    tlsOptions.key = await Deno.readTextFile(Deno.args[2]);
     console.log(`SSL conf ready (use https)`);
 }
 
-console.log(`Oak back server running on port ${options.port}`);
+console.log(`Oak back server running on port ${listenOptions.port}`);
 
 app.use(
     oakCors({
@@ -37,4 +39,4 @@ console.log(`CORS allows origin ${config.allowedOrigins}`);
 
 app.use(router.routes());
 app.use(router.allowedMethods())
-await app.listen(options);
+await app.listen({ ...listenOptions, ...tlsOptions } as any);

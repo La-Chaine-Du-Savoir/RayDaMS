@@ -1,4 +1,4 @@
-import { Context, Router } from "https://deno.land/x/oak@v17.1.6/mod.ts";
+import { Context, Router } from "oak";
 
 const router = new Router({ prefix: "/auth" });
 

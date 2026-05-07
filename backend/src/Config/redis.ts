@@ -1,12 +1,18 @@
-import { connect } from "https://deno.land/x/redis@v0.34.0/mod.ts";
+import { connect, Redis } from "redis";
 import config from "./config.ts";
 
-const redis = await connect({
-    hostname: config.redisHost,
-    port: config.redisPort,
-    password: config.redisPassword,
-});
+let redis: Redis;
 
-console.log("Connected to Redis");
+try {
+    redis = await connect({
+        hostname: config.redisHost,
+        port: config.redisPort,
+        password: config.redisPassword,
+    });
+    console.log("Connected to Redis");
+} catch (err) {
+    console.error("Could not connect to Redis:", err);
+    throw err;
+}
 
 export default redis;
