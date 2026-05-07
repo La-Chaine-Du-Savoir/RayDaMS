@@ -39,4 +39,4 @@ console.log(`CORS allows origin ${config.allowedOrigins}`);
 
 app.use(router.routes());
 app.use(router.allowedMethods())
-await app.listen({ ...listenOptions, ...tlsOptions } as any);
+await app.listen({ ...listenOptions, ...tlsOptions });
