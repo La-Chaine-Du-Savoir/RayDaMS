@@ -1,0 +1,35 @@
+services:
+  db:
+    image: postgres:18-alpine
+    environment:
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_DB: ${DB_NAME}
+    volumes:
+      - pgdata:/var/lib/postgresql
+    healthcheck:
+      test: [ "CMD", "pg_isready", "-U", "${DB_USER}", "-d", "${DB_NAME}" ]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+  api:
+    build: ./backend/.
+    ports:
+      - "3000:3000"
+    environment:
+      ALLOWED_ORIGINS: ${ALLOWED_ORIGINS}
+      DB_HOST: db
+      DB_PORT: 5432
+      DB_NAME: ${DB_NAME}
+      DB_USER: ${DB_USER}
+      DB_PASSWORD: ${DB_PASSWORD}
+      JWT_SECRET: ${JWT_SECRET}
+    volumes:
+      - ./backend/src:/app
+    depends_on:
+      db:
+        condition: service_healthy
+
+volumes:
+  pgdata:
