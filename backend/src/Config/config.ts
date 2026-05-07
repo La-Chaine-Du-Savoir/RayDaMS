@@ -6,6 +6,9 @@ class Config {
     readonly dbUser: string;
     readonly dbPassword: string;
     readonly jwtSecret: string;
+    readonly redisHost: string;
+    readonly redisPort: number;
+    readonly redisPassword: string;
 
     constructor() {
         const rawOrigins = this.getEnv("ALLOWED_ORIGINS", "");
@@ -25,6 +28,10 @@ class Config {
         if (!this.jwtSecret) {
             console.warn("⚠️  JWT_SECRET not set. Using empty secret (not recommended for production)");
         }
+
+        this.redisHost = this.getEnv("REDIS_HOST", "localhost");
+        this.redisPassword = this.getEnv("REDIS_PASSWORD", "");
+        this.redisPort = this.getNumberEnv("REDIS_PORT", 6379);
     }
 
     private getEnv(key: string, defaultValue = ""): string {

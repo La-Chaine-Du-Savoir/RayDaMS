@@ -10,4 +10,6 @@ const client = new Client({
 });
 await client.connect();
 
+console.log("Connected to Database");
+
 export default client;
