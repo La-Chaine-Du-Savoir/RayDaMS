@@ -5,7 +5,8 @@ class Config {
     readonly dbName: string;
     readonly dbUser: string;
     readonly dbPassword: string;
-    readonly jwtSecret: string;
+    jwtSecret?: CryptoKey;
+    readonly jwtSecretRaw: string;
     readonly redisHost: string;
     readonly redisPort: number;
     readonly redisPassword: string;
@@ -24,8 +25,8 @@ class Config {
         this.dbUser = this.getEnv("DB_USER", "raydams");
         this.dbPassword = this.getEnv("DB_PASSWORD", "");
 
-        this.jwtSecret = this.getEnv("JWT_SECRET", "");
-        if (!this.jwtSecret) {
+        this.jwtSecretRaw = this.getEnv("JWT_SECRET", "");
+        if (!this.jwtSecretRaw) {
             console.warn("⚠️  JWT_SECRET not set. Using empty secret (not recommended for production)");
         }
 
@@ -49,22 +50,21 @@ class Config {
         return Number.isFinite(parsed) ? parsed : defaultValue;
     }
 
-    private getBooleanEnv(key: string, defaultValue: boolean): boolean {
-        const value = this.getEnv(key, "").toLowerCase();
-        if (value === "true" || value === "1") {
-            return true;
-        }
-        if (value === "false" || value === "0") {
-            return false;
-        }
-        return defaultValue;
-    }
-
-    get hasOrigins() {
-        return this.allowedOrigins.length > 0;
-    }
 }
 
 const config = new Config();
+
+try {
+    const raw = config.jwtSecretRaw ?? "";
+    config.jwtSecret = await crypto.subtle.importKey(
+        "raw",
+        new TextEncoder().encode(raw),
+        { name: "HMAC", hash: "SHA-256" },
+        false,
+        ["sign", "verify"],
+    );
+} catch (err) {
+    console.error("Failed to import JWT CryptoKey:", err);
+}
 
 export default config;

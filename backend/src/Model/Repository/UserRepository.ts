@@ -1,7 +1,7 @@
 import { User } from "../DataObjects/User.ts";
 import db from "../../Config/database.ts";
 
-export class UserRepository {
+class UserRepository {
     private table = "users";
 
     async create(user: User): Promise<User> {
@@ -22,7 +22,7 @@ export class UserRepository {
         return result.rows[0];
     }
 
-    async findById(id: number): Promise<User | undefined> {
+    async getById(id: number): Promise<User | undefined> {
         const result = await db.queryObject<User & { roles: string[] }>(
             `SELECT
                  u.*,
@@ -58,3 +58,7 @@ export class UserRepository {
         `, [userId, roleLabels]);
     }
 }
+
+const userRepository = new UserRepository();
+
+export default userRepository;
