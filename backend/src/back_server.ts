@@ -1,10 +1,13 @@
 import { Application, Router} from "https://deno.land/x/oak@v17.1.6/mod.ts"
 import { oakCors } from "https://deno.land/x/cors@v1.2.2/mod.ts";
+import authRoutes from "./Routes/AuthRoutes.ts"
 
 import config from "./Config/config.ts"
 
 const router = new Router();
 const app = new Application();
+
+router.use(authRoutes.routes());
 
 if (Deno.args.length < 1) {
     console.log(`Usage: $ deno run --allow-net server.ts PORT [CERT_PATH KEY_PATH]`);
