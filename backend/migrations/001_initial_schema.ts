@@ -66,6 +66,13 @@ const migration = {
                 PRIMARY KEY (user_id, role_id)
             )
         `);
+
+        // Insertion des roles
+        await db.queryArray(`
+            INSERT INTO roles (label) VALUES
+                ('admin')
+            ON CONFLICT (label) DO NOTHING
+        `)
     },
 };
 
