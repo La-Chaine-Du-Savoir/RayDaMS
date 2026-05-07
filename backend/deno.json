@@ -8,6 +8,7 @@
   },
   "tasks": {
     "dev": "deno run --watch --allow-net --allow-env src/back_server.ts 3000",
-    "start": "deno run --allow-net --allow-env src/back_server.ts 3000"
+    "start": "deno run --allow-net --allow-env src/back_server.ts 3000",
+    "db:migrate": "deno run --allow-net --allow-env --allow-read=migrations src/Migrations/runMigrations.ts"
   }
 } 
