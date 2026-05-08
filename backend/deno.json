@@ -4,7 +4,8 @@
     "cors": "https://deno.land/x/cors@v1.2.2/mod.ts",
     "djwt": "https://deno.land/x/djwt@v3.0.2/mod.ts",
     "postgres": "jsr:@db/postgres",
-    "redis": "https://deno.land/x/redis@v0.29.0/mod.ts"
+    "redis": "https://deno.land/x/redis@v0.29.0/mod.ts",
+    "zod": "npm:zod@4.4.3"
   },
   "tasks": {
     "dev": "deno run --watch --allow-net --allow-env src/back_server.ts 3000",

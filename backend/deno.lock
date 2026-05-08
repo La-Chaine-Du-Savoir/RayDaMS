@@ -17,7 +17,8 @@
     "jsr:@std/media-types@1": "1.1.0",
     "jsr:@std/path@1": "1.1.4",
     "jsr:@std/path@^1.0.8": "1.1.4",
-    "npm:path-to-regexp@^6.3.0": "6.3.0"
+    "npm:path-to-regexp@^6.3.0": "6.3.0",
+    "npm:zod@4.4.3": "4.4.3"
   },
   "jsr": {
     "@db/postgres@0.19.5": {
@@ -78,6 +79,9 @@
   "npm": {
     "path-to-regexp@6.3.0": {
       "integrity": "sha512-Yhpw4T9C6hPpgPeA28us07OJeqZ5EzQTkbfwuhsUg0c237RomFoETJgmp2sa3F/41gfLE6G5cqcYwznmeEeOlQ=="
+    },
+    "zod@4.4.3": {
+      "integrity": "sha512-ytENFjIJFl2UwYglde2jchW2Hwm4GJFLDiSXWdTrJQBIN9Fcyp7n4DhxJEiWNAJMV1/BqWfW/kkg71UDcHJyTQ=="
     }
   },
   "remote": {
@@ -154,7 +158,8 @@
   },
   "workspace": {
     "dependencies": [
-      "jsr:@db/postgres@*"
+      "jsr:@db/postgres@*",
+      "npm:zod@4.4.3"
     ]
   }
 }
