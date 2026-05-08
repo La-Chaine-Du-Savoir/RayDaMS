@@ -5,7 +5,8 @@
     "djwt": "https://deno.land/x/djwt@v3.0.2/mod.ts",
     "postgres": "jsr:@db/postgres",
     "redis": "https://deno.land/x/redis@v0.29.0/mod.ts",
-    "zod": "npm:zod@4.4.3"
+    "zod": "npm:zod@4.4.3",
+    "bcrypt": "https://deno.land/x/bcrypt@v0.4.1/mod.ts"
   },
   "tasks": {
     "dev": "deno run --watch --allow-net --allow-env src/back_server.ts 3000",

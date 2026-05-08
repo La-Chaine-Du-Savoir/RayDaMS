@@ -1,65 +1,85 @@
-class Config {
-    readonly allowedOrigins: string[];
-    readonly dbHost: string;
-    readonly dbPort: number;
-    readonly dbName: string;
-    readonly dbUser: string;
-    readonly dbPassword: string;
+interface Config {
+    allowedOrigins: string[];
+    dbHost: string;
+    dbPort: number;
+    dbName: string;
+    dbUser: string;
+    dbPassword: string;
     jwtSecret?: CryptoKey;
-    readonly jwtSecretRaw: string;
-    readonly redisHost: string;
-    readonly redisPort: number;
-    readonly redisPassword: string;
-
-    constructor() {
-        const rawOrigins = this.getEnv("ALLOWED_ORIGINS", "");
-
-        this.allowedOrigins = rawOrigins
-            .split(",")
-            .map(origin => origin.trim())
-            .filter(origin => origin.length > 0);
-
-        this.dbHost = this.getEnv("DB_HOST", "localhost");
-        this.dbPort = this.getNumberEnv("DB_PORT", 5432);
-        this.dbName = this.getEnv("DB_NAME", "raydams");
-        this.dbUser = this.getEnv("DB_USER", "raydams");
-        this.dbPassword = this.getEnv("DB_PASSWORD", "");
-
-        this.jwtSecretRaw = this.getEnv("JWT_SECRET", "");
-        if (!this.jwtSecretRaw) {
-            console.warn("⚠️  JWT_SECRET not set. Using empty secret (not recommended for production)");
-        }
-
-        this.redisHost = this.getEnv("REDIS_HOST", "localhost");
-        this.redisPassword = this.getEnv("REDIS_PASSWORD", "");
-        this.redisPort = this.getNumberEnv("REDIS_PORT", 6379);
-    }
-
-    private getEnv(key: string, defaultValue = ""): string {
-        const value = Deno.env.get(key);
-        return value !== undefined ? value : defaultValue;
-    }
-
-    private getNumberEnv(key: string, defaultValue: number): number {
-        const value = this.getEnv(key, "");
-        if (value === "") {
-            return defaultValue;
-        }
-
-        const parsed = Number(value);
-        return Number.isFinite(parsed) ? parsed : defaultValue;
-    }
-
+    redisHost: string;
+    redisPort: number;
+    redisPassword: string;
+    accessTokenLifetime: number;
+    refreshTokenLifetime: number;
+    cookieSecure: boolean;
+    cookieSamesite: "lax" | "strict" | "none";
 }
 
-const config = new Config();
+const getEnv = (key: string, defaultValue = ""): string => {
+    return Deno.env.get(key) ?? defaultValue;
+};
+
+const getNumberEnv = (key: string, defaultValue: number): number => {
+    const value = getEnv(key, "");
+    if (value === "") return defaultValue;
+    const parsed = Number(value);
+    return Number.isFinite(parsed) ? parsed : defaultValue;
+};
+
+const getBooleanEnv = (key: string, defaultValue: boolean): boolean => {
+    const value = getEnv(key, "")
+    if (value === "") return defaultValue;
+    const truthyValues = ["true", "1", "yes", "on", 'True'];
+    const falsyValues = ["false", "0", "no", "off", 'False'];
+    if (truthyValues.includes(value)) return true;
+    if (falsyValues.includes(value)) return false;
+    return defaultValue;
+};
+
+const getSameSiteEnv = (key: string, defaultValue: "lax" | "strict" | "none"): "lax" | "strict" | "none" => {
+    // deno-lint-ignore no-explicit-any
+    const value = getEnv(key, "").toLowerCase() as any;
+    const validValues = ["lax", "strict", "none"];
+
+    if (validValues.includes(value)) {
+        return value;
+    }
+    return defaultValue;
+};
+
+const rawOrigins = getEnv("ALLOWED_ORIGINS", "");
+const jwtSecretRaw = getEnv("JWT_SECRET", "");
+
+const config: Config = {
+    allowedOrigins: rawOrigins
+        .split(",")
+        .map(origin => origin.trim())
+        .filter(origin => origin.length > 0),
+
+    dbHost: getEnv("DB_HOST", "localhost"),
+    dbPort: getNumberEnv("DB_PORT", 5432),
+    dbName: getEnv("DB_NAME", "raydams"),
+    dbUser: getEnv("DB_USER", "raydams"),
+    dbPassword: getEnv("DB_PASSWORD", ""),
+
+    redisHost: getEnv("REDIS_HOST", "localhost"),
+    redisPassword: getEnv("REDIS_PASSWORD", ""),
+    redisPort: getNumberEnv("REDIS_PORT", 6379),
+    accessTokenLifetime: getNumberEnv("ACCESS_TOKEN_LIFETIME", 15 * 60),
+    refreshTokenLifetime: getNumberEnv("REFRESH_TOKEN_LIFETIME", 7 * 24 * 60 * 60),
+    cookieSecure: getBooleanEnv("COOKIE_SECURE", true),
+    cookieSamesite: getSameSiteEnv("COOKIE_SAMESITE", "lax")
+};
+
+if (!jwtSecretRaw) {
+    console.warn("JWT_SECRET not set. Using empty secret (not recommended for production)");
+}
 
 try {
-    const raw = config.jwtSecretRaw ?? "";
     config.jwtSecret = await crypto.subtle.importKey(
         "raw",
-        new TextEncoder().encode(raw),
-        { name: "HMAC", hash: "SHA-256" },
+        new TextEncoder().encode(jwtSecretRaw),
+        { name: "HMAC", hash: "SHA-512" },
         false,
         ["sign", "verify"],
     );

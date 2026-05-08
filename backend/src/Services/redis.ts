@@ -1,5 +1,5 @@
 import { connect, Redis } from "redis";
-import config from "./config.ts";
+import config from "../Config/config.ts";
 
 let redis: Redis;
 

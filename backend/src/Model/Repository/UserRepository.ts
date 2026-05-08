@@ -1,5 +1,5 @@
 import { User } from "../DataObjects/User.ts";
-import db from "../../Config/database.ts";
+import db from "../../Services/database.ts";
 
 const table = "users";
 
@@ -50,11 +50,15 @@ export async function getByEmail(email: string): Promise<User | undefined> {
 }
 
 export async function getByUsername(username: string): Promise<User | undefined> {
-    const result = await db.queryObject<User>(
-        `SELECT id, username, email, password_hash, path_profil_picture, created_at
-         FROM ${table}
-         WHERE username = $1
-         LIMIT 1`,
+    const result = await db.queryObject<User & { roles: string[] }>(
+        `SELECT
+             u.*,
+             COALESCE(JSON_AGG(r.label) FILTER (WHERE r.label IS NOT NULL), '[]') as roles
+         FROM users u
+                  LEFT JOIN roles_users ru ON u.id = ru.user_id
+                  LEFT JOIN roles r ON ru.role_id = r.id
+         WHERE u.username = $1
+         GROUP BY u.id`,
         [username],
     );
 
