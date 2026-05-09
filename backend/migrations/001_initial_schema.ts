@@ -1,4 +1,4 @@
-import type { MigrationExecutor } from "../src/Migrations/types.ts";
+import type { MigrationExecutor } from "../src/Commands/runMigrations.ts";
 
 const migration = {
     version: 1,

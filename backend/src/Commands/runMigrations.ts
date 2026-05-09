@@ -1,6 +1,19 @@
-import { Client } from "postgres";
-import config from "../Config/config.ts";
-import type { MigrationModule, MigrationExecutor} from "./types.ts";
+import db from "../Services/database.ts";
+
+export interface MigrationExecutor {
+    queryArray<T = unknown[]>(query: string | TemplateStringsArray, ...args: unknown[]): Promise<{ rows: T[] }>;
+    queryObject<T extends Record<string, unknown> = Record<string, unknown>>(
+        query: string | TemplateStringsArray,
+        ...args: unknown[]
+    ): Promise<{ rows: T[] }>;
+}
+
+interface MigrationModule {
+    version?: number;
+    name?: string;
+    up(executor: MigrationExecutor): Promise<void> | void;
+}
+
 
 const MIGRATION_LOCK_KEY = 7845123;
 const MIGRATIONS_DIRECTORY = new URL("../../migrations/", import.meta.url);
@@ -83,15 +96,7 @@ async function loadMigrations(): Promise<LoadedMigration[]> {
 }
 
 export async function runMigrations(): Promise<void> {
-    const client = new Client({
-        user: config.dbUser,
-        database: config.dbName,
-        hostname: config.dbHost,
-        port: config.dbPort,
-        password: config.dbPassword,
-    });
-
-    await client.connect();
+    const client = db;
 
     try {
         await ensureMigrationTableExists(client);
