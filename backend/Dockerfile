@@ -4,7 +4,7 @@ WORKDIR /app
 
 COPY deno.json deno.lock ./
 
-RUN deno install
+RUN deno install --frozen
 
 EXPOSE 3000
 

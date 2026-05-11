@@ -1,5 +1,5 @@
 import { Client } from "postgres";
-import config from "./config.ts";
+import config from "../Config/config.ts";
 
 const client = new Client({
     user: config.dbUser,

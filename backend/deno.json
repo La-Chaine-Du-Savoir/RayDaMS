@@ -4,11 +4,14 @@
     "cors": "https://deno.land/x/cors@v1.2.2/mod.ts",
     "djwt": "https://deno.land/x/djwt@v3.0.2/mod.ts",
     "postgres": "jsr:@db/postgres",
-    "redis": "https://deno.land/x/redis@v0.29.0/mod.ts"
+    "redis": "https://deno.land/x/redis@v0.29.0/mod.ts",
+    "zod": "npm:zod@4.4.3",
+    "bcrypt": "https://deno.land/x/bcrypt@v0.4.1/mod.ts"
   },
   "tasks": {
     "dev": "deno run --watch --allow-net --allow-env src/back_server.ts 3000",
     "start": "deno run --allow-net --allow-env src/back_server.ts 3000",
-    "db:migrate": "deno run --allow-net --allow-env --allow-read=migrations src/Migrations/runMigrations.ts"
+    "db:migrate": "deno run --allow-net --allow-env --allow-read=migrations src/Commands/runMigrations.ts",
+    "user:create-admin": "deno run --allow-net --allow-env src/Commands/createAdmin.ts"
   }
-} 
+}
