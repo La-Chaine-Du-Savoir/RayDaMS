@@ -2,3 +2,4 @@
 .git
 .env*
 .vscode
+frontend/.vite
