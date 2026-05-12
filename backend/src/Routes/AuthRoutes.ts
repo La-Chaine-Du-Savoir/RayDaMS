@@ -70,7 +70,7 @@ router.post("/login", async (ctx: Context) => {
     ctx.response.body = {
         success: true,
         message: "Login successful",
-        user: sanitizeUser(user),
+        user: await sanitizeUser(user),
     }
 });
 
@@ -182,7 +182,7 @@ router.post("/register", async (ctx: Context) => {
     ctx.response.body = {
         success: true,
         message: "User registered successfully",
-        user: sanitizeUser(createdUser),
+        user: await sanitizeUser(createdUser),
     };
 })
 
