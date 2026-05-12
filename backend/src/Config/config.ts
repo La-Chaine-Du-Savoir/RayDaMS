@@ -13,6 +13,7 @@ interface Config {
     s3Password: string,
     s3Port: number,
     s3PublicHost: string,
+    s3StorageBucketName: string,
     accessTokenLifetime: number;
     refreshTokenLifetime: number;
     cookieSecure: boolean;
@@ -73,6 +74,7 @@ const config: Config = {
     s3User: getEnv("S3_USER", "raydams"),
     s3Password: getEnv("S3_PASSWORD", ""),
     s3Port: getNumberEnv("S3_PORT", 9000),
+    s3StorageBucketName: getEnv("S3_STORAGE_BUCKET_NAME", "raydams"),
     s3PublicHost: getEnv("PUBLIC_S3_ENDPOINT", "http://localhost:9000"),
 
     accessTokenLifetime: getNumberEnv("ACCESS_TOKEN_LIFETIME", 15 * 60),
