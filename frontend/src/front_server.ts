@@ -6,7 +6,7 @@ const router = new Router();
 const ROOT = join(Deno.cwd(), "src");
 
 router.get("/", async (ctx) => {
-    await send(ctx, "pages/login.html", { root: ROOT });
+    await send(ctx, "pages/index.html", { root: ROOT });
 });
 
 router.get("/login", async (ctx) => {
