@@ -52,6 +52,15 @@ services:
       redis:
         condition: service_healthy
 
+  frontend:
+    image: nginxinc/nginx-unprivileged:alpine3.23-perl
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./frontend:/usr/share/nginx/html:ro
+    depends_on:
+      - api
+
 volumes:
   pgdata:
   redis_data:
