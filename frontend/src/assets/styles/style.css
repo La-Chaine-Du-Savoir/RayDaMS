@@ -175,7 +175,7 @@ section h2 {
     color: var(--polytech-blue-dark);
 }
 
-/* --- Composant Carte Standardisé (Jeux & Partenaires) --- */
+/* --- Composant Carte Standardisï¿½ (Jeux & Partenaires) --- */
 
 .cards-container {
     display: flex;
@@ -204,7 +204,7 @@ section h2 {
     border-color: var(--dams-pink);
 }
 
-/* L'élément média (Image ou Placeholder) à l'intérieur de la carte */
+/* L'ï¿½lï¿½ment mï¿½dia (Image ou Placeholder) ï¿½ l'intï¿½rieur de la carte */
 .card-media {
     width: 80%;
     height: 60%;
@@ -221,7 +221,7 @@ section h2 {
     margin-bottom: 15px;
 }
 
-/* --- Section École / Partenaires --- */
+/* --- Section ï¿½cole / Partenaires --- */
 .partners {
     margin-top: 4rem;
     padding: 3rem 2rem;
@@ -266,3 +266,4 @@ footer {
     color: var(--dams-pink);
     transform: translateY(-2px);
 }
+

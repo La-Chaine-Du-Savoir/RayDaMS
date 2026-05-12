@@ -1,11 +1,12 @@
 {
   "imports": {
     "axios": "npm:axios@^1.6.0",
-    "vite": "npm:vite@^5.0.0"
+    "vite": "npm:vite@^5.0.0",
+    "oak": "https://deno.land/x/oak@v17.1.6/mod.ts",
+    "path": "https://deno.land/std@0.177.0/path/mod.ts"
   },
   "tasks": {
-    "dev": "deno run -A npm:vite",
-    "build": "deno run -A npm:vite build",
-    "preview": "deno run -A npm:vite preview"
+    "dev": "deno run --watch --allow-net --allow-read src/front_server.ts 5173",
+    "start": "deno run --allow-net --allow-read src/front_server.ts 5173"
   }
 }
