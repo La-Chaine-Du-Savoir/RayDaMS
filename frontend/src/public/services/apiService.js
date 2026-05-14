@@ -19,14 +19,17 @@ const apiClient = axios.create({
 });
 
 export const apiService = {
-    connectedUser: null,
-    isAuthenticated: false,
+    connectedUser: JSON.parse(sessionStorage.getItem('user')) || null,
+    isAuthenticated: !!sessionStorage.getItem('user'),
 
     async login(username, password) {
         try {
             const res = await apiClient.post('auth/login', { username: username, password: password });
             this.connectedUser = res.data.user;
             this.isAuthenticated = true;
+
+            sessionStorage.setItem('user', JSON.stringify(res.data.user));
+
             return { success: true, user: res.data.user };
         } catch (error) {
             return { success: false, error: getErrorMessage(error) };
@@ -36,12 +39,12 @@ export const apiService = {
     async logout() {
         try {
             await apiClient.post('auth/logout');
+        } finally {
             this.connectedUser = null;
             this.isAuthenticated = false;
-            return { success: true };
-        } catch (error) {
-            return { success: false, error: getErrorMessage(error) };
+            sessionStorage.removeItem('user');
         }
+        return { success: true };
     },
 
     async refresh() {
@@ -49,14 +52,15 @@ export const apiService = {
 
         refreshPromise = (async () => {
             try {
-                await apiClient.post('/auth/token/refresh');
+                const res = await apiClient.post('/auth/token/refresh');
                 this.isAuthenticated = true;
-                const res = await apiClient.get('auth/user/');
-                this.connectedUser = res.data;
-                return { success: true, user: res.data };
+                this.connectedUser = res.data.user;
+                sessionStorage.setItem('user', JSON.stringify(res.data.user));
+                return { success: true, user: res.data.user };
             } catch (error) {
                 this.isAuthenticated = false;
                 this.connectedUser = null;
+                sessionStorage.removeItem('user');
                 return { success: false, error: getErrorMessage(error) };
             } finally {
                 refreshPromise = null;
@@ -137,3 +141,5 @@ export const apiService = {
         }
     }
 };
+
+apiService.refresh();

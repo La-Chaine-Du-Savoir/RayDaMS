@@ -259,8 +259,7 @@ router.post("/token/refresh", async (ctx: Context) => {
         });
 
         ctx.response.status = 200;
-        ctx.response.body = { success: true, message: "Token refreshed successfully" };
-
+        ctx.response.body = { success: true, message: "Token refreshed successfully", user: sanitizeUser(user) };
     } catch (err) {
         console.error("Refresh error:", err);
         ctx.response.status = 500;
