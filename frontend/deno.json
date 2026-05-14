@@ -5,6 +5,6 @@
   },
   "tasks": {
     "dev": "deno run --watch --allow-net --allow-read src/front_server.ts 5173",
-    "start": "deno run --allow-net --allow-read src/front_server.ts 5173"
+    "start": "deno run --allow-net --allow-read src/front_server.ts 5173 --cache"
   }
 }

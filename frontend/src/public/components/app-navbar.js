@@ -33,8 +33,8 @@ export class AppNavbar extends LitElement {
       <nav class="navbar">
         <div class="nav-left">
           <a href="/" class="nav-brand">Ray<span class="highlight">DaMS</span></a>
-          <img src="/assets/images/logo-dams.png" alt="Logo DaMS" class="nav-logo" />
-          <img src="/assets/images/logo-polytech.svg" alt="Logo Polytech" class="nav-logo logo-polytech" />
+          <img src="/public/assets/images/logo-dams.png" alt="Logo DaMS" class="nav-logo"/>
+          <img src="/public/assets/images/logo-polytech.svg" alt="Logo Polytech" class="nav-logo logo-polytech"/>
           <div class="nav-separator"></div>
           <a href="#" class="nav-link">Jeux</a>
         </div>
@@ -48,4 +48,3 @@ export class AppNavbar extends LitElement {
 }
 
 customElements.define("app-navbar", AppNavbar);
-
