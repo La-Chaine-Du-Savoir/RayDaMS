@@ -3,13 +3,22 @@ import { join } from "path";
 
 const app = new Application();
 const router = new Router();
-const ROOT = join(Deno.cwd(), "src");
+const ROOT = import.meta.dirname || join(Deno.cwd(), "src");
+const PUBLIC_DIR = join(ROOT, "public");
 
-const IMPORT_MAP = `
+const appConfig = {
+    API_URL: Deno.env.get("API_URL") || "http://localhost:3000",
+};
+
+const rawConfig = JSON.stringify(appConfig);
+
+const INJECTIONS = `
+    <script>window.APP_CONFIG = ${rawConfig};</script>
     <script type="importmap">
         {
           "imports": {
-            "lit": "https://esm.sh/lit@3"
+            "lit": "https://esm.sh/lit@3",
+            "axios": "https://esm.sh/axios@1.16"
           }
         }
     </script>`;
@@ -39,9 +48,9 @@ async function serveHtml(ctx: any, fileName: string) {
         let content = await Deno.readTextFile(filePath);
 
         if (content.includes('<meta charset="UTF-8">')) {
-            content = content.replace('<meta charset="UTF-8">', `<meta charset="UTF-8">\n${IMPORT_MAP}`);
+            content = content.replace('<meta charset="UTF-8">', `<meta charset="UTF-8">\n${INJECTIONS}`);
         } else {
-            content = content.replace("<head>", `<head>\n${IMPORT_MAP}`);
+            content = content.replace("<head>", `<head>\n${INJECTIONS}`);
         }
 
         if (USE_CACHE) {
@@ -78,7 +87,7 @@ app.use(router.allowedMethods());
 app.use(async (ctx) => {
     try {
         await send(ctx, ctx.request.url.pathname, {
-            root: ROOT,
+            root: PUBLIC_DIR,
         });
     } catch {
         ctx.response.status = 404;

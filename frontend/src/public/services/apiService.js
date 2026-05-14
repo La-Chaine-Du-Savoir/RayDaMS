@@ -4,12 +4,7 @@ function getErrorMessage(error) {
     const data = error.response?.data;
 
     if (data && typeof data === 'object') {
-        if (data.title) return data.title;
-        for (const key in data) {
-            if (Array.isArray(data[key]) && data[key].length > 0) {
-                return `${key}: ${data[key][0]}`;
-            }
-        }
+        if (data.error) return data.error;
     }
 
     return error.message || "Une erreur inconnue est survenue";
@@ -18,7 +13,7 @@ function getErrorMessage(error) {
 let refreshPromise = null;
 
 const apiClient = axios.create({
-    baseURL: "http://localhost:3000",
+    baseURL: window.APP_CONFIG.API_URL,
     withCredentials: true,
     headers: { 'Content-Type': 'application/json' },
 });
@@ -27,9 +22,9 @@ export const apiService = {
     connectedUser: null,
     isAuthenticated: false,
 
-    async login(email, password) {
+    async login(username, password) {
         try {
-            const res = await apiClient.post('auth/login', { email, password });
+            const res = await apiClient.post('auth/login', { username: username, password: password });
             this.connectedUser = res.data.user;
             this.isAuthenticated = true;
             return { success: true, user: res.data.user };
