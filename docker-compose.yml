@@ -25,7 +25,9 @@ services:
       retries: 5
 
   api:
-    build: ./backend/.
+    build:
+        context: .
+        dockerfile: ./backend/Dockerfile
     ports:
       - "3000:3000"
     command: ["sh", "-c", "deno task db:migrate && exec deno task dev"]
@@ -45,13 +47,24 @@ services:
       COOKIE_SECURE: ${COOKIE_SECURE}
       COOKIE_SAMESITE: ${COOKIE_SAMESITE}
     volumes:
-      - ./backend:/app
+      - ./backend:/app/backend
     depends_on:
       db:
         condition: service_healthy
       redis:
         condition: service_healthy
 
+  frontend:
+    build:
+      context: .
+      dockerfile: ./frontend/Dockerfile
+    ports:
+      - "5173:5173"
+    environment:
+      API_URL: ${API_URL}
+    command: ["deno", "task", "dev"]
+    volumes:
+      - ./frontend:/app/frontend
 volumes:
   pgdata:
   redis_data:
