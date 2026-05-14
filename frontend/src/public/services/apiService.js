@@ -29,6 +29,7 @@ export const apiService = {
             this.isAuthenticated = true;
 
             sessionStorage.setItem('user', JSON.stringify(res.data.user));
+            window.dispatchEvent(new CustomEvent('auth-change', { detail: this.connectedUser }));
 
             return { success: true, user: res.data.user };
         } catch (error) {
@@ -42,6 +43,7 @@ export const apiService = {
         } finally {
             this.connectedUser = null;
             this.isAuthenticated = false;
+            window.dispatchEvent(new CustomEvent('auth-change', { detail: this.connectedUser }));
             sessionStorage.removeItem('user');
         }
         return { success: true };
@@ -56,11 +58,13 @@ export const apiService = {
                 this.isAuthenticated = true;
                 this.connectedUser = res.data.user;
                 sessionStorage.setItem('user', JSON.stringify(res.data.user));
+                window.dispatchEvent(new CustomEvent('auth-change', { detail: this.connectedUser }));
                 return { success: true, user: res.data.user };
             } catch (error) {
                 this.isAuthenticated = false;
                 this.connectedUser = null;
                 sessionStorage.removeItem('user');
+                window.dispatchEvent(new CustomEvent('auth-change', { detail: this.connectedUser }));
                 return { success: false, error: getErrorMessage(error) };
             } finally {
                 refreshPromise = null;
