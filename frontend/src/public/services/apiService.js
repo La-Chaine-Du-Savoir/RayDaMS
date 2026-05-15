@@ -4,7 +4,28 @@ function getErrorMessage(error) {
     const data = error.response?.data;
 
     if (data && typeof data === 'object') {
-        if (data.error) return data.error;
+        const apiError = data.error;
+
+        if (apiError) {
+            // Gestion spécifique des ZodError
+            if (apiError.name === "ZodError") {
+                try {
+                    const details = typeof apiError.message === 'string'
+                        ? JSON.parse(apiError.message)
+                        : apiError.message;
+
+                    if (Array.isArray(details)) {
+                        return details
+                            .map(item => `${item.path.join('.')}: ${item.message}`)
+                            .join('\n');
+                    }
+                } catch (e) {
+                    console.error("Erreur de parsing ZodError:", e);
+                }
+            }
+
+            return apiError.message || apiError;
+        }
     }
 
     return error.message || "Une erreur inconnue est survenue";
