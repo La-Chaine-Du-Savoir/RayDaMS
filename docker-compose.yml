@@ -60,7 +60,9 @@ services:
 
 
   api:
-    build: ./backend/.
+    build:
+        context: .
+        dockerfile: ./backend/Dockerfile
     ports:
       - "3000:3000"
     command: ["sh", "-c", "deno task db:migrate && exec deno task dev"]
@@ -86,7 +88,7 @@ services:
       PUBLIC_S3_ENDPOINT: http://localhost:9000
       S3_STORAGE_BUCKET_NAME: ${MINIO_STORAGE_BUCKET_NAME}
     volumes:
-      - ./backend:/app
+      - ./backend:/app/backend
     depends_on:
       db:
         condition: service_healthy
@@ -98,14 +100,16 @@ services:
         condition: service_completed_successfully
 
   frontend:
-    image: nginxinc/nginx-unprivileged:alpine3.23-perl
+    build:
+      context: .
+      dockerfile: ./frontend/Dockerfile
     ports:
-      - "8080:8080"
+      - "5173:5173"
+    environment:
+      API_URL: ${API_URL}
+    command: ["deno", "task", "dev"]
     volumes:
-      - ./frontend:/usr/share/nginx/html:ro
-    depends_on:
-      - api
-
+      - ./frontend:/app/frontend
 volumes:
   pgdata:
   redis_data:
