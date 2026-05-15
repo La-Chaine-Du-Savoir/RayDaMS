@@ -70,7 +70,7 @@ router.post("/login", async (ctx: Context) => {
     ctx.response.body = {
         success: true,
         message: "Login successful",
-        user: sanitizeUser(user),
+        user: await sanitizeUser(user),
     }
 });
 
@@ -182,7 +182,7 @@ router.post("/register", async (ctx: Context) => {
     ctx.response.body = {
         success: true,
         message: "User registered successfully",
-        user: sanitizeUser(createdUser),
+        user: await sanitizeUser(createdUser),
     };
 })
 
@@ -259,7 +259,8 @@ router.post("/token/refresh", async (ctx: Context) => {
         });
 
         ctx.response.status = 200;
-        ctx.response.body = { success: true, message: "Token refreshed successfully", user: sanitizeUser(user) };
+        console.log(user);
+        ctx.response.body = { success: true, message: "Token refreshed successfully", user: await sanitizeUser(user) };
     } catch (err) {
         console.error("Refresh error:", err);
         ctx.response.status = 500;
