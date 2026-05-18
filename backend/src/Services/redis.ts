@@ -5,9 +5,9 @@ let redis: Redis;
 
 try {
     redis = await connect({
-        hostname: config.redisHost,
-        port: config.redisPort,
-        password: config.redisPassword,
+        hostname: config.redis.host,
+        port: config.redis.port,
+        password: config.redis.password,
     });
     console.log("Connected to Redis");
 } catch (err) {
