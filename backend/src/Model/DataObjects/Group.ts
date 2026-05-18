@@ -7,3 +7,5 @@ export interface Group {
     created_at?: Date;
     users?: User[];
 }
+
+export type GroupWithUsers = Group & { users: User[] };

@@ -1,6 +1,6 @@
 import { Context, Router } from "oak";
 import { z } from "zod";
-import { customAlphabet } from "npm:nanoid@5.1.11";
+import { customAlphabet } from "nanoid";
 import {restrictToAdmin} from "../Middlewares/restrictionMiddleware.ts";
 import {Group} from "../Model/DataObjects/Group.ts";
 import groupRepository from "../Model/Repository/GroupRepository.ts";
