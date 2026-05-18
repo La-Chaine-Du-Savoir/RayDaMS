@@ -124,6 +124,6 @@ export async function getByCode(code: string): Promise<Group | undefined> {
     return result.rows[0];
 }
 
-const groupRepository = { create, getById, getAllGroups, deleteGroup, addUserToGroup, removeUserFromGroup, updateGroupName };
+const groupRepository = { create, getById, getAllGroups, deleteGroup, addUserToGroup, removeUserFromGroup, updateGroupName, getByCode };
 
 export default groupRepository;
