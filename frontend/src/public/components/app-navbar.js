@@ -177,6 +177,7 @@ export class AppNavbar extends LitElement {
           ${this._user
         ? html`
                 <span class="user-greeting">Salut, ${this._user.username} !</span>
+                <a href="/profile" class="btn btn-outline">Mon Profil</a>
                 <button @click="${this._logout}" class="btn btn-logout">Déconnexion</button>
               `
         : html`
