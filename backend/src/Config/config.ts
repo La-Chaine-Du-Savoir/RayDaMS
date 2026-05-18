@@ -1,6 +1,7 @@
 interface Config {
     allowedOrigins: string[];
     jwtSecret?: CryptoKey;
+    pepperSecret: string;
     accessTokenLifetime: number;
     refreshTokenLifetime: number;
     cookieSecure: boolean;
@@ -94,8 +95,13 @@ const config: Config = {
     accessTokenLifetime: getNumberEnv("ACCESS_TOKEN_LIFETIME", 15 * 60),
     refreshTokenLifetime: getNumberEnv("REFRESH_TOKEN_LIFETIME", 7 * 24 * 60 * 60),
     cookieSecure: getBooleanEnv("COOKIE_SECURE", true),
-    cookieSamesite: getSameSiteEnv("COOKIE_SAMESITE", "lax")
+    cookieSamesite: getSameSiteEnv("COOKIE_SAMESITE", "lax"),
+    pepperSecret: getEnv("PEPPER_SECRET", "")
 };
+
+if(!config.pepperSecret){
+    console.warn("PEPPER_SECRET not set. Using empty secret (not recommended for production)");
+}
 
 if (!jwtSecretRaw) {
     console.warn("JWT_SECRET not set. Using empty secret (not recommended for production)");
