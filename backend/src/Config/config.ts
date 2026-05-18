@@ -9,6 +9,12 @@ interface Config {
     redisHost: string;
     redisPort: number;
     redisPassword: string;
+    s3User: string,
+    s3Password: string,
+    s3Port: number,
+    s3PublicHost: string,
+    s3Endpoint: string,
+    s3StorageBucketName: string,
     accessTokenLifetime: number;
     refreshTokenLifetime: number;
     cookieSecure: boolean;
@@ -65,6 +71,14 @@ const config: Config = {
     redisHost: getEnv("REDIS_HOST", "localhost"),
     redisPassword: getEnv("REDIS_PASSWORD", ""),
     redisPort: getNumberEnv("REDIS_PORT", 6379),
+
+    s3User: getEnv("S3_USER", "raydams"),
+    s3Password: getEnv("S3_PASSWORD", ""),
+    s3Port: getNumberEnv("S3_PORT", 9000),
+    s3StorageBucketName: getEnv("S3_STORAGE_BUCKET_NAME", "raydams"),
+    s3PublicHost: getEnv("PUBLIC_S3_ENDPOINT", "http://localhost:9000"),
+    s3Endpoint: getEnv("S3_ENDPOINT", "minio"),
+
     accessTokenLifetime: getNumberEnv("ACCESS_TOKEN_LIFETIME", 15 * 60),
     refreshTokenLifetime: getNumberEnv("REFRESH_TOKEN_LIFETIME", 7 * 24 * 60 * 60),
     cookieSecure: getBooleanEnv("COOKIE_SECURE", true),
