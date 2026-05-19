@@ -3,48 +3,106 @@ import { z } from "zod";
 import authMiddleware from "../Middlewares/AuthMiddleware.ts";
 import userRepository from "../Model/Repository/UserRepository.ts";
 import { sanitizeUser } from "../Model/DataObjects/User.ts";
+import cloud from "../Services/cloud.ts";
 
 const router = new Router({ prefix: "/users" });
 
-// tout est optionnel car on peut modifier juste l'email, ou juste la photo
-const UpdateProfileSchema = z.object({
-    email: z.string().trim().email({ message: "Format d'email invalide" }).optional(),
-    path_profil_picture: z.string().trim().optional(),
-});
+const EmailSchema = z.string().trim().email({ message: "Format d'email invalide" }).optional();
 
-type UpdateProfileData = z.infer<typeof UpdateProfileSchema>;
 // authMiddleware pour s'assurer que l'utilisateur est connecté
 router.patch("/me", authMiddleware, async (ctx: Context) => {
     // ctx.state.user rempli par AuthMiddleware
     const currentUser = ctx.state.user;
     
-    const data = await ctx.request.body.json();
-    let parsedData: UpdateProfileData;
-
-    try {
-        parsedData = UpdateProfileSchema.parse(data);
-    } catch (err) {
+    // Vérifier que c'est bien du form-data
+    const contentType = ctx.request.headers.get("content-type") || "";
+    if (!contentType.includes("multipart/form-data")) {
         ctx.response.status = 400;
-        ctx.response.body = { success: false, error: err };
+        ctx.response.body = { success: false, error: "Content-Type doit être multipart/form-data" };
         return;
     }
 
-    // Si le user change son email on check que le nouveau n'est pas déjà pris
-    if (parsedData.email && parsedData.email !== currentUser.email) {
-        const existingByEmail = await userRepository.getByEmail(parsedData.email);
-        if (existingByEmail) {
-            ctx.response.status = 409;
-            ctx.response.body = { success: false, error: "Cet email est déjà utilisé" };
+    try {
+        const formData = await ctx.request.body.formData();
+
+        // Mail
+        const emailField = formData.get("email");
+        // On s'assure que c'est bien une string
+        let newEmail: string | undefined = typeof emailField === "string" ? emailField : undefined;
+        
+        if (newEmail) {
+            const parseResult = EmailSchema.safeParse(newEmail);
+            if (!parseResult.success) {
+                ctx.response.status = 400;
+                ctx.response.body = { success: false, error: "Format d'email invalide" };
+                return;
+            }
+            
+            if (newEmail !== currentUser.email) {
+                const existingByEmail = await userRepository.getByEmail(newEmail);
+                if (existingByEmail) {
+                    ctx.response.status = 409;
+                    ctx.response.body = { success: false, error: "Cet email est déjà utilisé" };
+                    return;
+                }
+            } else {
+                newEmail = undefined; 
+            }
+        }
+
+        // Photo de profil
+        let newPathProfilPicture: string | undefined = undefined;
+        
+        // formData.get renvoie directement l'objet File complet
+        const avatarFile = formData.get("avatar");
+
+        // On vérifie que le champ existe ET que c'est bien un fichier
+        if (avatarFile instanceof File) {
+            
+            // Limite 5 Mo
+            if (avatarFile.size > 5 * 1024 * 1024) {
+                ctx.response.status = 413;
+                ctx.response.body = { success: false, error: "L'image dépasse la limite de 5 Mo." };
+                return;
+            }
+
+            // Vérification de sécurité du type de fichier
+            const allowedTypes = ["image/jpeg", "image/png", "image/jpg", "image/webp"];
+            if (!allowedTypes.includes(avatarFile.type)) {
+                ctx.response.status = 400;
+                ctx.response.body = { success: false, error: "Format d'image non autorisé (JPG, PNG, WEBP uniquement)" };
+                return;
+            }
+
+            // génère un chemin unique
+            const extension = avatarFile.name.split('.').pop();
+            const fileKey = `avatars/${currentUser.id}-${crypto.randomUUID()}.${extension}`;
+
+            // On lit le fichier en mémoire vive
+            const arrayBuffer = await avatarFile.arrayBuffer();
+            const fileContent = new Uint8Array(arrayBuffer);
+            
+            // On l'envoie à Minio
+            await cloud.uploadFile(fileKey, fileContent, avatarFile.type);
+            
+            newPathProfilPicture = fileKey;
+        }
+
+        // Sauvegarde de la bd
+        if (!newEmail && !newPathProfilPicture) {
+            ctx.response.status = 200;
+            ctx.response.body = {
+                success: true,
+                message: "Aucune modification détectée",
+                user: await sanitizeUser(currentUser)
+            };
             return;
         }
-    }
 
-    try {
-        // MaJ de la BD
         const updatedUser = await userRepository.update(
             currentUser.id, 
-            parsedData.email, 
-            parsedData.path_profil_picture
+            newEmail, 
+            newPathProfilPicture
         );
 
         if (!updatedUser) {
@@ -55,9 +113,9 @@ router.patch("/me", authMiddleware, async (ctx: Context) => {
         ctx.response.body = {
             success: true,
             message: "Profil mis à jour avec succès",
-            // On renvoie l'utilisateur avec sa nouvelle URL Minio générée
             user: await sanitizeUser(updatedUser) 
         };
+
     } catch (err) {
         console.error("Erreur update profil:", err);
         ctx.response.status = 500;
