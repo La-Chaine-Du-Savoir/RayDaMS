@@ -3,18 +3,41 @@ import db from "../../Services/database.ts";
 
 const table = "users";
 
-export async function create(user: User): Promise<User> {
-    const result = await db.queryObject<User>(
-        `INSERT INTO ${table}
-            (username, email, password_hash, path_profil_picture)
+export async function create(user: User, roles: string[] = ["member"]): Promise<User & { roles: string[] }> {
+    const result = await db.queryObject<User & { roles: string[] }>(
+        `WITH inserted_user AS (
+         INSERT INTO ${table}
+             (username, email, password_hash, path_profil_picture)
          VALUES
-            ($1, $2, $3, $4)
-         RETURNING id, username, email, password_hash, path_profil_picture, created_at`,
+             ($1, $2, $3, $4)
+             RETURNING id, username, email, password_hash, path_profil_picture, created_at
+             ),
+             inserted_roles AS (
+         INSERT INTO roles_users (user_id, role_id)
+         SELECT iu.id, r.id
+         FROM inserted_user iu
+             CROSS JOIN roles r
+         WHERE r.label = ANY($5)
+             RETURNING role_id
+             )
+        SELECT
+            iu.*,
+            COALESCE(
+                    (
+                        SELECT JSON_AGG(r.label)
+                        FROM roles r
+                                 JOIN roles_users ru ON r.id = ru.role_id
+                        WHERE ru.user_id = iu.id
+                    ),
+                    '[]'::json
+            ) as roles
+        FROM inserted_user iu`,
         [
             user.username,
             user.email,
             user.password_hash,
             user.path_profil_picture ?? null,
+            roles,
         ],
     );
 
