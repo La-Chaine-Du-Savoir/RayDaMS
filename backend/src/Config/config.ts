@@ -1,24 +1,31 @@
 interface Config {
     allowedOrigins: string[];
-    dbHost: string;
-    dbPort: number;
-    dbName: string;
-    dbUser: string;
-    dbPassword: string;
     jwtSecret?: CryptoKey;
-    redisHost: string;
-    redisPort: number;
-    redisPassword: string;
-    s3User: string,
-    s3Password: string,
-    s3Port: number,
-    s3PublicHost: string,
-    s3Endpoint: string,
-    s3StorageBucketName: string,
+    pepperSecret: string;
     accessTokenLifetime: number;
     refreshTokenLifetime: number;
     cookieSecure: boolean;
     cookieSamesite: "lax" | "strict" | "none";
+    db: {
+        host: string;
+        port: number;
+        user: string;
+        password: string;
+        name: string;
+    };
+    redis: {
+        host: string;
+        port: number;
+        password: string;
+    };
+    s3: {
+        user: string;
+        password: string;
+        port: number;
+        publicHost: string;
+        endpoint: string;
+        bucketName: string;
+    }
 }
 
 const getEnv = (key: string, defaultValue = ""): string => {
@@ -62,28 +69,39 @@ const config: Config = {
         .map(origin => origin.trim())
         .filter(origin => origin.length > 0),
 
-    dbHost: getEnv("DB_HOST", "localhost"),
-    dbPort: getNumberEnv("DB_PORT", 5432),
-    dbName: getEnv("DB_NAME", "raydams"),
-    dbUser: getEnv("DB_USER", "raydams"),
-    dbPassword: getEnv("DB_PASSWORD", ""),
+    db: {
+        host: getEnv("DB_HOST", "localhost"),
+        port: getNumberEnv("DB_PORT", 5432),
+        user: getEnv("DB_USER", "raydams"),
+        password: getEnv("DB_PASSWORD", ""),
+        name: getEnv("DB_NAME", "raydams"),
+    },
 
-    redisHost: getEnv("REDIS_HOST", "localhost"),
-    redisPassword: getEnv("REDIS_PASSWORD", ""),
-    redisPort: getNumberEnv("REDIS_PORT", 6379),
+    redis: {
+        host: getEnv("REDIS_HOST", "localhost"),
+        port: getNumberEnv("REDIS_PORT", 6379),
+        password: getEnv("REDIS_PASSWORD", ""),
+    },
 
-    s3User: getEnv("S3_USER", "raydams"),
-    s3Password: getEnv("S3_PASSWORD", ""),
-    s3Port: getNumberEnv("S3_PORT", 9000),
-    s3StorageBucketName: getEnv("S3_STORAGE_BUCKET_NAME", "raydams"),
-    s3PublicHost: getEnv("PUBLIC_S3_ENDPOINT", "http://localhost:9000"),
-    s3Endpoint: getEnv("S3_ENDPOINT", "minio"),
+    s3: {
+        user: getEnv("S3_USER", "raydams"),
+        password: getEnv("S3_PASSWORD", ""),
+        port: getNumberEnv("S3_PORT", 9000),
+        publicHost: getEnv("PUBLIC_S3_ENDPOINT", "http://localhost:9000"),
+        endpoint: getEnv("S3_ENDPOINT", "minio"),
+        bucketName: getEnv("S3_STORAGE_BUCKET_NAME", "raydams"),
+    },
 
     accessTokenLifetime: getNumberEnv("ACCESS_TOKEN_LIFETIME", 15 * 60),
     refreshTokenLifetime: getNumberEnv("REFRESH_TOKEN_LIFETIME", 7 * 24 * 60 * 60),
     cookieSecure: getBooleanEnv("COOKIE_SECURE", true),
-    cookieSamesite: getSameSiteEnv("COOKIE_SAMESITE", "lax")
+    cookieSamesite: getSameSiteEnv("COOKIE_SAMESITE", "lax"),
+    pepperSecret: getEnv("PEPPER_SECRET", "")
 };
+
+if(!config.pepperSecret){
+    console.warn("PEPPER_SECRET not set. Using empty secret (not recommended for production)");
+}
 
 if (!jwtSecretRaw) {
     console.warn("JWT_SECRET not set. Using empty secret (not recommended for production)");

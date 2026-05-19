@@ -2,16 +2,16 @@ import { S3Client, GetObjectCommand, PutObjectCommand } from "client-s3";
 import { getSignedUrl } from "s3-request-presigner";
 import config from "../Config/config.ts";
 
-const BUCKET_NAME = config.s3StorageBucketName || "raydams";
+const BUCKET_NAME = config.s3.bucketName || "raydams";
 
 // Client interne : quand le backend Deno fait des actions directes sur minio (réseau Docker)
 export const internalS3Client = new S3Client({
     // Région pas importante mais obligatoire, sinon le SDK AWS plante en pensant qu'il manque de configuration
     region: "us-east-1",
-    endpoint: `http://${config.s3Endpoint}:${config.s3Port}`, // http://minio:9000
+    endpoint: `http://${config.s3.endpoint}:${config.s3.port}`, // http://minio:9000
     credentials: {
-        accessKeyId: config.s3User!,
-        secretAccessKey: config.s3Password!,
+        accessKeyId: config.s3.user!,
+        secretAccessKey: config.s3.password!,
     },
     // force l'URL en mode http://domain/bucket plutot que http://bucket.domain (DNS local saurait pas résoudre)
     forcePathStyle: true,
@@ -21,10 +21,10 @@ export const internalS3Client = new S3Client({
 export const publicS3Client = new S3Client({
     region: "us-east-1",
     // On met l'URL publique pour que la signature cryptographique matche le domaine final
-    endpoint: config.s3PublicHost, //http://localhost:9000
+    endpoint: config.s3.publicHost, //http://localhost:9000
     credentials: {
-        accessKeyId: config.s3User!,
-        secretAccessKey: config.s3Password!,
+        accessKeyId: config.s3.user!,
+        secretAccessKey: config.s3.password!,
     },
     forcePathStyle: true,
 });

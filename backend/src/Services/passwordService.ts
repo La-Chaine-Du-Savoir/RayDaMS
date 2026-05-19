@@ -1,4 +1,16 @@
 import * as bcrypt from "bcrypt";
+import * as crypto from "node:crypto";
+import config from "../Config/config.ts";
+
+/**
+ * Génère un helper pour combiner le password et le pepper de manière sûre.
+ */
+function pepperPassword(password: string): string {
+    return crypto
+        .createHmac("sha256", config.pepperSecret)
+        .update(password)
+        .digest("hex");
+}
 
 /**
  * Hash un mot de passe en utilisant bcrypt.
@@ -11,7 +23,7 @@ import * as bcrypt from "bcrypt";
 export async function hashPassword(password: string, saltRounds: number = 10): Promise<string> {
     try {
         const salt = await bcrypt.genSalt(saltRounds);
-        return await bcrypt.hash(password, salt);
+        return await bcrypt.hash(pepperPassword(password), salt);
     } catch (error) {
         const message = error instanceof Error ? error.message : String(error);
         throw new Error(`Erreur lors du hachage : ${message}`);
@@ -27,7 +39,7 @@ export async function hashPassword(password: string, saltRounds: number = 10): P
  */
 export async function verifyPassword(password: string, hash: string): Promise<boolean> {
     try {
-        return await bcrypt.compare(password, hash);
+        return await bcrypt.compare(pepperPassword(password), hash);
     } catch (error) {
         const message = error instanceof Error ? error.message : String(error);
         throw new Error(`Erreur lors de la vérification : ${message}`);

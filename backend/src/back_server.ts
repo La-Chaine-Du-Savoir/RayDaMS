@@ -38,7 +38,7 @@ app.use(
         credentials: true,
     })
 );
-console.log(`CORS allows origin ${config.allowedOrigins}`);
+console.log(`CORS allows origin ${config.allowedOrigins.join(", ")}`);
 
 app.use(router.routes());
 app.use(router.allowedMethods())
