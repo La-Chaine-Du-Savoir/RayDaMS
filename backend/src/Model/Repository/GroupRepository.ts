@@ -124,6 +124,33 @@ export async function getByCode(code: string): Promise<Group | undefined> {
     return result.rows[0];
 }
 
-const groupRepository = { create, getById, getAllGroups, deleteGroup, addUserToGroup, removeUserFromGroup, updateGroupName, getByCode };
+export async function getGroupsByUserId(userId: number): Promise<GroupWithUsers[]> {
+    const result = await db.queryObject<GroupWithUsers>(
+        `SELECT
+             g.*,
+             COALESCE(
+                     json_agg(
+                             json_build_object(
+                                     'id', u.id,
+                                     'username', u.username,
+                                     'email', u.email,
+                                     'path_profil_picture', u.path_profil_picture
+                             )
+                     ) FILTER (WHERE u.id IS NOT NULL),
+                     '[]'
+             ) AS users
+         FROM groups g
+                  LEFT JOIN users_groups ug ON g.id = ug.group_id
+                  LEFT JOIN users u ON ug.user_id = u.id
+         WHERE g.id IN (SELECT group_id FROM users_groups WHERE user_id = $1)
+         GROUP BY g.id
+         ORDER BY g.created_at DESC`,
+        [userId]
+    );
+
+    return result.rows;
+}
+
+const groupRepository = { create, getById, getAllGroups, deleteGroup, addUserToGroup, removeUserFromGroup, updateGroupName, getByCode, getGroupsByUserId };
 
 export default groupRepository;
