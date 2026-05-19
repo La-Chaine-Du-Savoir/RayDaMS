@@ -1,4 +1,4 @@
-import { S3Client, GetObjectCommand, PutObjectCommand } from "client-s3";
+import { S3Client, GetObjectCommand, PutObjectCommand, DeleteObjectCommand } from "client-s3";
 import { getSignedUrl } from "s3-request-presigner";
 import config from "../Config/config.ts";
 
@@ -67,6 +67,20 @@ const cloud = {
 
         // internalS3Client car Deno (réseau Docker) fait l'action directe
         await internalS3Client.send(new PutObjectCommand(commandParams));
+    },
+
+    /**
+     * Supprime un fichier sur Minio
+     * @param path Le chemin exact du fichier
+     */
+    async deleteFile(path: string): Promise<void> {
+        const commandParams = {
+            Bucket: BUCKET_NAME,
+            Key: path,
+        };
+        
+        // internalS3Client pour la suppression
+        await internalS3Client.send(new DeleteObjectCommand(commandParams));
     }
 };
 

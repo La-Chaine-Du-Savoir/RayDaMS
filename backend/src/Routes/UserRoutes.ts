@@ -86,6 +86,15 @@ router.patch("/me", authMiddleware, async (ctx: Context) => {
             await cloud.uploadFile(fileKey, fileContent, avatarFile.type);
             
             newPathProfilPicture = fileKey;
+
+            // supprime l'ancienne image de Minio si elle existe 
+            if (currentUser.path_profil_picture) {
+                try {
+                    await cloud.deleteFile(currentUser.path_profil_picture);
+                } catch (e) {
+                    console.error("Impossible de supprimer l'ancienne image:", e);
+                }
+            }
         }
 
         // Sauvegarde de la bd
