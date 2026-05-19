@@ -57,7 +57,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const file = avatarInput.files[0];
 
         // Si l'email n'a pas changé, on ne fait rien
-        if (newEmail === user.email) {
+        if (newEmail === user.email && !file) {
             showMessage("Aucune modification détectée.", "success-message");
             return;
         }

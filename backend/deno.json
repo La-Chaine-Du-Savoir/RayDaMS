@@ -11,9 +11,9 @@
     "s3-request-presigner": "npm:@aws-sdk/s3-request-presigner@^3.600.0"
   },
   "tasks": {
-    "dev": "deno run --watch --allow-net --allow-env src/back_server.ts 3000",
-    "start": "deno run --allow-net --allow-env src/back_server.ts 3000",
-    "db:migrate": "deno run --allow-net --allow-env --allow-read=migrations src/Commands/runMigrations.ts",
-    "user:create-admin": "deno run --allow-net --allow-env src/Commands/createAdmin.ts"
+    "dev": "deno run --watch --allow-net --allow-env --allow-sys --allow-read src/back_server.ts 3000",
+    "start": "deno run --allow-net --allow-env --allow-sys --allow-read src/back_server.ts 3000",
+    "db:migrate": "deno run --allow-net --allow-env --allow-sys --allow-read=migrations src/Commands/runMigrations.ts",
+    "user:create-admin": "deno run --allow-net --allow-env --allow-sys src/Commands/createAdmin.ts"
   }
 }

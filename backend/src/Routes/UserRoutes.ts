@@ -57,7 +57,7 @@ router.patch("/me", authMiddleware, async (ctx: Context) => {
         const avatarFile = formData.get("avatar");
 
         // On vérifie que le champ existe ET que c'est bien un fichier
-        if (avatarFile instanceof File) {
+        if (avatarFile && typeof avatarFile === "object" && "name" in avatarFile) {
             
             // Limite 5 Mo
             if (avatarFile.size > 5 * 1024 * 1024) {
