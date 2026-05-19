@@ -23,12 +23,15 @@
             
             <div id="profile-message"></div>
 
-            <!-- TODO : Future photo de profil -->
+            <!-- Zone de la photo de profil -->
             <div class="form-group" style="text-align: center; margin-bottom: 2rem;">
-                <div class="card-media placeholder" style="width: 100px; height: 100px; border-radius: 50%; margin: 0 auto;">
-                    Avatar
-                </div>
-                <small style="color: #888;">(Upload de photo à venir...)</small>
+                <!-- image par défaut si l'utilisateur n'en a pas -->
+                <img id="avatar-preview" src="/assets/images/logo-dams.png" alt="Avatar" class="avatar-preview">
+                
+                <br>
+                <label for="avatar-input" class="btn-upload">Changer la photo</label>
+                <!-- L'input est caché -->
+                <input type="file" id="avatar-input" name="avatar" accept="image/png, image/jpeg, image/webp" style="display: none;">
             </div>
 
             <div class="form-group">

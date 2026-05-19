@@ -48,6 +48,25 @@ const cloud = {
             : new GetObjectCommand(commandParams);
 
         return await getSignedUrl(publicS3Client, command, { expiresIn: lifetime });
+    },
+
+
+    /**
+     * Upload directement un fichier vers MinIO depuis le serveur Deno.
+     * @param path Le chemin d'enregistrement (ex: "avatars/123-photo.png")
+     * @param fileData Le contenu du fichier
+     * @param contentType Le type MIME (ex: "image/png")
+     */
+    async uploadFile(path: string, fileData: Uint8Array | ArrayBuffer, contentType: string): Promise<void> {
+        const commandParams = {
+            Bucket: BUCKET_NAME,
+            Key: path,
+            Body: new Uint8Array(fileData), // S3 prend les données sous forme de buffer
+            ContentType: contentType,
+        };
+
+        // internalS3Client car Deno (réseau Docker) fait l'action directe
+        await internalS3Client.send(new PutObjectCommand(commandParams));
     }
 };
 
