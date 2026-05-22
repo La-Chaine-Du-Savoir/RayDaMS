@@ -7,4 +7,9 @@ export interface Game {
     description: string;
     author: number;
     group_id: number;
+    path_sources: string;
+    path_js?: string;
+    path_wasm?: string;
+    path_data?: string;
+    status: "pending" | "running" | "success" | "failed";
 }
