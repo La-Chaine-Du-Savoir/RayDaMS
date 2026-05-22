@@ -20,7 +20,8 @@ const migration = {
 
         await db.queryArray(`
             ALTER TABLE games
-                ADD COLUMN IF NOT EXISTS path_sources VARCHAR(255) NOT NULL,
+                ADD COLUMN IF NOT EXISTS path_sources VARCHAR(255),
+                ADD COLUMN IF NOT EXISTS sources_uploaded BOOLEAN NOT NULL DEFAULT FALSE,
                 ADD COLUMN IF NOT EXISTS path_js VARCHAR(255),
                 ADD COLUMN IF NOT EXISTS path_wasm VARCHAR(255),
                 ADD COLUMN IF NOT EXISTS path_data VARCHAR(255),
