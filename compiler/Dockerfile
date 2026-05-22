@@ -12,8 +12,8 @@ FROM emscripten/emsdk:5.0.7
 
 COPY --from=builder /opt/raylib/src/libraylib.web.a /opt/raylib/src/libraylib.a
 COPY --from=builder /opt/raylib/src/*.h /opt/raylib/src/
-COPY build.sh /src/
+COPY build.sh /usr/local/bin/
 
 WORKDIR /src
 
-CMD ["sh", "./build.sh"]
+CMD ["sh", "/usr/local/bin/build.sh"]
