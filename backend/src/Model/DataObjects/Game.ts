@@ -39,7 +39,7 @@ export async function sanitizeGame(game: Game): Promise<SanitizedGame> {
     ] = await Promise.all([
         thumbnail_path ? cloud.getPresigned(thumbnail_path, 3600, "download") : Promise.resolve(null),
         path_screenshot ? cloud.getPresigned(path_screenshot, 3600, "download") : Promise.resolve(null),
-        path_sources ? cloud.getPresigned(path_sources, 3600, "download") : Promise.resolve(null),
+        path_sources && publicGame.sources_uploaded ? cloud.getPresigned(path_sources, 3600, "download") : Promise.resolve(null),
         path_js ? cloud.getPresigned(path_js, 3600, "download") : Promise.resolve(null),
         path_wasm ? cloud.getPresigned(path_wasm, 3600, "download") : Promise.resolve(null),
         path_data ? cloud.getPresigned(path_data, 3600, "download") : Promise.resolve(null),

@@ -25,7 +25,8 @@ const migration = {
                 ADD COLUMN IF NOT EXISTS path_js VARCHAR(255),
                 ADD COLUMN IF NOT EXISTS path_wasm VARCHAR(255),
                 ADD COLUMN IF NOT EXISTS path_data VARCHAR(255),
-                ADD COLUMN IF NOT EXISTS status build_status NOT NULL DEFAULT 'pending';
+                ADD COLUMN IF NOT EXISTS status build_status NOT NULL DEFAULT 'pending',
+                ADD COLUMN IF NOT EXISTS created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP;
         `);
     },
 };

@@ -8,6 +8,7 @@ import config from "../Config/config.ts";
 import {Game, sanitizeGame} from "../Model/DataObjects/Game.ts";
 import groupRepository from "../Model/Repository/GroupRepository.ts";
 import gameRepository from "../Model/Repository/GameRepository.ts";
+import formDataMiddleware from "../Middlewares/formDataMiddleware.ts";
 
 const router = new Router({ prefix: "/games" });
 
@@ -42,7 +43,7 @@ type CreateGameData = z.infer<typeof CreateGameSchema>;
  * can upload the ZIP source archive. The server stores a generated S3 key in
  * `path_sources` (non-null) and the presigned URL points to that key for an upload.
  */
-router.post("/", authMiddleware, async (ctx: Context) => {
+router.post("/", formDataMiddleware, authMiddleware, async (ctx: Context) => {
 	const body = await ctx.request.body.formData();
 
 	const name = body.get("name") as string | null;

@@ -2,7 +2,7 @@ import { Readable } from "node:stream";
 import { arrayBuffer } from "node:stream/consumers";
 import { Buffer } from "node:buffer";
 import tar, { Headers } from "tar-stream";
-import unzipper from "unzipper";
+import { unzipSync } from "fflate";
 
 import redisClient from "./Services/redis.ts";
 import { internalS3Client } from "./Services/cloud.ts";
@@ -109,32 +109,59 @@ async function decompressZipToTarBuffer(zipBytes: Uint8Array): Promise<Buffer> {
 
     pack.on("data", (chunk: Buffer) => tarChunks.push(chunk));
 
-    const zipStream = Readable.from(Buffer.from(zipBytes));
-    const zip = zipStream.pipe(unzipper.Parse({ forceStream: true }));
+    let unzippedFiles: Record<string, Uint8Array>;
+    try {
+        unzippedFiles = unzipSync(zipBytes);
+    } catch (err) {
+        throw new Error(`Fichier ZIP corrompu ou illisible : ${err instanceof Error ? err.message : String(err)}`);
+    }
+
+    // --- ALGORITHME DE DETECTION DU DOSSIER RACINE ---
+    // On extrait la liste de tous les chemins de fichiers valides
+    const filePaths = Object.keys(unzippedFiles).filter(p => !p.endsWith("/"));
+
+    let rootPrefix = "";
+    if (filePaths.length > 0) {
+        // On prend le premier fichier pour isoler son premier segment (ex: "mon-dossier/")
+        const firstPath = filePaths[0];
+        const firstSegment = firstPath.split(/[/\\]/)[0];
+
+        // Si tous les fichiers du ZIP commencent par ce même segment, c'est un dossier racine encapsulé !
+        const hasCommonRoot = filePaths.every(p => p.startsWith(firstSegment + "/") || p.startsWith(firstSegment + "\\"));
+        if (hasCommonRoot) {
+            rootPrefix = firstSegment + "/";
+            console.log(`ℹ️ [Worker Tool] Dossier racine commun détecté ("${firstSegment}"). Il sera retiré au déploiement.`);
+        }
+    }
+    // -------------------------------------------------
 
     let totalUnzippedBytes = 0;
 
-    for await (const entry of zip) {
-        const rawPath: string = entry.path;
-        const type: string = entry.type;
-
-        if (type === "Directory") {
-            entry.autodrain();
+    for (const [rawPath, fileBytes] of Object.entries(unzippedFiles)) {
+        if (rawPath.endsWith("/")) {
             continue;
         }
 
         if (rawPath.includes("..")) {
-            entry.autodrain();
             throw new Error(`Sécurité : chemin interdit détecté ("${rawPath}"). Path traversal refusé.`);
         }
 
-        const relativePath = rawPath.replace(/\\/g, "/").split("/").filter(Boolean).join("/");
-        const fileBuffer = await entry.buffer();
+        // Nettoyage des slashes obsolètes
+        let cleanPath = rawPath.replace(/\\/g, "/");
 
-        totalUnzippedBytes += fileBuffer.length;
+        // Si un dossier racine commun existe, on le retire du chemin cible
+        if (rootPrefix && cleanPath.startsWith(rootPrefix)) {
+            cleanPath = cleanPath.substring(rootPrefix.length);
+        }
+
+        const relativePath = cleanPath.split("/").filter(Boolean).join("/");
+
+        totalUnzippedBytes += fileBytes.length;
         if (totalUnzippedBytes > MAX_UNZIPPED_BYTES) {
             throw new Error(`Zip Bomb détectée : la taille dépasse la limite autorisée (${MAX_UNZIPPED_BYTES / 1024 / 1024}MB).`);
         }
+
+        const fileBuffer = Buffer.from(fileBytes);
 
         await new Promise<void>((resolve, reject) => {
             pack.entry({ name: relativePath, size: fileBuffer.length }, fileBuffer, (err: Error | null | undefined) => {
@@ -273,6 +300,8 @@ async function exportBuildArtifacts(container: Docker.Container, gameId: string)
         };
 
         const uploaded: Record<string, string> = {};
+        // Tableau pour suivre toutes les promesses de téléversement en tâche de fond
+        const uploadPromises: Promise<string>[] = [];
 
         return await new Promise<Record<string, string>>((resolve, reject) => {
             const extract = tar.extract();
@@ -286,7 +315,8 @@ async function exportBuildArtifacts(container: Docker.Container, gameId: string)
                     return;
                 }
 
-                arrayBuffer(stream as Readable)
+                // On stocke la promesse d'upload pour s'assurer qu'elle se termine
+                const uploadPromise = arrayBuffer(stream as Readable)
                     .then((buffer) => {
                         const fileBytes = new Uint8Array(buffer);
                         const s3Key = `games/${gameId}/web_build/${basename}`;
@@ -304,13 +334,24 @@ async function exportBuildArtifacts(container: Docker.Container, gameId: string)
                         console.log(`  ☁️  [Build ${gameId}] Uploadé : ${basename}`);
                         uploaded[basename] = s3Key as string;
                         next();
+                        return s3Key;
                     })
                     .catch((err: unknown) => {
                         reject(err instanceof Error ? err : new Error(String(err)));
+                        throw err;
                     });
+
+                uploadPromises.push(uploadPromise);
             });
 
-            extract.on("finish", resolve);
+            extract.on("finish", () => {
+                Promise.all(uploadPromises)
+                    .then(() => {
+                        resolve(uploaded);
+                    })
+                    .catch(reject);
+            });
+
             extract.on("error", (err: unknown) => {
                 reject(err instanceof Error ? err : new Error(String(err)));
             });

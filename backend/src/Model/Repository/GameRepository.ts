@@ -4,21 +4,22 @@ import db from "../../Services/database.ts";
 const table = "games";
 
 /**
- * Crée un jeu en base de données et laisse PostgreSQL générer son UUID.
- * Retourne le jeu nouvellement créé avec son ID généré.
+ * Crée un jeu en base de données.
+ * Retourne le jeu nouvellement créé avec son ID et sa date de création.
  */
-export async function create(game: Partial<Game>): Promise<Game> {
+export async function create(game: Partial<Game> & { author: number }): Promise<Game> {
     const result = await db.queryObject<Game>(
         `INSERT INTO ${table}
-         (name, description, group_id, url_trailer, path_sources, sources_uploaded, path_js, path_wasm, path_data, status)
+         (name, description, group_id, url_trailer, author, path_sources, sources_uploaded, path_js, path_wasm, path_data, status)
          VALUES
-             ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
-             RETURNING id, name, description, group_id, url_trailer, path_sources, sources_uploaded, path_js, path_wasm, path_data, status, created_at`,
+             ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+             RETURNING id, name, description, group_id, url_trailer, author, path_sources, sources_uploaded, path_js, path_wasm, path_data, status, created_at`,
         [
             game.name,
             game.description ?? null,
             game.group_id,
             game.url_trailer ?? null,
+            game.author, // Ajout indispensable pour valider la contrainte NOT NULL de la BDD
             game.path_sources ?? '',
             game.sources_uploaded ?? false,
             game.path_js ?? '',
@@ -32,12 +33,11 @@ export async function create(game: Partial<Game>): Promise<Game> {
 }
 
 /**
- * Récupère un jeu par son UUID.
+ * Récupère un jeu par son ID.
  */
 export async function getById(id: string): Promise<Game | undefined> {
     const result = await db.queryObject<Game>(
-        `SELECT * FROM games
-         WHERE id = $1`,
+        `SELECT * FROM games WHERE id = $1`,
         [id],
     );
 
@@ -49,8 +49,7 @@ export async function getById(id: string): Promise<Game | undefined> {
  */
 export async function getAllGames(): Promise<Game[]> {
     const result = await db.queryObject<Game>(
-        `SELECT * FROM games
-         ORDER BY created_at DESC`
+        `SELECT * FROM games ORDER BY created_at DESC`
     );
 
     return result.rows;
@@ -61,8 +60,7 @@ export async function getAllGames(): Promise<Game[]> {
  */
 export async function getGamesByGroupId(groupId: number): Promise<Game[]> {
     const result = await db.queryObject<Game>(
-        `SELECT *
-         FROM games
+        `SELECT * FROM games
          WHERE group_id = $1
          ORDER BY created_at DESC`,
         [groupId]
@@ -72,7 +70,7 @@ export async function getGamesByGroupId(groupId: number): Promise<Game[]> {
 }
 
 /**
- * Supprime définitivement un jeu de la base de données via son UUID.
+ * Supprime définitivement un jeu de la base de données.
  */
 export async function deleteGame(id: string): Promise<boolean> {
     const result = await db.queryObject(
@@ -84,9 +82,9 @@ export async function deleteGame(id: string): Promise<boolean> {
 }
 
 /**
- * Met à jour les champs d'un jeu.
+ * Met à jour les champs d'un jeu de manière dynamique sans écraser par des valeurs NULL.
  */
-export async function updateGame(id: string, updates: Partial<Omit<Game, "id" | "created_at">>): Promise<Game | undefined> {
+export async function updateGame(id: string, updates: Partial<Omit<Game, "id" | "created_at">> & { thumbnail_path?: string }): Promise<Game | undefined> {
     const result = await db.queryObject<Game>(
         `UPDATE games
          SET
@@ -99,8 +97,9 @@ export async function updateGame(id: string, updates: Partial<Omit<Game, "id" | 
              path_js = COALESCE($7, path_js),
              path_wasm = COALESCE($8, path_wasm),
              path_data = COALESCE($9, path_data),
-             group_id = COALESCE($10, group_id)
-         WHERE id = $11
+             group_id = COALESCE($10, group_id),
+             thumbnail_path = COALESCE($11, thumbnail_path)
+         WHERE id = $12
              RETURNING *`,
         [
             updates.name ?? null,
@@ -113,6 +112,7 @@ export async function updateGame(id: string, updates: Partial<Omit<Game, "id" | 
             updates.path_wasm ?? null,
             updates.path_data ?? null,
             updates.group_id ?? null,
+            updates.thumbnail_path ?? null,
             id
         ]
     );
