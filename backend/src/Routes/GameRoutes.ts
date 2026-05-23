@@ -76,7 +76,7 @@ router.post("/", authMiddleware, async (ctx: Context) => {
 			error: "Invalid group ID"
 		};
 		return;
-	}else if(group.users.find(u => u.id === ctx.state.user.id) === undefined){
+	}else if(group.users.find(u => u.id === ctx.state.user.id) === undefined && ctx.state.user.roles.includes("admin") === false){
 		ctx.response.status = 403;
 		ctx.response.body = {
 			success: false,
@@ -92,6 +92,7 @@ router.post("/", authMiddleware, async (ctx: Context) => {
 			description: validatedData.description || undefined,
 			group_id: group.id,
 			url_trailer: validatedData.url_trailer || undefined,
+			author: ctx.state.user.id
 		});
 	}catch(_err){
 		ctx.response.status = 500;
@@ -102,33 +103,112 @@ router.post("/", authMiddleware, async (ctx: Context) => {
 		return;
 	}
 
-	if(validatedData.thumbnail){
-		const thumbnail_path = `games/${game.id!}/thumb.${validatedData.thumbnail.type.split("/")[1]}`;
+	const updates: Record<string, string> = {};
+
+	updates["path_sources"] = `games/${game.id}/sources.zip`;
+
+	if (validatedData.thumbnail) {
+		const extension = validatedData.thumbnail.type.split("/")[1];
+		const thumbnail_path = `games/${game.id}/thumb.${extension}`;
+
 		try {
 			await cloud.upload(
 				thumbnail_path,
 				new Uint8Array(await validatedData.thumbnail.arrayBuffer()),
 				validatedData.thumbnail.type
 			);
-			game = await gameRepository.updateGame(
-				String(game.id!),
-				{ thumbnail_path: thumbnail_path }) ?? game;
+			updates["thumbnail_path"] = thumbnail_path;
 		} catch (err) {
-			console.log('Error while uploading thumbnail', err);
+			console.error('Error while uploading thumbnail', err);
 		}
+	}
+
+	try {
+		game = await gameRepository.updateGame(String(game.id), updates) ?? game;
+	} catch (err) {
+		console.error("Error while updating game metadata", err);
+	}
+
+	let upload_request = null;
+	try {
+		upload_request = await cloud.getPresignedPostForm(
+			`games/${game.id}/sources.zip`,
+			700 * 1024 * 1024,
+			["application/zip"]
+		);
+	} catch (err) {
+		console.error("Error generating initial upload request", err);
 	}
 
 	ctx.response.status = 201;
 	ctx.response.body = {
 		success: true,
-		message: "Game created; upload your ZIP to the returned URL",
+		message: upload_request
+			? "Game created; upload your ZIP to the returned URL"
+			: "Game created; failed to generate upload URL, use GET /games/:gameId/upload-request",
 		data: {
 			game: await sanitizeGame(game),
-			upload_request: await cloud.getPresignedPostForm(
-				`games/${game.id}/sources.zip`,
-				700 * 1024 * 1024, // 700 MB
-				["application/zip"]
-			)
+			upload_request,
 		},
-	};
+	}
 });
+
+router.get("/:gameId/upload-request", authMiddleware, async (ctx) => {
+	const gameId = ctx.params.gameId;
+
+	const game = await gameRepository.getById(gameId);
+	if (!game) {
+		ctx.response.status = 404;
+		ctx.response.body = {
+			success: false,
+			error: "Game not found"
+		};
+		return;
+	}
+
+	if (game.sources_uploaded) {
+		ctx.response.status = 400;
+		ctx.response.body = {
+			success: false,
+			error: "Sources have already been uploaded"
+		};
+		return;
+	}
+
+	const isAuthor = game.author === ctx.state.user.id;
+	const isAdmin = ctx.state.user.roles?.includes("admin") ?? false;
+
+	if (!isAuthor && !isAdmin) {
+		ctx.response.status = 403;
+		ctx.response.body = {
+			success: false,
+			error: "You must be the game author or an admin to get an upload request"
+		};
+		return;
+	}
+
+	try {
+		ctx.response.status = 200;
+		ctx.response.body = {
+			success: true,
+			data: {
+				upload_request: await cloud.getPresignedPostForm(
+					`games/${game.id}/sources.zip`,
+					700 * 1024 * 1024,
+					["application/zip"],
+					900
+				)
+			}
+		};
+	} catch (err) {
+		console.error("Error generating upload request", err);
+		ctx.response.status = 500;
+		ctx.response.body = {
+			success: false,
+			error: "Failed to generate upload request"
+		};
+	}
+});
+
+export default router;
+
