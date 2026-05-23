@@ -19,6 +19,7 @@
     "dev": "deno run --watch --allow-net --allow-env src/back_server.ts 3000",
     "start": "deno run --allow-net --allow-env src/back_server.ts 3000",
     "db:migrate": "deno run --allow-net --allow-env --allow-read=migrations src/Commands/runMigrations.ts",
-    "user:create-admin": "deno run --allow-net --allow-env src/Commands/createAdmin.ts"
+    "user:create-admin": "deno run --allow-net --allow-env src/Commands/createAdmin.ts",
+    "worker:start": "deno run --allow-net --allow-env --allow-read --allow-write --allow-run src/worker_manager.ts"
   }
 }

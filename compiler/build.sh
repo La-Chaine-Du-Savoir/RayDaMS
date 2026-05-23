@@ -1,7 +1,7 @@
 #!/bin/bash
 set -e
 
-mkdir -p /workspace/web_build
+mkdir -p ./web_build
 
 declare -a SRC_FILES
 
@@ -26,7 +26,7 @@ fi
 
 echo "-> Compilation Emscripten en cours..."
 emcc "${SRC_FILES[@]}" \
-    -o /workspace/web_build/index.html \
+    -o ./web_build/index.html \
     -Os \
     -Wall \
     "${INCLUDE_FLAGS[@]}" \

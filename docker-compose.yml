@@ -40,7 +40,53 @@ services:
       interval: 5s
       timeout: 3s
       retries: 5
-      
+
+  compiler:
+    build:
+      context: ./compiler
+      dockerfile: Dockerfile
+    image: emscripten-raylib-builder:latest
+    command: [ "true" ]
+    pull_policy: never
+
+  worker:
+    build:
+      context: .
+      dockerfile: ./backend/Dockerfile
+    command: ["deno", "task", "worker:start"]
+    environment:
+      DB_HOST: db
+      DB_PORT: 5432
+      DB_NAME: ${DB_NAME}
+      DB_USER: ${DB_USER}
+      DB_PASSWORD: ${DB_PASSWORD}
+      JWT_SECRET: ${JWT_SECRET}
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      REDIS_PASSWORD: ${REDIS_PASSWORD}
+      S3_ENDPOINT: minio
+      S3_PORT: 9000
+      S3_USER: ${MINIO_USER}
+      S3_PASSWORD: ${MINIO_PASSWORD}
+      PUBLIC_S3_ENDPOINT: http://localhost:9000
+      S3_STORAGE_BUCKET_NAME: ${MINIO_STORAGE_BUCKET_NAME}
+      MAX_CONCURRENT: ${MAX_CONCURRENT}
+      BUILD_TIMEOUT_MS: ${BUILD_TIMEOUT_MS}
+      PEPPER_SECRET: ${PEPPER_SECRET}
+    volumes:
+      - ./backend:/app/backend
+      - /var/run/docker.sock:/var/run/docker.sock
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      minio:
+        condition: service_healthy
+      minio-init:
+        condition: service_completed_successfully
+    restart: unless-stopped
+
   minio-init:
     image: minio/mc
     depends_on:
@@ -87,6 +133,7 @@ services:
       S3_PASSWORD: ${MINIO_PASSWORD}
       PUBLIC_S3_ENDPOINT: http://localhost:9000
       S3_STORAGE_BUCKET_NAME: ${MINIO_STORAGE_BUCKET_NAME}
+      PEPPER_SECRET: ${PEPPER_SECRET}
     volumes:
       - ./backend:/app/backend
     depends_on:

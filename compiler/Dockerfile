@@ -10,10 +10,10 @@ RUN cd raylib/src && \
 
 FROM emscripten/emsdk:5.0.7
 
-COPY --from=builder /opt/raylib/src/libraylib.web.a /opt/raylib/src/libraylib.a
+COPY --from=builder /opt/raylib/src/libraylib.a /opt/raylib/src/libraylib.a
 COPY --from=builder /opt/raylib/src/*.h /opt/raylib/src/
-COPY build.sh /usr/local/bin/
+COPY build.sh /usr/local/bin/build_game.sh
 
 WORKDIR /src
 
-CMD ["sh", "/usr/local/bin/build.sh"]
+CMD ["sh", "/usr/local/bin/build_game.sh"]
