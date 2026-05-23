@@ -2,6 +2,7 @@ import { Context, Router } from "oak";
 import { z } from "zod";
 import authMiddleware from "../Middlewares/AuthMiddleware.ts";
 import cloud from "../Services/cloud.ts";
+import redisClient from "../Services/redis.ts";
 import {Game, sanitizeGame} from "../Model/DataObjects/Game.ts";
 import groupRepository from "../Model/Repository/GroupRepository.ts";
 import gameRepository from "../Model/Repository/GameRepository.ts";
@@ -207,6 +208,72 @@ router.get("/:gameId/upload-request", authMiddleware, async (ctx) => {
 			success: false,
 			error: "Failed to generate upload request"
 		};
+	}
+});
+
+router.post("/:gameId/confirm-upload", authMiddleware, async (ctx) => {
+	const gameId = ctx.params.gameId;
+
+	if (!gameId) {
+		ctx.response.status = 400;
+		ctx.response.body = { success: false, error: "Game ID is required" };
+		return;
+	}
+
+	const game = await gameRepository.getById(gameId);
+	if (!game) {
+		ctx.response.status = 404;
+		ctx.response.body = { success: false, error: "Game not found" };
+		return;
+	}
+
+	const isAuthor = game.author === ctx.state.user.id;
+	const isAdmin = ctx.state.user.roles?.includes("admin") ?? false;
+	if (!isAuthor && !isAdmin) {
+		ctx.response.status = 403;
+		ctx.response.body = { success: false, error: "You must be the game author or an admin" };
+		return;
+	}
+
+	if (game.sources_uploaded) {
+		ctx.response.status = 400;
+		ctx.response.body = { success: false, error: "Sources already marked as uploaded" };
+		return;
+	}
+
+	if (!game.path_sources) {
+		ctx.response.status = 400;
+		ctx.response.body = { success: false, error: "No source path configured for this game" };
+		return;
+	}
+
+	try {
+		const exists = await cloud.exists(game.path_sources);
+		if (!exists) {
+			ctx.response.status = 400;
+			ctx.response.body = { success: false, error: "Source file not found in storage" };
+			return;
+		}
+	} catch (err) {
+		console.error("Error while checking source file existence", err);
+		ctx.response.status = 500;
+		ctx.response.body = { success: false, error: "Failed to verify source file" };
+		return;
+	}
+
+	try {
+		const updated = await gameRepository.updateGame(String(game.id), { sources_uploaded: true }) ?? game;
+		await redisClient.lpush("queue:builds", String(game.id));
+			ctx.response.status = 202;
+			ctx.response.body = {
+				success: true,
+				message: "Upload confirmed; compilation queued",
+				game: await sanitizeGame(updated),
+		};
+	} catch (err) {
+		console.error("Error while marking game as uploaded", err);
+		ctx.response.status = 500;
+		ctx.response.body = { success: false, error: "Failed to mark game as uploaded" };
 	}
 });
 

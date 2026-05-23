@@ -1,4 +1,4 @@
-import { S3Client, GetObjectCommand, PutObjectCommand } from "client-s3";
+import { S3Client, GetObjectCommand, PutObjectCommand, HeadObjectCommand } from "client-s3";
 import { getSignedUrl } from "s3-request-presigner";
 import { createPresignedPost} from "s3-presigned-post";
 import config from "../Config/config.ts";
@@ -114,6 +114,26 @@ const cloud = {
             url: postForm.url,
             fields: postForm.fields,
         };
+    }
+,
+
+    /**
+     * Vérifie l'existence d'un objet dans le bucket.
+     * @param path Le chemin/clé de l'objet dans le bucket
+     * @returns true si l'objet existe, false si l'objet est absent
+     * @throws Laisse remonter les erreurs inattendues pour que l'appelant puisse les distinguer
+     */
+    async exists(path: string): Promise<boolean> {
+        try {
+            await internalS3Client.send(new HeadObjectCommand({ Bucket: BUCKET_NAME, Key: path }));
+            return true;
+        } catch (err) {
+            const status = (err as unknown as { $metadata?: { httpStatusCode?: number } })?.$metadata?.httpStatusCode;
+            if (status === 404) {
+                return false;
+            }
+            throw err;
+        }
     }
 };
 
