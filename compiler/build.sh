@@ -5,9 +5,9 @@ mkdir -p ./web_build
 
 declare -a SRC_FILES
 
-while CBRANCH= read -r -d $'\0' file; do
+while IFS= read -r -d $'\0' file; do
     SRC_FILES+=("$file")
-done < <(find . -maxdepth 3 -name '*.c' -print0)
+done < <(find . -name '*.c' -print0)
 
 if [ ${#SRC_FILES[@]} -eq 0 ]; then
     echo "Erreur fatale : Aucun fichier .c trouvé dans le projet !"

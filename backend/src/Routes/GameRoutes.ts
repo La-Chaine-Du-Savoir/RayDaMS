@@ -433,5 +433,42 @@ router.get("/:gameId/logs", authMiddleware, async (ctx) => {
 	}
 });
 
+router.get("/:gameId", authMiddleware, async (ctx) => {
+	const gameId = ctx.params.gameId;
+
+	if (!gameId) {
+		ctx.response.status = 400;
+		ctx.response.body = { success: false, error: "Game ID is required" };
+		return;
+	}
+
+	const game = await gameRepository.getById(gameId);
+	if (!game) {
+		ctx.response.status = 404;
+		ctx.response.body = { success: false, error: "Game not found" };
+		return;
+	}
+
+	const isAdmin = ctx.state.user.roles?.includes("admin") ?? false;
+
+	try {
+		const group = await groupRepository.getById(game.group_id);
+		const isMember = !!group?.users?.find((u) => u.id === ctx.state.user.id);
+
+		if (!isMember && !isAdmin) {
+			ctx.response.status = 403;
+			ctx.response.body = { success: false, error: "You must be a member of the group or an admin to access this game" };
+			return;
+		}
+
+		ctx.response.status = 200;
+		ctx.response.body = { success: true, data: { game: await sanitizeGame(game) } };
+	} catch (err) {
+		console.error("Error while verifying group membership for game access", err);
+		ctx.response.status = 500;
+		ctx.response.body = { success: false, error: "Failed to verify access rights" };
+	}
+});
+
 export default router;
 
