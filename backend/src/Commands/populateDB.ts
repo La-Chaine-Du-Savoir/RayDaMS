@@ -7,7 +7,19 @@ import type { Group } from "../Model/DataObjects/Group.ts";
 
 async function populateDatabase(): Promise<void> {
     try {
-        console.log("Starting database population...");
+        // Safety check: prevent running in production
+        const environment = Deno.env.get("ENVIRONMENT");
+        if (!environment) {
+            console.error("ENVIRONMENT variable not set, aborting to prevent accidental data population.");
+            Deno.exit(1);
+        }
+        if (environment === "production") {
+            console.error("Cannot run db:populate in production environment.");
+            console.error("This command is only for development/testing purposes.");
+            Deno.exit(1);
+        }
+
+        console.log("Starting database population in development mode...");
 
         // Create test users
         console.log("Creating test users...");
@@ -23,7 +35,7 @@ async function populateDatabase(): Promise<void> {
 
         for (const testUser of testUsers) {
             try {
-                const existing = await userRepository.getByEmail(testUser.email);
+                const existing = await userRepository.getByUsername(testUser.username);
                 if (existing) {
                     console.log(`User ${testUser.username} already exists, skipping...`);
                     users.push(existing);
@@ -53,8 +65,8 @@ async function populateDatabase(): Promise<void> {
 
         const testGroups = [
             { name: "Chaine du savoir", code: "SAVOIR0001" },
-            { name: "Skibidi Land", code: "SKIBIDI001" },
-            { name: "TDB Masters", code: "TDB0000001" },
+            { name: "Group2", code: "SKIBIDI001" },
+            { name: "Group3", code: "TDB0000001" },
         ];
 
         for (const testGroup of testGroups) {
