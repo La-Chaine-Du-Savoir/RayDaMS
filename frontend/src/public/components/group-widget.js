@@ -29,6 +29,17 @@ export class GroupWidget extends LitElement {
       flex-direction: column;
       overflow-wrap: break-word;
       word-break: break-word;
+
+    }
+
+    .group-link {
+      text-decoration: none;
+      color: inherit;
+      cursor: pointer;
+    }
+
+    .group-link:hover {
+      color: var(--dams-pink, #DE007A);
     }
 
     .group-widget:hover {
@@ -97,10 +108,6 @@ export class GroupWidget extends LitElement {
       background-color: #f5f5f5;
       border-radius: 6px;
       transition: background-color 0.2s ease;
-    }
-
-    .member-item:hover {
-      background-color: #efefef;
     }
 
     .member-avatar {
@@ -202,40 +209,45 @@ export class GroupWidget extends LitElement {
 
   render() {
     if (!this.group) {
-      return html`<div class="empty-state">No group data available</div>`;
+      return html`<div class="empty-state">Groupe non disponible</div>`;
     }
 
-    const { name, users = [] } = this.group;
+    const { id, name, users = [] } = this.group;
+
+    // URL de la page du groupe
+    const groupUrl = `/groups/${id}`;
 
     return html`
       <div class="group-widget">
         <div class="group-header">
-          <h2 class="group-title">${name}</h2>
+          <h2 class="group-title">
+            <a href="${groupUrl}" class="group-link">${name}</a>
+          </h2>
         </div>
 
         <div class="members-section">
           <div class="members-label">Membres (${users.length})</div>
 
           ${users.length > 0
-            ? html`
+              ? html`
                 <ul class="members-list">
                   ${users.map(
-                    (member) => html`
-                      <li class="member-item">
-                        <app-avatar
-                            .url="${member.url_profil_picture}"
-                            .username="${member.username}"
-                            .size="small">
-                        </app-avatar>
-                        <div class="member-info">
-                          <div class="member-username">${member.username}</div>
-                          ${member.email ? html`<div class="member-email">${member.email}</div>` : ""}
-                        </div>
-                      </li>
-                    `
+                      (member) => html`
+                        <li class="member-item">
+                          <app-avatar
+                              .url="${member.url_profil_picture}"
+                              .username="${member.username}"
+                              .size="small">
+                          </app-avatar>
+                          <div class="member-info">
+                            <div class="member-username">${member.username}</div>
+                            ${member.email ? html`<div class="member-email">${member.email}</div>` : ""}
+                          </div>
+                        </li>
+                      `
                   )}
                 </ul>`
-            : html`<div class="empty-state">Aucun membre dans ce groupe</div>`}
+              : html`<div class="empty-state">Aucun membre dans ce groupe</div>`}
         </div>
       </div>
     `;
