@@ -1,5 +1,25 @@
 import { apiService } from '../services/apiService.js';
 import '../components/app-avatar.js';
+import '../components/group-widget.js';
+
+(async () => {
+    const widget = document.getElementById("test-group");
+    let id = 1;
+    if (!widget) return;
+
+    try {
+        const res = await apiService.getById('groups', id);
+        console.log(res);
+        if (res.success) {
+            const groupObj = res.data?.group;
+            widget.group = groupObj;
+        } else {
+            console.warn('group-widget: fetch failed for id', id, res.error);
+        }
+    } catch (e) {
+        console.error('group-widget: unexpected error while fetching group', id, e);
+    }
+})();
 
 document.addEventListener('DOMContentLoaded', () => {
     // si pas co, on le renvoie à l'accueil ou au login
@@ -104,3 +124,4 @@ document.addEventListener('DOMContentLoaded', () => {
         messageContainer.className = className;
     }
 });
+

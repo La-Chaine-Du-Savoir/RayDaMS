@@ -1,4 +1,5 @@
 import { LitElement, html, css } from "lit";
+import "./app-avatar.js";
 
 export class GroupWidget extends LitElement {
   static properties = {
@@ -159,22 +160,35 @@ export class GroupWidget extends LitElement {
   constructor() {
     super();
     this.group = {
-      name: "Group Name",
+      name: "Loading group...",
       users: [],
     };
-  }
 
-  _getInitials(username) {
-    return username
-      .split(" ")
-      .map((word) => word[0])
-      .join("")
-      .toUpperCase()
-      .slice(0, 2);
-  }
+    this._handleAuthChange = (updatedUser) => {
+      // 1. On vérifie qu'on a bien un groupe et des utilisateurs
+      if (!this.group || !this.group.users) return;
 
-  _getGroupInitial(groupName) {
-    return groupName[0]?.toUpperCase() || "G";
+      // 2. On cherche l'utilisateur qui vient d'être mis à jour (en supposant qu'ils ont un 'id')
+      const userIndex = this.group.users.findIndex(u => u.id === updatedUser.id);
+
+      if (userIndex !== -1) {
+        // 3. On crée une copie du tableau des utilisateurs
+        const newUsers = [...this.group.users];
+
+        // 4. On met à jour l'utilisateur spécifique avec la nouvelle URL
+        newUsers[userIndex] = {
+          ...newUsers[userIndex],
+          url_profil_picture: updatedUser.url_profil_picture
+        };
+
+        // 5. On réassigne this.group avec un nouvel objet
+        // Cela va déclencher le "setter" réactif de Lit et forcer le render()
+        this.group = {
+          ...this.group,
+          users: newUsers
+        };
+      }
+    };
   }
 
   render() {
@@ -199,9 +213,11 @@ export class GroupWidget extends LitElement {
                   ${users.map(
                     (member) => html`
                       <li class="member-item">
-                        ${member.avatar
-                          ? html`<img src="${member.avatar}" alt="${member.username}" class="member-avatar" />`
-                          : html`<div class="member-default-avatar">${this._getInitials(member.username)}</div>`}
+                        <app-avatar
+                            .url="${member.url_profil_picture}"
+                            .username="${member.username}"
+                            .size="small">
+                        </app-avatar>
                         <div class="member-info">
                           <div class="member-username">${member.username}</div>
                           ${member.email ? html`<div class="member-email">${member.email}</div>` : ""}
