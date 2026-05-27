@@ -1,5 +1,6 @@
-import { S3Client, GetObjectCommand, PutObjectCommand, DeleteObjectCommand } from "client-s3";
+import { S3Client, GetObjectCommand, PutObjectCommand, HeadObjectCommand, DeleteObjectCommand } from "client-s3";
 import { getSignedUrl } from "s3-request-presigner";
+import { createPresignedPost} from "s3-presigned-post";
 import config from "../Config/config.ts";
 
 const BUCKET_NAME = config.s3.bucketName || "raydams";
@@ -78,9 +79,104 @@ const cloud = {
             Bucket: BUCKET_NAME,
             Key: path,
         };
-        
+
         // internalS3Client pour la suppression
         await internalS3Client.send(new DeleteObjectCommand(commandParams));
+    },
+
+    /**
+     * Téléverse un fichier binaire directement vers le Cloud S3
+     * @param path Le chemin cible dans le bucket
+     * @param body Les octets du fichier (Uint8Array)
+     * @param contentType Le type MIME du fichier
+     */
+    async upload(path: string, body: Uint8Array, contentType: string): Promise<void> {
+        const command = new PutObjectCommand({
+            Bucket: BUCKET_NAME,
+            Key: path,
+            Body: body,
+            ContentType: contentType,
+        });
+
+        await internalS3Client.send(command);
+    },
+
+    /**
+     * Génère un formulaire POST pré-signé
+     * @param path Le chemin exact où le fichier sera stocké
+     * @param maxSizeBytes La taille maximale autorisée pour le fichier (en octets)
+     * @param allowedMimeTypes Tableau des types MIME acceptés (ex: ["application/zip"])
+     * @param lifetime Durée de validité du formulaire en secondes (default: 15min)
+     */
+    async getPresignedPostForm(
+        path: string,
+        maxSizeBytes: number,
+        allowedMimeTypes: string[],
+        lifetime = 900
+    ) {
+        const conditions: unknown[] = [
+            ["content-length-range", 0, maxSizeBytes],
+            { bucket: BUCKET_NAME },
+            { key: path }
+        ];
+
+        if (allowedMimeTypes.length === 1) {
+            conditions.push({ "Content-Type": allowedMimeTypes[0] });
+        } else if (allowedMimeTypes.length > 1) {
+            conditions.push(["starts-with", "$Content-Type", ""]);
+        }
+
+        const fields: Record<string, string> = {
+            "success_action_status": "201",
+        };
+
+        if (allowedMimeTypes.length === 1) {
+            fields["Content-Type"] = allowedMimeTypes[0];
+        }
+
+        const postForm = await createPresignedPost(publicS3Client, {
+            Bucket: BUCKET_NAME,
+            Key: path,
+            Expires: lifetime,
+            // deno-lint-ignore no-explicit-any
+            Conditions: conditions as any,
+            Fields: fields
+        });
+
+        return {
+            url: postForm.url,
+            fields: postForm.fields,
+        };
+    }
+,
+
+    /**
+     * Vérifie l'existence d'un objet dans le bucket.
+     * @param path Le chemin/clé de l'objet dans le bucket
+     * @returns true si l'objet existe, false si l'objet est absent
+     * @throws Laisse remonter les erreurs inattendues pour que l'appelant puisse les distinguer
+     */
+    async exists(path: string): Promise<boolean> {
+        try {
+            await internalS3Client.send(new HeadObjectCommand({ Bucket: BUCKET_NAME, Key: path }));
+            return true;
+        } catch (err) {
+            const status = (err as unknown as { $metadata?: { httpStatusCode?: number } })?.$metadata?.httpStatusCode;
+            if (status === 404) {
+                return false;
+            }
+            throw err;
+        }
+    }
+    ,
+
+    /**
+     * Supprime un objet du bucket.
+     * @param path Le chemin/clé de l'objet à supprimer
+     */
+    async delete(path: string): Promise<void> {
+        const command = new DeleteObjectCommand({ Bucket: BUCKET_NAME, Key: path });
+        await internalS3Client.send(command);
     }
 };
 

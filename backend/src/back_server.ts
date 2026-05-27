@@ -2,6 +2,7 @@ import { Application, Router } from "oak";
 import { oakCors } from "cors";
 import authRoutes from "./Routes/AuthRoutes.ts"
 import userRoutes from "./Routes/UserRoutes.ts"
+import gameRoutes from "./Routes/GameRoutes.ts";
 
 import config from "./Config/config.ts"
 import groupRoutes from "./Routes/GroupRoutes.ts";
@@ -12,6 +13,7 @@ const app = new Application();
 router.use(authRoutes.routes());
 router.use(userRoutes.routes());
 router.use(groupRoutes.routes());
+router.use(gameRoutes.routes());
 
 if (Deno.args.length < 1) {
     console.log(`Usage: $ deno run --allow-net server.ts PORT [CERT_PATH KEY_PATH]`);
