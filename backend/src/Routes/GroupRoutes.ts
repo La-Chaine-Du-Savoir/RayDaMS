@@ -2,7 +2,7 @@ import { Context, Router } from "oak";
 import { z } from "zod";
 import { customAlphabet } from "nanoid";
 import {restrictToAdmin} from "../Middlewares/restrictionMiddleware.ts";
-import {Group, GroupWithUsers} from "../Model/DataObjects/Group.ts";
+import {Group, GroupWithUsers, sanitizeGroup} from "../Model/DataObjects/Group.ts";
 import groupRepository from "../Model/Repository/GroupRepository.ts";
 import authMiddleware from "../Middlewares/AuthMiddleware.ts";
 const alphabet = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz';
@@ -72,8 +72,11 @@ router.post("/", ...restrictToAdmin, async (ctx: Context) => {
 router.get("/", authMiddleware, async (ctx: Context) => {
     try {
         const groups:GroupWithUsers[] = await groupRepository.getAllGroups();
+        const sanitizedGroups = await Promise.all(
+            groups.map(group => sanitizeGroup(group))
+        );
         ctx.response.status = 200;
-        ctx.response.body = { success: true, groups };
+        ctx.response.body = { success: true, sanitizedGroups };
     } catch (_err) {
         ctx.response.status = 500;
         ctx.response.body = { success: false, message: "Failed to fetch groups" };
@@ -100,7 +103,7 @@ router.get("/:id", authMiddleware, async (ctx) => {
         }
 
         ctx.response.status = 200;
-        ctx.response.body = { success: true, group };
+        ctx.response.body = { success: true, group: await sanitizeGroup(group) };
     } catch (_err) {
         ctx.response.status = 500;
         ctx.response.body = { success: false, message: "Failed to fetch group details" };
