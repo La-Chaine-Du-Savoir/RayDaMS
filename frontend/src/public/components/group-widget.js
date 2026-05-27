@@ -164,31 +164,35 @@ export class GroupWidget extends LitElement {
       users: [],
     };
 
-    this._handleAuthChange = (updatedUser) => {
-      // 1. On vérifie qu'on a bien un groupe et des utilisateurs
+    this._handleAuthChange = (e) => {
+      let updatedUser = e.detail;
       if (!this.group || !this.group.users) return;
 
-      // 2. On cherche l'utilisateur qui vient d'être mis à jour (en supposant qu'ils ont un 'id')
       const userIndex = this.group.users.findIndex(u => u.id === updatedUser.id);
 
       if (userIndex !== -1) {
-        // 3. On crée une copie du tableau des utilisateurs
         const newUsers = [...this.group.users];
-
-        // 4. On met à jour l'utilisateur spécifique avec la nouvelle URL
         newUsers[userIndex] = {
           ...newUsers[userIndex],
           url_profil_picture: updatedUser.url_profil_picture
         };
 
-        // 5. On réassigne this.group avec un nouvel objet
-        // Cela va déclencher le "setter" réactif de Lit et forcer le render()
         this.group = {
           ...this.group,
           users: newUsers
         };
       }
     };
+  }
+
+  connectedCallback() {
+    super.connectedCallback();
+    window.addEventListener("auth-change", this._handleAuthChange);
+  }
+
+  disconnectedCallback() {
+    window.removeEventListener("auth-change", this._handleAuthChange);
+    super.disconnectedCallback();
   }
 
   render() {
