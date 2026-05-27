@@ -85,6 +85,10 @@ router.get("/profile", async (ctx) => {
     await serveHtml(ctx, "pages/profile.html");
 });
 
+router.get("/upload", async (ctx) => {
+    await serveHtml(ctx, "pages/upload-game.html");
+});
+
 app.use(router.routes());
 app.use(router.allowedMethods());
 

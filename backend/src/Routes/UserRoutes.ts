@@ -2,6 +2,7 @@ import { Context, Router } from "oak";
 import { z } from "zod";
 import authMiddleware from "../Middlewares/AuthMiddleware.ts";
 import userRepository from "../Model/Repository/UserRepository.ts";
+import groupRepository from "../Model/Repository/GroupRepository.ts";
 import { sanitizeUser } from "../Model/DataObjects/User.ts";
 import cloud from "../Services/cloud.ts";
 
@@ -127,6 +128,27 @@ router.patch("/me", authMiddleware, async (ctx: Context) => {
 
     } catch (err) {
         console.error("Erreur update profil:", err);
+        ctx.response.status = 500;
+        ctx.response.body = { success: false, error: "Erreur interne du serveur" };
+    }
+});
+
+// Récup les groups du user connecté
+router.get("/me/groups", authMiddleware, async (ctx: Context) => {
+    const currentUser = ctx.state.user;
+
+    try {
+        // On fait appel au repository pour récupérer que les groupes de ce user
+        const userGroups = await groupRepository.getGroupsByUserId(currentUser.id);
+
+        ctx.response.status = 200;
+        ctx.response.body = {
+            success: true,
+            // On renvoie "results" pour matcher avec apiService.getAll
+            results: userGroups 
+        };
+    } catch (err) {
+        console.error("Erreur lors de la récupération des groupes de l'utilisateur:", err);
         ctx.response.status = 500;
         ctx.response.body = { success: false, error: "Erreur interne du serveur" };
     }
