@@ -1,5 +1,6 @@
 import { LitElement, html, css } from "lit";
 import { apiService } from "../services/apiService.js";
+import "./app-avatar.js";
 
 export class AppNavbar extends LitElement {
   static properties = {
@@ -84,42 +85,21 @@ export class AppNavbar extends LitElement {
       color: white;
     }
 
-    /* Avatars dans la navbar */
+    /* Avatar */
     .nav-profile-link {
       display: inline-flex;
       align-items: center;
       justify-content: center;
       text-decoration: none;
+    }
+
+    .nav-profile-link app-avatar {
       transition: transform 0.3s ease;
+      transform-origin: center; 
     }
 
-    .nav-profile-link:hover {
+    .nav-profile-link:hover app-avatar {
       transform: scale(1.1);
-    }
-
-    .nav-avatar {
-      width: 45px;
-      height: 45px;
-      border-radius: 50%;
-      object-fit: cover;
-      border: 2px solid white;
-      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-    }
-
-    .nav-avatar-fallback {
-      width: 45px;
-      height: 45px;
-      border-radius: 50%;
-      background-color: var(--dams-pink, #e91e63);
-      color: white;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-weight: bold;
-      font-size: 1.5rem;
-      border: 2px solid white;
-      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-      text-transform: uppercase;
     }
 
     /* Boutons */
@@ -216,10 +196,11 @@ export class AppNavbar extends LitElement {
         ? html`
                 <span class="user-greeting">Salut, ${this._user.username} !</span>
                 <a href="/profile" class="nav-profile-link" title="Mon Profil">
-                  ${this._user.url_profil_picture
-                    ? html`<img src="${this._user.url_profil_picture}" alt="Profil" class="nav-avatar" />`
-                    : html`<div class="nav-avatar-fallback">${this._user.username.charAt(0)}</div>`
-                  }
+                  <app-avatar 
+                    url="${this._user.url_profil_picture}" 
+                    username="${this._user.username}" 
+                    size="small">
+                  </app-avatar>
                 </a>
                 <button @click="${this._logout}" class="btn btn-logout">Déconnexion</button>
               `
