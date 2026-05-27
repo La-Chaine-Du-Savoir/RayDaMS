@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mon Profil - RayDaMS</title>
+    <link rel="stylesheet" href="/assets/styles/style.css">
+
+    <script defer type="module" src="/scripts/index.js"></script>
+    <script defer type="module" src="/scripts/profile.js"></script>
+</head>
+<body>
+
+<app-navbar></app-navbar>
+
+<main>
+    <header class="hero">
+        <h1 class="site-title">Mon <span class="highlight">Profil</span></h1>
+    </header>
+
+    <div class="auth-container" style="padding-top: 0;">
+        <form class="auth-form" id="profile-form">
+            
+            <div id="profile-message"></div>
+
+            <!-- Zone de la photo de profil -->
+            <div class="form-group" style="text-align: center; margin-bottom: 2rem;">
+                <!-- image par défaut si l'utilisateur n'en a pas -->
+                <app-avatar id="avatar-preview" size="large"></app-avatar>
+                
+                <br>
+                <label for="avatar-input" class="btn-upload">Changer la photo</label>
+                <!-- L'input est caché -->
+                <input type="file" id="avatar-input" name="avatar" accept="image/png, image/jpeg, image/webp" style="display: none;">
+            </div>
+
+            <div class="form-group">
+                <label for="username">Nom d'utilisateur</label>
+                <input type="text" id="username" name="username" disabled style="background-color: #eee; cursor: not-allowed;">
+            </div>
+
+            <div class="form-group">
+                <label for="email">Adresse Email</label>
+                <input type="email" id="email" name="email" required>
+            </div>
+
+            <button type="submit" class="btn-form">Enregistrer les modifications</button>
+        </form>
+    </div>
+</main>
+
+<app-footer></app-footer>
+
+</body>
+</html>
