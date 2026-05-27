@@ -2,25 +2,6 @@ import { apiService } from '../services/apiService.js';
 import '../components/app-avatar.js';
 import '../components/group-widget.js';
 
-(async () => {
-    const widget = document.getElementById("test-group");
-    let id = 1;
-    if (!widget) return;
-
-    try {
-        const res = await apiService.getById('groups', id);
-        console.log(res);
-        if (res.success) {
-            const groupObj = res.data?.group;
-            widget.group = groupObj;
-        } else {
-            console.warn('group-widget: fetch failed for id', id, res.error);
-        }
-    } catch (e) {
-        console.error('group-widget: unexpected error while fetching group', id, e);
-    }
-})();
-
 document.addEventListener('DOMContentLoaded', () => {
     // si pas co, on le renvoie à l'accueil ou au login
     if (!apiService.isAuthenticated) {
@@ -123,5 +104,45 @@ document.addEventListener('DOMContentLoaded', () => {
         messageContainer.textContent = text;
         messageContainer.className = className;
     }
+
+    const groupsContainer = document.getElementById('groups-container');
+
+    async function loadUserGroups() {
+        try {
+            // Afficher un message de chargement
+            groupsContainer.innerHTML = '<p>Chargement de vos groupes...</p>';
+
+            const res = await apiService.getAll(`users/${user.id}/groups`);
+            if (res.success) {
+                groupsContainer.innerHTML = '';
+
+                const groups = res.data?.groups || [];
+
+                if (groups.length === 0) {
+                    groupsContainer.innerHTML = '<p class="empty-state" style="width: 100%;">Vous n\'êtes membre d\'aucun groupe.</p>';
+                    return;
+                }
+
+                // Pour chaque groupe, on crée dynamiquement le widget
+                groups.forEach(groupObj => {
+                    const widget = document.createElement('group-widget');
+
+                    widget.group = groupObj;
+
+                    groupsContainer.appendChild(widget);
+                });
+
+            } else {
+                console.warn('Erreur API lors de la récupération des groupes:', res.error);
+                groupsContainer.innerHTML = '<p class="error-message">Impossible de charger vos groupes.</p>';
+            }
+        } catch (e) {
+            console.error('Erreur inattendue lors du chargement des groupes :', e);
+            groupsContainer.innerHTML = '<p class="error-message">Une erreur inattendue est survenue.</p>';
+        }
+    }
+
+    // On lance le chargement des groupes au démarrage de la page
+    loadUserGroups();
 });
 

@@ -166,6 +166,7 @@ export class GroupWidget extends LitElement {
 
     this._handleAuthChange = (e) => {
       let updatedUser = e.detail;
+      if(!updatedUser) return;
       if (!this.group || !this.group.users) return;
 
       const userIndex = this.group.users.findIndex(u => u.id === updatedUser.id);
