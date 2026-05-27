@@ -2,11 +2,11 @@ import { Client } from "postgres";
 import config from "../Config/config.ts";
 
 const client = new Client({
-    user: config.dbUser,
-    database: config.dbName,
-    hostname: config.dbHost,
-    port: config.dbPort,
-    password: config.dbPassword
+    user: config.db.user,
+    database: config.db.name,
+    hostname: config.db.host,
+    port: config.db.port,
+    password: config.db.password
 });
 await client.connect();
 

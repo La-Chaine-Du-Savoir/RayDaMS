@@ -62,12 +62,10 @@ async function main(): Promise<void> {
     password_hash: await hashPassword(password),
   };
 
-  const createdUser = await userRepository.create(userToCreate);
+  const createdUser = await userRepository.create(userToCreate, ["member", "admin"]);
   if (!createdUser.id) {
     throw new Error("User created without id.");
   }
-
-  await userRepository.addRoles(createdUser.id, ["admin"]);
 
   console.log(`Admin user created successfully: id=${createdUser.id}, username=${createdUser.username}`);
 }

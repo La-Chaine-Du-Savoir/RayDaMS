@@ -9,6 +9,7 @@
     "bcrypt": "https://deno.land/x/bcrypt@v0.4.1/mod.ts",
     "client-s3": "npm:@aws-sdk/client-s3@^3.600.0",
     "s3-request-presigner": "npm:@aws-sdk/s3-request-presigner@^3.600.0"
+    "nanoid": "npm:nanoid@5.1.11"
   },
   "tasks": {
     "dev": "deno run --watch --allow-net --allow-env --allow-sys --allow-read src/back_server.ts 3000",

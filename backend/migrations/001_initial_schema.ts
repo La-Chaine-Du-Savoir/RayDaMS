@@ -21,7 +21,8 @@ const migration = {
             CREATE TABLE IF NOT EXISTS groups (
                 id SERIAL PRIMARY KEY,
                 name VARCHAR(100) NOT NULL UNIQUE,
-                code VARCHAR(10)
+                code VARCHAR(10) NOT NULL UNIQUE,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             )
         `);
 
