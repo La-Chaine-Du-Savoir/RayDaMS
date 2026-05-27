@@ -13,24 +13,28 @@ export class GroupWidget extends LitElement {
     }
 
     .group-widget {
-        width: 300px;
-        max-height: 500px;
-        overflow-y: auto;
-        background-color: #ffffff;
-        border: 2px solid var(--polytech-blue, #005c97);
-        border-radius: 8px;
-        padding: 1.5rem;
-        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-        transition: box-shadow 0.3s ease, transform 0.3s ease;
-        display: flex;
-        flex-direction: column;
-        overflow-wrap: break-word;
-        word-break: break-word;
+      width: 300px;
+      max-height: 500px;
+      overflow-y: auto;
+      background-color: #ffffff;
+      border: 6px solid #9e9e9e;
+      border-radius: 10px;
+
+      padding: 1.5rem;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+
+      transition: box-shadow 0.3s ease, transform 0.3s ease, border-color 0.3s ease;
+
+      display: flex;
+      flex-direction: column;
+      overflow-wrap: break-word;
+      word-break: break-word;
     }
 
     .group-widget:hover {
       box-shadow: 0 8px 12px rgba(0, 0, 0, 0.15);
       transform: translateY(-2px);
+      border-color: var(--dams-pink, #DE007A);
     }
 
     .group-header {
