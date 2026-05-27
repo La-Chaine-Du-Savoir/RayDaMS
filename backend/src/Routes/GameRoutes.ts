@@ -1,6 +1,6 @@
-import { Context, Router } from "oak";
-import { connect } from "redis";
-import { z } from "zod";
+import {Context, Router} from "oak";
+import {connect} from "redis";
+import {z} from "zod";
 import authMiddleware from "../Middlewares/AuthMiddleware.ts";
 import cloud from "../Services/cloud.ts";
 import redisClient from "../Services/redis.ts";
@@ -160,21 +160,12 @@ router.post("/", formDataMiddleware, authMiddleware, async (ctx: Context) => {
 router.get("/:gameId/upload-request", authMiddleware, async (ctx) => {
 	const gameId = ctx.params.gameId;
 
-	const game = await gameRepository.getById(gameId);
+	let game = await gameRepository.getById(gameId);
 	if (!game) {
 		ctx.response.status = 404;
 		ctx.response.body = {
 			success: false,
 			error: "Game not found"
-		};
-		return;
-	}
-
-	if (game.sources_uploaded) {
-		ctx.response.status = 400;
-		ctx.response.body = {
-			success: false,
-			error: "Sources have already been uploaded"
 		};
 		return;
 	}
@@ -187,6 +178,38 @@ router.get("/:gameId/upload-request", authMiddleware, async (ctx) => {
 		ctx.response.body = {
 			success: false,
 			error: "You must be the game author or an admin to get an upload request"
+		};
+		return;
+	}
+
+	if (game.status === "success" || game.status === "failed") {
+		const compiledPaths = [game.path_js, game.path_wasm, game.path_data].filter(Boolean) as string[];
+		for (const p of compiledPaths) {
+			try {
+				await cloud.delete(p);
+			} catch (err) {
+				console.warn(`Failed to delete compiled artifact ${p}:`, err);
+			}
+		}
+
+		try {
+			game = await gameRepository.updateGame(String(game.id), {
+				path_js: '',
+				path_wasm: '',
+				path_data: '',
+				sources_uploaded: false,
+				status: 'pending'
+			}) ?? game;
+		} catch (err) {
+			console.error("Error while clearing previous build artifacts and updating DB", err);
+		}
+	}
+
+	if (game.sources_uploaded) {
+		ctx.response.status = 400;
+		ctx.response.body = {
+			success: false,
+			error: "Sources have already been uploaded"
 		};
 		return;
 	}

@@ -82,7 +82,7 @@ export async function deleteGame(id: string): Promise<boolean> {
 }
 
 /**
- * Met à jour les champs d'un jeu de manière dynamique sans écraser par des valeurs NULL.
+ * Met à jour les champs d'un jeu.
  */
 export async function updateGame(id: string, updates: Partial<Omit<Game, "id" | "created_at">> & { thumbnail_path?: string }): Promise<Game | undefined> {
     const result = await db.queryObject<Game>(
@@ -93,13 +93,14 @@ export async function updateGame(id: string, updates: Partial<Omit<Game, "id" | 
              url_trailer = COALESCE($3, url_trailer),
              status = COALESCE($4, status),
              sources_uploaded = COALESCE($5, sources_uploaded),
-             path_sources = COALESCE($6, path_sources),
-             path_js = COALESCE($7, path_js),
-             path_wasm = COALESCE($8, path_wasm),
-             path_data = COALESCE($9, path_data),
-             group_id = COALESCE($10, group_id),
-             thumbnail_path = COALESCE($11, thumbnail_path)
-         WHERE id = $12
+              path_sources = COALESCE($6, path_sources),
+              path_js = COALESCE($7, path_js),
+              path_wasm = COALESCE($8, path_wasm),
+              path_data = COALESCE($9, path_data),
+              path_screenshot = COALESCE($10, path_screenshot),
+              group_id = COALESCE($11, group_id),
+              thumbnail_path = COALESCE($12, thumbnail_path)
+          WHERE id = $13
              RETURNING *`,
         [
             updates.name ?? null,
@@ -111,6 +112,7 @@ export async function updateGame(id: string, updates: Partial<Omit<Game, "id" | 
             updates.path_js ?? null,
             updates.path_wasm ?? null,
             updates.path_data ?? null,
+            updates.path_screenshot ?? null,
             updates.group_id ?? null,
             updates.thumbnail_path ?? null,
             id

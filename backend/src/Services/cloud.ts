@@ -1,4 +1,4 @@
-import { S3Client, GetObjectCommand, PutObjectCommand, HeadObjectCommand } from "client-s3";
+import { S3Client, GetObjectCommand, PutObjectCommand, HeadObjectCommand, DeleteObjectCommand } from "client-s3";
 import { getSignedUrl } from "s3-request-presigner";
 import { createPresignedPost} from "s3-presigned-post";
 import config from "../Config/config.ts";
@@ -134,6 +134,16 @@ const cloud = {
             }
             throw err;
         }
+    }
+    ,
+
+    /**
+     * Supprime un objet du bucket.
+     * @param path Le chemin/clé de l'objet à supprimer
+     */
+    async delete(path: string): Promise<void> {
+        const command = new DeleteObjectCommand({ Bucket: BUCKET_NAME, Key: path });
+        await internalS3Client.send(command);
     }
 };
 
