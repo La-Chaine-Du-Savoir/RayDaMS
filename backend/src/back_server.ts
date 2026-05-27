@@ -1,6 +1,7 @@
 import { Application, Router } from "oak";
 import { oakCors } from "cors";
 import authRoutes from "./Routes/AuthRoutes.ts"
+import userRoutes from "./Routes/UserRoutes.ts"
 
 import config from "./Config/config.ts"
 import groupRoutes from "./Routes/GroupRoutes.ts";
@@ -9,8 +10,8 @@ const router = new Router();
 const app = new Application();
 
 router.use(authRoutes.routes());
+router.use(userRoutes.routes());
 router.use(groupRoutes.routes());
-
 
 if (Deno.args.length < 1) {
     console.log(`Usage: $ deno run --allow-net server.ts PORT [CERT_PATH KEY_PATH]`);
@@ -41,5 +42,5 @@ app.use(
 console.log(`CORS allows origin ${config.allowedOrigins.join(", ")}`);
 
 app.use(router.routes());
-app.use(router.allowedMethods())
+app.use(router.allowedMethods());
 await app.listen({ ...listenOptions, ...tlsOptions });
