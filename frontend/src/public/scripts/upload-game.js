@@ -17,12 +17,20 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     // Chargement des groupes
     const groupSelect = document.getElementById('game-group');
+    const submitBtn = document.querySelector('.btn-form');
+    const messageContainer = document.getElementById('upload-message');
+
+    function showMessage(text, className) {
+        messageContainer.textContent = text;
+        messageContainer.className = className;
+    }
     
     async function loadUserGroups() {
         if (!groupSelect) return;
         
         groupSelect.innerHTML = '<option value="">Chargement de vos groupes...</option>';
         groupSelect.disabled = true;
+        submitBtn.disabled = true;
 
         try {
             const response = await apiService.getAll('users/me/groups');
@@ -39,10 +47,12 @@ document.addEventListener('DOMContentLoaded', async () => {
                 groupSelect.disabled = false;
             } else {
                 groupSelect.innerHTML = '<option value="">Aucun groupe disponible</option>';
+                showMessage("Vous devez appartenir à un groupe pour publier un jeu.", "error-message");
             }
         } catch (error) {
             console.error("Erreur de chargement des groupes", error);
             groupSelect.innerHTML = '<option value="">Erreur serveur</option>';
+            showMessage("Impossible de charger vos groupes.", "error-message");
         }
     }
     await loadUserGroups();
@@ -90,20 +100,16 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     // Envoi du formulaire
     const form = document.getElementById('upload-game-form');
-    const messageContainer = document.getElementById('upload-message');
     const MAX_FILE_SIZE = 5 * 1024 * 1024; 
-
-    function showMessage(text, className) {
-        messageContainer.textContent = text;
-        messageContainer.className = className;
-    }
 
     if (form) {
         form.addEventListener('submit', async (e) => {
+            console.log("test");
             e.preventDefault();
             
             messageContainer.className = '';
             messageContainer.textContent = '';
+            submitBtn.disabled = true;
 
             const name = document.getElementById('game-name').value.trim();
             const groupId = document.getElementById('game-group').value; 
@@ -112,6 +118,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
             if (!groupId) {
                 showMessage("Veuillez sélectionner un groupe.", "error-message");
+                submitBtn.disabled = false;
                 return;
             }
 
@@ -121,53 +128,112 @@ document.addEventListener('DOMContentLoaded', async () => {
 
             if (thumbnailFile && thumbnailFile.size > MAX_FILE_SIZE) {
                 showMessage("L'image thumbnail est trop lourde. Limite : 5 Mo.", "error-message");
+                submitBtn.disabled = false;
                 return;
             }
 
-            const formData = new FormData();
+            if (!zipFile) {
+                showMessage("Le fichier ZIP du jeu est obligatoire.", "error-message");
+                submitBtn.disabled = false;
+                return;
+            }
+
+            // Create Game & Get Presigned URL
+            showMessage("Étape 1/3 : Création du jeu...", "success-message");
+            const metaFormData = new FormData();
+            metaFormData.append('name', name);
+            metaFormData.append('group_id', groupId);
             
-            formData.append('name', name);
-            formData.append('group_id', groupId);
+            if (description) metaFormData.append('description', description);
+            if (trailer) metaFormData.append('url_trailer', trailer);
+            if (thumbnailFile) metaFormData.append('thumbnail', thumbnailFile);
+            if (screenshotFile) metaFormData.append('screenshot', screenshotFile);
+
+            const createResponse = await apiService.createResource('games', metaFormData);
+
+            if (!createResponse.success) {
+                showMessage(createResponse.error, "error-message");
+                submitBtn.disabled = false;
+                return;
+            }
+
+            // Récupération de l'URL et les champs
+            const gameData = createResponse.data;
+            const gameId = gameData.game.id;
+            const uploadRequest = gameData.upload_request
             
-            if (zipFile) formData.append('game_file', zipFile);
-            if (description) formData.append('description', description);
-            if (trailer) formData.append('url_trailer', trailer);
-            if (thumbnailFile) formData.append('thumbnail', thumbnailFile);
-            if (screenshotFile) formData.append('screenshot', screenshotFile);
-
-            // Envoi API
-            const response = await apiService.createResource('games', formData);
-
-            if (response.success) {
-                showMessage("Jeu uploadé avec succès ! Compilation en cours...", "success-message");
+            if (!uploadRequest || !uploadRequest.url) {
+                showMessage("Erreur : Impossible de récupérer l'URL d'upload.", "error-message");
+                submitBtn.disabled = false;
+                return;
+            }
+            // Upload du ZIP
+            if (zipFile) {
+                showMessage("Étape 2/3 : Envoi du fichier source...", "success-message");
                 
-                // Nettoyage du formulaire
-                form.reset();
-                
-                const dropzoneThumb = document.getElementById('dropzone-thumbnail');
-                const imgThumb = document.getElementById('thumbnail-preview-img');
-                if (dropzoneThumb && imgThumb) {
-                    imgThumb.src = '';
-                    imgThumb.style.display = 'none';
-                    dropzoneThumb.classList.remove('has-image');
-                    dropzoneThumb.querySelector('.dropzone-text').innerHTML = "<span>Icône</span><br><small>Optionnel (Max 5Mo)</small>";
-                }
-
-                const dropzoneScreen = document.getElementById('dropzone-screenshot');
-                const imgScreen = document.getElementById('screenshot-preview-img');
-                if (dropzoneScreen && imgScreen) {
-                    imgScreen.src = '';
-                    imgScreen.style.display = 'none';
-                    dropzoneScreen.classList.remove('has-image');
-                    dropzoneScreen.querySelector('.dropzone-text').innerHTML = "<span>Capture d'écran</span><br><small>Optionnel</small>";
-                }
-
-                if (zipText) {
-                    zipText.innerHTML = `<span>Sélectionner le ZIP</span><br>Code source du jeu`;
+                const cloudFormData = new FormData();
+                // Ajoute tout les champs nécessaires pour l'URL Présignée
+                for (const [key, value] of Object.entries(uploadRequest.fields)) {
+                    cloudFormData.append(key, value);
                 }
                 
-            } else {
-                showMessage(response.error, "error-message");
+                // Le fichier doit être le dernier fichier ajouté
+                cloudFormData.append('file', zipFile);
+
+                try {
+                    const uploadResponse = await fetch(uploadRequest.url, {
+                        method: 'POST',
+                        body: cloudFormData,
+                    });
+
+                    if (!uploadResponse.ok) {
+                        throw new Error(`Cloud storage returned ${uploadResponse.status}`);
+                    }
+                } catch (error) {
+                    console.error("Cloud upload error:", error);
+                    showMessage("L'envoi du fichier source a échoué.", "error-message");
+                    submitBtn.disabled = false;
+                    return;
+                }
+            }
+
+            // Confirmation de l'upload
+            showMessage("Étape 3/3 : Confirmation...", "success-message");
+
+            const confirmResponse = await apiService.createResource(`games/${gameId}/confirm-upload`, {});
+
+            if (!confirmResponse.success) {
+                showMessage("Le fichier a été envoyé, mais la confirmation a échoué : " + confirmResponse.error, "error-message");
+                submitBtn.disabled = false;
+                return;
+            }
+
+            showMessage("Jeu uploadé avec succès ! Compilation en cours...", "success-message");
+            
+            form.reset();
+            submitBtn.disabled = false;
+            
+            // Nettoyage visuel
+            const dropzoneThumb = document.getElementById('dropzone-thumbnail');
+            const imgThumb = document.getElementById('thumbnail-preview-img');
+            if (dropzoneThumb && imgThumb) {
+                imgThumb.src = '';
+                imgThumb.style.display = 'none';
+                dropzoneThumb.classList.remove('has-image');
+                dropzoneThumb.querySelector('.dropzone-text').innerHTML = "<span>Icône</span><br><small>Optionnel (Max 5Mo)</small>";
+            }
+
+            const dropzoneScreen = document.getElementById('dropzone-screenshot');
+            const imgScreen = document.getElementById('screenshot-preview-img');
+            if (dropzoneScreen && imgScreen) {
+                imgScreen.src = '';
+                imgScreen.style.display = 'none';
+                dropzoneScreen.classList.remove('has-image');
+                dropzoneScreen.querySelector('.dropzone-text').innerHTML = "<span>Capture d'écran</span><br><small>Optionnel</small>";
+            }
+
+            if (zipText) {
+                zipText.innerHTML = `<span>Sélectionner le ZIP</span><br>Code source du jeu`;
             }
         });
     }
