@@ -135,7 +135,6 @@ services:
       S3_PASSWORD: ${MINIO_PASSWORD}
       PUBLIC_S3_ENDPOINT: http://localhost:9000
       S3_STORAGE_BUCKET_NAME: ${MINIO_STORAGE_BUCKET_NAME}
-      PEPPER_SECRET: ${PEPPER_SECRET}
     volumes:
       - ./backend:/app/backend
     depends_on:
