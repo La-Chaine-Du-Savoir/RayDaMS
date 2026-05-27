@@ -1,9 +1,10 @@
 import { apiService } from '../services/apiService.js';
+import '../components/app-avatar.js';
 
 document.addEventListener('DOMContentLoaded', () => {
     // si pas co, on le renvoie à l'accueil ou au login
     if (!apiService.isAuthenticated) {
-        window.location.href = '/login.html';
+        window.location.href = '/login';
         return;
     }
 
@@ -22,8 +23,9 @@ document.addEventListener('DOMContentLoaded', () => {
     usernameInput.value = user.username;
     emailInput.value = user.email;
 
+    avatarPreview.username = user.username;
     if (user.url_profil_picture) {
-        avatarPreview.src = user.url_profil_picture;
+        avatarPreview.url = user.url_profil_picture;
     }
 
     // Prévisualisation immédiate de l'image et vérif de la taille
@@ -36,12 +38,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 avatarInput.value = '';
                 
                 // On remet l'image par défaut ou l'ancienne photo
-                avatarPreview.src = user.url_profil_picture ? user.url_profil_picture : '/assets/images/logo-dams.png';
+                avatarPreview.url = user.url_profil_picture ? user.url_profil_picture : '';
                 return;
             }
             messageContainer.textContent = '';
             messageContainer.className = '';
-            avatarPreview.src = URL.createObjectURL(file);  
+            avatarPreview.url = URL.createObjectURL(file);  
         }
     });
 
@@ -87,7 +89,7 @@ document.addEventListener('DOMContentLoaded', () => {
             
             // On met à jour l'aperçu avec la vraie URL générée par Deno
             if (response.data.user.url_profil_picture) {
-                avatarPreview.src = response.data.user.url_profil_picture;
+                avatarPreview.url = response.data.user.url_profil_picture;
             }
             
             // On prévient les autres composants que l'utilisateur a changé
