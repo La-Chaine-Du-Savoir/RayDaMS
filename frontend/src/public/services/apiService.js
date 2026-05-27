@@ -127,7 +127,8 @@ export const apiService = {
 
     async createResource(resource, data, refreshAllowed = true) {
         try {
-            const headers = data instanceof FormData ? { 'Content-Type': 'multipart/form-data' } : {};
+            const headers = data instanceof FormData ? { 'Content-Type': undefined } : {};
+            
             const res = await apiClient.post(`${resource}/`, data, { headers });
             return { success: true, data: res.data };
         } catch (error) {
@@ -141,7 +142,8 @@ export const apiService = {
 
     async updateResource(resource, id, data, refreshAllowed = true) {
         try {
-            const headers = data instanceof FormData ? { 'Content-Type': 'multipart/form-data' } : {};
+            const headers = data instanceof FormData ? { 'Content-Type': undefined } : {};
+            
             const res = await apiClient.patch(`${resource}/${id}/`, data, { headers });
             return { success: true, data: res.data };
         } catch (error) {

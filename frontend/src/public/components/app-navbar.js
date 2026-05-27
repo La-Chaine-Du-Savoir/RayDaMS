@@ -1,5 +1,6 @@
 import { LitElement, html, css } from "lit";
 import { apiService } from "../services/apiService.js";
+import "./app-avatar.js";
 
 export class AppNavbar extends LitElement {
   static properties = {
@@ -82,6 +83,23 @@ export class AppNavbar extends LitElement {
       font-weight: bold;
       font-size: 1.1rem;
       color: white;
+    }
+
+    /* Avatar */
+    .nav-profile-link {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      text-decoration: none;
+    }
+
+    .nav-profile-link app-avatar {
+      transition: transform 0.3s ease;
+      transform-origin: center; 
+    }
+
+    .nav-profile-link:hover app-avatar {
+      transform: scale(1.1);
     }
 
     /* Boutons */
@@ -177,6 +195,13 @@ export class AppNavbar extends LitElement {
           ${this._user
         ? html`
                 <span class="user-greeting">Salut, ${this._user.username} !</span>
+                <a href="/profile" class="nav-profile-link" title="Mon Profil">
+                  <app-avatar 
+                    url="${this._user.url_profil_picture}" 
+                    username="${this._user.username}" 
+                    size="small">
+                  </app-avatar>
+                </a>
                 <button @click="${this._logout}" class="btn btn-logout">Déconnexion</button>
               `
         : html`

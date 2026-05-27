@@ -110,6 +110,23 @@ export async function removeRoles(userId: number, roleLabels: string[]): Promise
     );
 }
 
-const userRepository = { create, getById, getByEmail, getByUsername, addRoles, removeRoles };
+export async function update(userId: number, email?: string, pathProfilPicture?: string): Promise<User | undefined> {
+    const result = await db.queryObject<User>(
+        `UPDATE ${table}
+         SET email = COALESCE($1, email),
+             path_profil_picture = COALESCE($2, path_profil_picture)
+         WHERE id = $3
+         RETURNING id, username, email, password_hash, path_profil_picture, created_at`,
+        [
+            email ?? null,
+            pathProfilPicture ?? null,
+            userId
+        ],
+    );
+
+    return result.rows[0];
+}
+
+const userRepository = { create, getById, getByEmail, getByUsername, addRoles, removeRoles, update };
 
 export default userRepository;

@@ -113,6 +113,7 @@ services:
       - "3000:3000"
     command: ["sh", "-c", "deno task db:migrate && exec deno task dev"]
     environment:
+      ENVIRONMENT: development
       ALLOWED_ORIGINS: ${ALLOWED_ORIGINS}
       DB_HOST: db
       DB_PORT: 5432
@@ -120,6 +121,7 @@ services:
       DB_USER: ${DB_USER}
       DB_PASSWORD: ${DB_PASSWORD}
       JWT_SECRET: ${JWT_SECRET}
+      PEPPER_SECRET: ${PEPPER_SECRET}
       REDIS_HOST: redis
       REDIS_PORT: 6379
       REDIS_PASSWORD: ${REDIS_PASSWORD}

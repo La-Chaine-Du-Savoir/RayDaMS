@@ -81,6 +81,10 @@ router.get("/about", async (ctx) => {
     await serveHtml(ctx, "pages/about.html");
 });
 
+router.get("/profile", async (ctx) => {
+    await serveHtml(ctx, "pages/profile.html");
+});
+
 app.use(router.routes());
 app.use(router.allowedMethods());
 

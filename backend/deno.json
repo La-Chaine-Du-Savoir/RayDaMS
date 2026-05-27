@@ -16,10 +16,13 @@
     "fflate": "npm:fflate@^0.8.2"
   },
   "tasks": {
-    "dev": "deno run --watch --allow-net --allow-env --allow-sys src/back_server.ts 3000",
-    "start": "deno run --allow-net --allow-env --allow-sys src/back_server.ts 3000",
-    "db:migrate": "deno run --allow-net --allow-env --allow-read=migrations src/Commands/runMigrations.ts",
-    "user:create-admin": "deno run --allow-net --allow-env src/Commands/createAdmin.ts",
+    "dev": "deno run --watch --allow-net --allow-env --allow-sys --allow-read src/back_server.ts 3000",
+    "start": "deno run --allow-net --allow-env --allow-sys --allow-read src/back_server.ts 3000",
+    "db:migrate": "deno run --allow-net --allow-env --allow-sys --allow-read=migrations src/Commands/runMigrations.ts",
+    "user:create-admin": "deno run --allow-net --allow-env --allow-sys src/Commands/createAdmin.ts",
+    "db:populate": "deno run --allow-net --allow-env src/Commands/populateDB.ts",
+    "db:prune": "deno run --allow-net --allow-env src/Commands/pruneDB.ts",
+    "db:setup-dev": "deno task db:migrate && deno task db:populate",
     "worker:start": "deno run --allow-net --allow-env --allow-sys --allow-read --allow-write --allow-run src/worker_manager.ts"
   }
 }
