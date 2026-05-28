@@ -87,6 +87,7 @@ router.get("/", authMiddleware, async (ctx: Context) => {
 
 router.get("/:id", authMiddleware, async (ctx) => {
     const groupId = parseInt(ctx.params.id);
+    const isAdmin = ctx.state.user.roles?.includes('admin') || false;
 
     if (isNaN(groupId)) {
         ctx.response.status = 400;
@@ -105,7 +106,7 @@ router.get("/:id", authMiddleware, async (ctx) => {
         }
 
         ctx.response.status = 200;
-        ctx.response.body = { success: true, group: await sanitizeGroup(group) };
+        ctx.response.body = { success: true, group: await sanitizeGroup(group,isAdmin) };
     } catch (_err) {
         ctx.response.status = 500;
         ctx.response.body = { success: false, message: "Failed to fetch group details" };

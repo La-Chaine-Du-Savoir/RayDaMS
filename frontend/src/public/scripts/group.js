@@ -26,6 +26,9 @@ function showError(message) {
  * @param {Object} group L'objet groupe contenant le code d'invitation.
  */
 function setupAdminInvitation(group) {
+    // Vérification backend du rôle admin
+    if (!group.code) return;
+
     const userStr = sessionStorage.getItem('user');
     if (!userStr) return;
 
@@ -126,6 +129,7 @@ async function loadGroupData(groupId) {
 
     try {
         const groupRes = await apiService.getById(`groups`, groupId);
+        console.log(groupRes);
 
         if (!groupRes.success) {
             showError(groupRes.error || "Impossible de charger les informations du groupe.");
@@ -144,8 +148,6 @@ async function loadGroupData(groupId) {
         if (groupContentEl) {
             groupContentEl.style.display = 'block';
         }
-
-        console.log(groupRes);
 
         loadGroupMembers(groupRes.data.group.users);
         setupAdminInvitation(group);
