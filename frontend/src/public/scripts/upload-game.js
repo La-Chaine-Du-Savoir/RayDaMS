@@ -217,33 +217,35 @@ document.addEventListener('DOMContentLoaded', async () => {
                 return;
             }
 
-            showMessage("Jeu uploadé avec succès ! Compilation en cours...", "success-message");
+            // -Affichage du terminal
             
-            form.reset();
-            submitBtn.disabled = false;
+            showMessage("Upload réussi ! Lancement de la compilation WebAssembly...", "success-message");
             
-            // Nettoyage visuel
-            const dropzoneThumb = document.getElementById('dropzone-thumbnail');
-            const imgThumb = document.getElementById('thumbnail-preview-img');
-            if (dropzoneThumb && imgThumb) {
-                imgThumb.src = '';
-                imgThumb.style.display = 'none';
-                dropzoneThumb.classList.remove('has-image');
-                dropzoneThumb.querySelector('.dropzone-text').innerHTML = "<span>Icône</span><br><small>Optionnel (Max 5Mo)</small>";
-            }
+            // On cache le formulaire
+            form.style.display = 'none';
+            
+            // On affiche le conteneur du terminal
+            const logsWrapper = document.getElementById('build-logs-wrapper');
+            logsWrapper.style.display = 'block';
+            
+            // On injecte le composant lit avec l'ID du jeu
+            logsWrapper.innerHTML = `<app-build-logs game-id="${gameId}"></app-build-logs>`;
+            
+            // On fait défiler la page pour que le terminal soit bien visible
+            logsWrapper.scrollIntoView({ behavior: 'smooth' });
 
-            const dropzoneScreen = document.getElementById('dropzone-screenshot');
-            const imgScreen = document.getElementById('screenshot-preview-img');
-            if (dropzoneScreen && imgScreen) {
-                imgScreen.src = '';
-                imgScreen.style.display = 'none';
-                dropzoneScreen.classList.remove('has-image');
-                dropzoneScreen.querySelector('.dropzone-text').innerHTML = "<span>Capture d'écran</span><br><small>Optionnel</small>";
-            }
-
-            if (zipText) {
-                zipText.innerHTML = `<span>Sélectionner le ZIP</span><br>Code source du jeu`;
-            }
+            // event du composant
+            const terminalElement = logsWrapper.querySelector('app-build-logs');
+            terminalElement.addEventListener('build-complete', () => {
+                showMessage("Compilation terminée ! Votre jeu est prêt à être joué.", "success-message");
+                
+                // Bouton de redirection vers le jeu
+                const playBtn = document.createElement('a');
+                playBtn.href = `/play/${gameId}`;
+                playBtn.className = 'btn-form';
+                playBtn.textContent = 'JOUER MAINTENANT';
+                logsWrapper.appendChild(playBtn);
+            });
         });
     }
 });
