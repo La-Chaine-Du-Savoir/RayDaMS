@@ -188,7 +188,7 @@ export class AppNavbar extends LitElement {
           <img src="/assets/images/logo-dams.png" alt="Logo DaMS" class="nav-logo" />
           <img src="/assets/images/logo-polytech.svg" alt="Logo Polytech" class="nav-logo logo-polytech" />
           <div class="nav-separator"></div>
-          <a href="/jeux" class="nav-link">Jeux</a>
+          <a href="/games" class="nav-link">Jeux</a>
         </div>
         
         <div class="nav-right">
