@@ -89,6 +89,10 @@ router.get("/groups/:id", async (ctx) => {
     await serveHtml(ctx, "pages/group.html");
 });
 
+router.get("/join/:code", async (ctx) => {
+    await serveHtml(ctx, "pages/join.html");
+});
+
 app.use(router.routes());
 app.use(router.allowedMethods());
 
