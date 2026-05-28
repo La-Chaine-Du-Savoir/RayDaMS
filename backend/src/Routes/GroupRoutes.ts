@@ -5,6 +5,8 @@ import {restrictToAdmin} from "../Middlewares/restrictionMiddleware.ts";
 import {Group, GroupWithUsers, sanitizeGroup} from "../Model/DataObjects/Group.ts";
 import groupRepository from "../Model/Repository/GroupRepository.ts";
 import authMiddleware from "../Middlewares/AuthMiddleware.ts";
+import {Game, sanitizeGame} from "../Model/DataObjects/Game.ts";
+import gameRepository from "../Model/Repository/GameRepository.ts";
 const alphabet = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz';
 const generateGroupCode = customAlphabet(alphabet, 10);
 
@@ -107,6 +109,35 @@ router.get("/:id", authMiddleware, async (ctx) => {
     } catch (_err) {
         ctx.response.status = 500;
         ctx.response.body = { success: false, message: "Failed to fetch group details" };
+    }
+});
+
+router.get("/:id/games", authMiddleware, async (ctx) => {
+    const groupId = parseInt(ctx.params.id);
+
+    if (isNaN(groupId)) {
+        ctx.response.status = 400;
+        ctx.response.body = { success: false, message: "Invalid group ID" };
+        return;
+    }
+
+    try {
+
+        const games:Game[] = await gameRepository.getGamesByGroupId(groupId);
+
+        if (games.length === 0) {
+            ctx.response.status = 404;
+            ctx.response.body = { success: false, message: "Games not found" };
+            return;
+        }
+        const sanitizedGames = await Promise.all(
+            games.map(game => sanitizeGame(game))
+        );
+        ctx.response.status = 200;
+        ctx.response.body = { success: true, games: sanitizedGames };
+    } catch (_err) {
+        ctx.response.status = 500;
+        ctx.response.body = { success: false, message: "Failed to fetch games details" };
     }
 });
 
