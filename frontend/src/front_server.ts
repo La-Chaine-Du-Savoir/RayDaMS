@@ -1,7 +1,9 @@
-import { Application, Router, send } from "oak";
+import { Application, Router, send, Context } from "oak";
 import { join } from "path";
 
-const app = new Application({proxy: true});
+const args = Deno.args;
+const PROXY = args.includes("--proxy");
+const app = new Application({ proxy: PROXY });
 const router = new Router();
 const ROOT = import.meta.dirname || join(Deno.cwd(), "src");
 const PUBLIC_DIR = join(ROOT, "public");
@@ -23,12 +25,11 @@ const INJECTIONS = `
         }
     </script>`;
 
-if (Deno.args.length < 1) {
-    console.log("Usage: $ deno run --allow-net --allow-read=./ src/front_server.ts PORT [--cache] [CERT_PATH KEY_PATH]");
+if (args.length < 1) {
+    console.log("Usage: $ deno run --allow-net --allow-read=./ src/front_server.ts PORT [--cache] [--proxy] [CERT_PATH KEY_PATH]");
     Deno.exit(1);
 }
 
-const args = Deno.args;
 const USE_CACHE = args.includes("--cache");
 
 const positionalArgs = args.filter(arg => !arg.startsWith("--"));
@@ -36,7 +37,7 @@ const PORT = Number(positionalArgs[0]);
 
 const htmlCache = new Map<string, string>();
 
-async function serveHtml(ctx: any, fileName: string) {
+async function serveHtml(ctx: Context, fileName: string) {
     try {
         if (USE_CACHE && htmlCache.has(fileName)) {
             ctx.response.type = "text/html";

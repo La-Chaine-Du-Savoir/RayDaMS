@@ -116,7 +116,7 @@ services:
     build:
         context: .
         dockerfile: ./backend/Dockerfile
-    command: ["deno", "task", "start"]
+    command: ["deno", "task", "start", "--proxy"]
     environment:
       ENVIRONMENT: development
       ALLOWED_ORIGINS: ${ALLOWED_ORIGINS}
@@ -161,7 +161,7 @@ services:
       dockerfile: ./frontend/Dockerfile
     environment:
       API_URL: ${API_URL}
-    command: ["deno", "task", "start"]
+    command: ["deno", "task", "start", "--proxy"]
     volumes:
       - ./frontend:/app/frontend
     networks:
