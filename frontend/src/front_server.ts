@@ -97,6 +97,10 @@ router.get("/games/:id", async (ctx) => {
     await serveHtml(ctx, "pages/game-detail.html");
 });
 
+router.get("/games/:id/play", async (ctx) => {
+    await serveHtml(ctx, "pages/play.html");
+});
+
 app.use(router.routes());
 app.use(router.allowedMethods());
 

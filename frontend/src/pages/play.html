@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Jeu - RayDaMS</title>
+    <link rel="stylesheet" href="/assets/styles/style.css">
+    <link rel="stylesheet" href="/assets/styles/play.css">
+    
+    <script type="module" src="/components/game-player.js"></script>
+    
+    <script defer type="module" src="/scripts/play.js"></script>
+
+</head>
+<body>
+
+<app-navbar></app-navbar>
+
+<main>
+    <div class="play-header">
+        <h1 id="ui-game-title" class="play-title">Chargement...</h1>
+        <a id="ui-back-btn" href="/games" class="btn-back">↩ Retour à la fiche</a>
+    </div>
+
+    <div id="player-container">
+        <div style="width: 100%; text-align: center; padding: 4rem; color: #888;">
+            Initialisation de l'environnement WebAssembly...
+        </div>
+    </div>
+</main>
+
+<app-footer></app-footer>
+
+</body>
+</html>
