@@ -49,6 +49,7 @@ router.post("/login", async (ctx: Context) => {
         secure: config.cookieSecure,
         maxAge: config.accessTokenLifetime,
         path: "/",
+        ignoreInsecure: true,
     })
 
     // Création du refresh token
@@ -64,6 +65,7 @@ router.post("/login", async (ctx: Context) => {
         secure: config.cookieSecure,
         maxAge: config.refreshTokenLifetime,
         path: "/auth/token/refresh",
+        ignoreInsecure: true,
     })
 
     ctx.response.status = 200;
@@ -99,8 +101,8 @@ router.post("/logout", async (ctx: Context) => {
         maxAge: 0,
     };
 
-    ctx.cookies.set("access_token", "", { ...cookieOptions, path: "/" });
-    ctx.cookies.set("refresh_token", "", { ...cookieOptions, path: "/auth/token/refresh" });
+    ctx.cookies.set("access_token", "", { ...cookieOptions, path: "/", ignoreInsecure: true});
+    ctx.cookies.set("refresh_token", "", { ...cookieOptions, path: "/auth/token/refresh" , ignoreInsecure: true});
 
     ctx.response.status = 200;
     ctx.response.body = {
@@ -244,6 +246,7 @@ router.post("/token/refresh", async (ctx: Context) => {
             httpOnly: true,
             secure: config.cookieSecure,
             sameSite: config.cookieSamesite,
+            ignoreInsecure: true,
         };
 
         ctx.cookies.set("access_token", accessToken, {

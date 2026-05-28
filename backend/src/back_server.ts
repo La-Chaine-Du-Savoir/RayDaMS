@@ -8,7 +8,7 @@ import config from "./Config/config.ts"
 import groupRoutes from "./Routes/GroupRoutes.ts";
 
 const router = new Router();
-const app = new Application();
+const app = new Application({proxy: true});
 
 router.use(authRoutes.routes());
 router.use(userRoutes.routes());

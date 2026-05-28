@@ -1,7 +1,7 @@
 import { Application, Router, send } from "oak";
 import { join } from "path";
 
-const app = new Application();
+const app = new Application({proxy: true});
 const router = new Router();
 const ROOT = import.meta.dirname || join(Deno.cwd(), "src");
 const PUBLIC_DIR = join(ROOT, "public");
@@ -101,6 +101,7 @@ app.use(async (ctx) => {
 
 const listenOptions: Deno.ListenOptions = {
     port: PORT,
+    hostname: "0.0.0.0",
 };
 
 const tlsOptions: { cert?: string; key?: string } = {};

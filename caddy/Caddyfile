@@ -1,0 +1,16 @@
+10.111.5.111.nip.io {
+    tls internal
+
+    handle /api/* {
+        uri strip_prefix /api
+        reverse_proxy api:3000
+    }
+
+    handle /cloud/* {
+        reverse_proxy minio:9000
+    }
+
+    handle {
+        reverse_proxy frontend:5173
+    }
+}
