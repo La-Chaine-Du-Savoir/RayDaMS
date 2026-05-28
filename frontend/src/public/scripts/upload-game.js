@@ -45,6 +45,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                     groupSelect.appendChild(option);
                 });
                 groupSelect.disabled = false;
+                submitBtn.disabled = false;
             } else {
                 groupSelect.innerHTML = '<option value="">Aucun groupe disponible</option>';
                 showMessage("Vous devez appartenir à un groupe pour publier un jeu.", "error-message");
@@ -158,12 +159,20 @@ document.addEventListener('DOMContentLoaded', async () => {
             }
 
             // Récupération de l'URL et les champs
-            const gameData = createResponse.data;
-            const gameId = gameData.game.id;
-            const uploadRequest = gameData.upload_request
+            const payload = createResponse.data?.game ? createResponse.data : createResponse.data?.data;
+            
+            const gameId = payload?.game?.id;
+            const uploadRequest = payload?.upload_request;
+            
+            if (!gameId) {
+                console.error("Structure de la réponse inattendue:", createResponse);
+                showMessage("Erreur : Impossible de lire l'ID du jeu renvoyé par le serveur.", "error-message");
+                submitBtn.disabled = false;
+                return;
+            }
             
             if (!uploadRequest || !uploadRequest.url) {
-                showMessage("Erreur : Impossible de récupérer l'URL d'upload.", "error-message");
+                showMessage("Erreur : Impossible de récupérer l'URL d'upload S3.", "error-message");
                 submitBtn.disabled = false;
                 return;
             }
