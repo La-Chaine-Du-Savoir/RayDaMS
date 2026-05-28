@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Détails du Groupe - RayDaMS</title>
+    <link rel="stylesheet" href="/assets/styles/style.css">
+    <link rel="stylesheet" href="/assets/styles/group.css">
+
+    <script defer type="module" src="/scripts/index.js"></script>
+    <script defer type="module" src="/scripts/group.js"></script>
+</head>
+<body>
+
+<app-navbar></app-navbar>
+
+<main>
+    <header class="hero">
+        <h1 class="site-title" id="group-name">Chargement...</h1>
+        <p class="description" id="group-description"></p>
+    </header>
+
+    <div id="error-container" class="auth-container" style="display: none; padding-top: 0; text-align: center;">
+        <p id="error-message" class="error-message"></p>
+        <a href="/profile" class="btn-form" style="display: inline-block; margin-top: 1rem; text-decoration: none;">Retour au profil</a>
+    </div>
+
+    <section id="group-content" style="display: none; margin-top: 2rem;">
+        <div class="user-groups-section">
+            <h2 style="color: var(--polytech-blue-dark); margin-bottom: 2rem;">Membres du groupe</h2>
+
+            <div id="members-container" class="cards-container" style="gap: 2rem;">
+            </div>
+        </div>
+    </section>
+</main>
+
+<app-footer></app-footer>
+
+</body>
+</html>

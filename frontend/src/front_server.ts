@@ -85,6 +85,10 @@ router.get("/profile", async (ctx) => {
     await serveHtml(ctx, "pages/profile.html");
 });
 
+router.get("/groups/:id", async (ctx) => {
+    await serveHtml(ctx, "pages/group.html");
+});
+
 app.use(router.routes());
 app.use(router.allowedMethods());
 
