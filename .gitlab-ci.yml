@@ -1,0 +1,64 @@
+stages:
+  - build
+
+workflow:
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "main"'
+
+# TEMPLATE DE BUILD (Mutualisé pour Front, Back et Worker)
+.build_image_template:
+  image: docker:24.0.6-cli
+  stage: build
+  timeout: 20 minutes
+  retry:
+    max: 1
+    when: runner_system_failure
+  services:
+    - name: docker:24.0.6-dind
+      alias: docker
+  variables:
+    DOCKER_HOST: tcp://docker:2376/
+    DOCKER_TLS_CERTDIR: "/certs"
+    DOCKER_TLS_VERIFY: "1"
+  script:
+    - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" "$CI_REGISTRY"
+    - TAG="$CI_COMMIT_SHORT_SHA"
+    - |
+      docker build \
+        --cache-from "${IMAGE_NAME}:latest" \
+        -t "${IMAGE_NAME}:$TAG" \
+        -t "${IMAGE_NAME}:latest" \
+        -f "$DOCKERFILE_PATH" "$BUILD_CONTEXT"
+    - docker push "${IMAGE_NAME}:$TAG"
+    - docker push "${IMAGE_NAME}:latest"
+
+# JOBS DE BUILD
+build_backend:
+  extends: .build_image_template
+  variables:
+    IMAGE_NAME: $CI_REGISTRY_IMAGE/api
+    DOCKERFILE_PATH: backend/Dockerfile
+    BUILD_CONTEXT: .
+  rules:
+    - changes:
+        - backend/**/*
+
+build_frontend:
+  extends: .build_image_template
+  variables:
+    IMAGE_NAME: $CI_REGISTRY_IMAGE/front
+    DOCKERFILE_PATH: frontend/Dockerfile
+    BUILD_CONTEXT: .
+  rules:
+    - changes:
+        - frontend/**/*
+
+build_worker:
+  extends: .build_image_template
+  variables:
+    IMAGE_NAME: $CI_REGISTRY_IMAGE/worker
+    DOCKERFILE_PATH: compiler/Dockerfile
+    BUILD_CONTEXT: compiler/
+  rules:
+    - changes:
+        - compiler/**/*
