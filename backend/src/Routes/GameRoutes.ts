@@ -14,6 +14,7 @@ const router = new Router({ prefix: "/games" });
 
 const ACCEPTED_IMAGE_TYPES = ["png", "jpg", "jpeg", "webp"];
 const MAX_FILE_SIZE = 5 * 1024 * 1024;
+const MAX_SCREENSHOT_SIZE = 10 * 1024 * 1024;
 
 const CreateGameSchema = z.object({
 	name: z.string().trim().min(1),
@@ -26,6 +27,20 @@ const CreateGameSchema = z.object({
 		.nullable()
 		.refine((file) => !file || file.size <= MAX_FILE_SIZE, {
 			message: "L'image est trop lourde. Limite maximale : 5 Mo.",
+		})
+		.refine((file) => {
+			if (!file) return true;
+			const mime = (file.type || "").split("/").pop() || "";
+			return ACCEPTED_IMAGE_TYPES.includes(mime.toLowerCase());
+		}, {
+			message: "Format invalide. Seuls les formats .jpg, .jpeg, .png et .webp sont acceptés.",
+		}),
+	screenshot: z
+		.instanceof(File, { message: "La Screenshot doit être un fichier valide." })
+		.optional()
+		.nullable()
+		.refine((file) => !file || file.size <= MAX_SCREENSHOT_SIZE, {
+			message: "L'image est trop lourde. Limite maximale : 10 Mo.",
 		})
 		.refine((file) => {
 			if (!file) return true;
@@ -51,6 +66,7 @@ router.post("/", formDataMiddleware, authMiddleware, async (ctx: Context) => {
 	const rawGroupId = body.get("group_id") as string | null;
 	const url_trailer = body.get("url_trailer") as string | null;
 	const thumbnailFile = body.get("thumbnail") as File | null;
+	const screenshotFile = body.get("screenshot") as File | null;
 
 	const payload = {
 		name: name,
@@ -58,6 +74,7 @@ router.post("/", formDataMiddleware, authMiddleware, async (ctx: Context) => {
 		group_id: rawGroupId ? Number(rawGroupId) : undefined,
 		url_trailer: url_trailer,
 		thumbnail: thumbnailFile,
+		screenshot: screenshotFile,
 	};
 
 	let validatedData: CreateGameData;
@@ -124,6 +141,22 @@ router.post("/", formDataMiddleware, authMiddleware, async (ctx: Context) => {
 			updates["thumbnail_path"] = thumbnail_path;
 		} catch (err) {
 			console.error('Error while uploading thumbnail', err);
+		}
+	}
+
+	if (validatedData.screenshot) {
+		const extension = validatedData.screenshot.type.split("/")[1];
+		const screenshot_path = `games/${game.id}/screenshot.${extension}`;
+
+		try {
+			await cloud.upload(
+				screenshot_path,
+				new Uint8Array(await validatedData.screenshot.arrayBuffer()),
+				validatedData.screenshot.type
+			);
+			updates["path_screenshot"] = screenshot_path;
+		} catch (err) {
+			console.error('Error while uploading screenshot', err);
 		}
 	}
 

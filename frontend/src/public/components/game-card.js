@@ -161,7 +161,7 @@ export class AppGameCard extends LitElement {
 
         return html`
             <div class="card">
-                <a href="/play/${this.game.id}" class="play-link">
+                <a href="/games/${this.game.id}" class="play-link">
                     <div class="thumbnail-container">
                         ${thumbnailUrl 
                             ? html`<img src="${thumbnailUrl}" alt="${this.game.name}" class="thumbnail" loading="lazy">`

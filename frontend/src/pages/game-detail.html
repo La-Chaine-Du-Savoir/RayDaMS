@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Détails du jeu - RayDaMS</title>
+    <link rel="stylesheet" href="/assets/styles/style.css">
+    <link rel="stylesheet" href="/assets/styles/detail.css">
+    <script defer type="module" src="/scripts/game-detail.js"></script>
+    
+</head>
+<body>
+
+<app-navbar></app-navbar>
+
+<main>
+    <div id="loading-state" style="text-align: center; padding: 4rem;">
+        <h2 style="color: #888;">Chargement du jeu...</h2>
+    </div>
+
+    <div id="error-state" style="display: none; text-align: center; padding: 4rem; color: var(--dams-pink);">
+        <h2 id="error-message">Erreur de chargement</h2>
+        <a href="/games" class="btn-outline" style="color: var(--text-color); border-color: var(--text-color); display: inline-block; margin-top: 1rem;">Retour à la bibliothèque</a>
+    </div>
+
+    <div id="game-detail-wrapper" class="game-detail-container" style="display: none;">
+        
+        <div class="game-sidebar">
+            <img id="ui-thumbnail" src="" alt="Thumbnail" class="game-thumbnail">
+            <a id="ui-play-btn" href="#" class="btn-play">JOUER ▶</a>
+            
+            <div id="ui-status" style="text-align: center; font-weight: bold; padding: 0.5rem; border: 2px dashed #9e9e9e;">
+                Status: Inconnu
+            </div>
+        </div>
+
+        <div class="game-content">
+            <h1 id="ui-title" class="game-title">Titre du jeu</h1>
+            <div class="game-meta">Créé par <span id="ui-author">Auteur</span></div>
+
+            <div id="ui-media-container" class="game-media"></div>
+
+            <h2 style="color: var(--polytech-blue); margin-bottom: 1rem;">À propos du jeu</h2>
+            <div id="ui-description" class="game-description">Description...</div>
+        </div>
+
+    </div>
+</main>
+
+<app-footer></app-footer>
+
+</body>
+</html>

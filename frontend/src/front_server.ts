@@ -93,6 +93,10 @@ router.get("/games", async (ctx) => {
     await serveHtml(ctx, "pages/games.html");
 });
 
+router.get("/games/:id", async (ctx) => {
+    await serveHtml(ctx, "pages/game-detail.html");
+});
+
 app.use(router.routes());
 app.use(router.allowedMethods());
 
