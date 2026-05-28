@@ -51,6 +51,24 @@ const CreateGameSchema = z.object({
 		})
 });
 
+const UpdateGameSchema = z.object({
+    name: z.string().trim().min(1).optional(),
+    description: z.string().optional().nullable(),
+    url_trailer: z.string().optional().nullable(),
+    thumbnail: z.instanceof(File).optional().nullable()
+        .refine((file) => !file || file.size <= MAX_FILE_SIZE, { message: "Thumbnail max 5 Mo." })
+        .refine((file) => {
+            if (!file) return true;
+            return ACCEPTED_IMAGE_TYPES.includes((file.type || "").split("/").pop()?.toLowerCase() || "");
+        }, { message: "Format thumbnail invalide." }),
+    screenshot: z.instanceof(File).optional().nullable()
+        .refine((file) => !file || file.size <= MAX_SCREENSHOT_SIZE, { message: "Screenshot max 10 Mo." })
+        .refine((file) => {
+            if (!file) return true;
+            return ACCEPTED_IMAGE_TYPES.includes((file.type || "").split("/").pop()?.toLowerCase() || "");
+        }, { message: "Format screenshot invalide." })
+});
+
 type CreateGameData = z.infer<typeof CreateGameSchema>;
 
 /**
@@ -189,6 +207,33 @@ router.post("/", formDataMiddleware, authMiddleware, async (ctx: Context) => {
 		},
 	}
 });
+
+router.get("/:gameId", authMiddleware, async (ctx) => {
+    const gameId = ctx.params.gameId;
+
+    if (!gameId) {
+        ctx.response.status = 400;
+        ctx.response.body = { success: false, error: "Game ID is required" };
+        return;
+    }
+
+    const game = await gameRepository.getById(gameId);
+    if (!game) {
+        ctx.response.status = 404;
+        ctx.response.body = { success: false, error: "Game not found" };
+        return;
+    }
+
+    try {
+        ctx.response.status = 200;
+        ctx.response.body = { success: true, data: { game: await sanitizeGame(game) } };
+    } catch (err) {
+        console.error("Error while preparing game data", err);
+        ctx.response.status = 500;
+        ctx.response.body = { success: false, error: "Failed to load game" };
+    }
+});
+
 
 router.get("/:gameId/upload-request", authMiddleware, async (ctx) => {
 	const gameId = ctx.params.gameId;

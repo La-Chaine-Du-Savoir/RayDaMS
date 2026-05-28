@@ -58,17 +58,28 @@ document.addEventListener('DOMContentLoaded', async () => {
                 thumbImg.src = 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100"><rect width="100" height="100" fill="%23ddd"/><text x="50" y="50" dominant-baseline="middle" text-anchor="middle" font-family="monospace" fill="%23888">Sans image</text></svg>';
             }
 
-            // Gestion du média principal (trailer sinon screen)
+            function getYouTubeId(url) {
+                if (!url) return null;
+                const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
+                const match = url.match(regExp);
+                return (match && match[2].length === 11) ? match[2] : null;
+            }
+
             const mediaContainer = document.getElementById('ui-media-container');
-            if (game.url_trailer && game.url_trailer.includes('youtube.com/watch?v=')) {
-                // Conversion de l'URL youtube standard en URL embed
-                const videoId = game.url_trailer.split('v=')[1].split('&')[0];
-                mediaContainer.innerHTML = `<iframe width="100%" height="100%" src="https://www.youtube.com/embed/${videoId}" frameborder="0" allowfullscreen></iframe>`;
+            const youtubeId = getYouTubeId(game.url_trailer);
+
+            if (youtubeId) {
+                // 1. On a une vidéo YouTube valide
+                mediaContainer.innerHTML = `<iframe width="100%" height="100%" src="https://www.youtube.com/embed/${youtubeId}" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>`;
             } else if (game.url_screenshot) {
-                // Si on ajoute un jour des URLs pour les screenshots
-                mediaContainer.innerHTML = `<img src="${game.url_screenshot}" style="width:100%; height:100%; object-fit:cover;">`;
+                // 2. Pas de vidéo, mais on a un screenshot
+                mediaContainer.innerHTML = `<img src="${game.url_screenshot}" style="width:100%; height:100%; object-fit:cover; border: none;">`;
+            } else if (game.url_thumbnail) {
+                // 3. Pas de screenshot, on affiche la miniature en grand pour habiller
+                mediaContainer.innerHTML = `<img src="${game.url_thumbnail}" style="width:100%; height:100%; object-fit:cover; border: none;">`;
             } else {
-                mediaContainer.innerHTML = `<div style="display:flex; justify-content:center; align-items:center; height:100%; color:#555; font-family:monospace;">Aperçu non disponible</div>`;
+                // 4. Rien du tout
+                mediaContainer.innerHTML = `<div style="display:flex; justify-content:center; align-items:center; height:100%; color:#555; font-family:monospace; background-color:#222;">Aperçu non disponible</div>`;
             }
 
             // Affichage de la page
