@@ -1,16 +1,14 @@
-10.111.5.111.nip.io {
+10-192-21-244.sslip.io {
     tls internal
+    reverse_proxy frontend:5173
+}
 
-    handle /api/* {
-        uri strip_prefix /api
-        reverse_proxy api:3000
-    }
+api.10-192-21-244.sslip.io {
+    tls internal
+    reverse_proxy api:3000
+}
 
-    handle /cloud/* {
-        reverse_proxy minio:9000
-    }
-
-    handle {
-        reverse_proxy frontend:5173
-    }
+cloud.10-192-21-244.sslip.io {
+    tls internal
+    reverse_proxy minio:9000
 }
