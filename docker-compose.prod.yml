@@ -78,7 +78,6 @@ services:
       BUILD_TIMEOUT_MS: ${BUILD_TIMEOUT_MS}
       PEPPER_SECRET: ${PEPPER_SECRET}
     volumes:
-      - ./backend:/app/backend
       - /var/run/docker.sock:/var/run/docker.sock
     depends_on:
       db:
@@ -140,8 +139,6 @@ services:
       S3_PASSWORD: ${MINIO_PASSWORD}
       PUBLIC_S3_ENDPOINT: ${PUBLIC_S3_ENDPOINT}
       S3_STORAGE_BUCKET_NAME: ${MINIO_STORAGE_BUCKET_NAME}
-    volumes:
-      - ./backend:/app/backend
     depends_on:
       db:
         condition: service_healthy
@@ -162,8 +159,6 @@ services:
     environment:
       API_URL: ${API_URL}
     command: ["deno", "task", "start", "--proxy"]
-    volumes:
-      - ./frontend:/app/frontend
     networks:
       - frontend-network
       - external-network
@@ -175,6 +170,7 @@ services:
       - "443:443"
     volumes:
         - ./caddy/Caddyfile:/etc/caddy/Caddyfile
+        - caddy_data:/data
     networks:
       - external-network
 
@@ -182,6 +178,7 @@ volumes:
   pgdata:
   redis_data:
   miniodata:
+  caddy_data:
 
 networks:
     backend-network:
