@@ -7,7 +7,6 @@ export class AppGameCard extends LitElement {
     };
 
     static styles = css`
-        /* 1. CORRECTION DU BOUTON : On applique le border-box à l'intérieur du composant */
         * {
             box-sizing: border-box;
         }
@@ -23,7 +22,6 @@ export class AppGameCard extends LitElement {
             border: 6px solid #9e9e9e;
             display: flex;
             flex-direction: column;
-            text-decoration: none;
             color: var(--text-color, #333333);
             transition: transform 0.3s ease, border-color 0.3s ease;
             height: 100%;
@@ -34,6 +32,12 @@ export class AppGameCard extends LitElement {
             border-color: var(--dams-pink, #DE007A);
         }
 
+        .play-link {
+            text-decoration: none;
+            display: block;
+            color: inherit;
+        }
+
         .thumbnail-container {
             width: 100%;
             aspect-ratio: 16 / 9;
@@ -42,6 +46,8 @@ export class AppGameCard extends LitElement {
             justify-content: center;
             align-items: center;
             border-bottom: 4px solid #9e9e9e; 
+            position: relative; /* Requis pour positionner l'overlay par-dessus */
+            overflow: hidden;
         }
 
         .thumbnail {
@@ -57,6 +63,37 @@ export class AppGameCard extends LitElement {
             text-align: center;
         }
 
+        .play-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.6);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .play-icon {
+            color: var(--dams-pink, #DE007A);
+            font-size: 3.5rem;
+            text-shadow: 2px 2px 0px rgba(0, 0, 0, 0.8);
+            transform: scale(0.5);
+            transition: transform 0.3s ease cubic-bezier(0.175, 0.885, 0.32, 1.275); /* Effet de rebond sympa */
+        }
+
+        /* Animations au survol de la carte */
+        .card:hover .play-overlay {
+            opacity: 1;
+        }
+
+        .card:hover .play-icon {
+            transform: scale(1);
+        }
+
         .card-info {
             padding: 15px;
             display: flex;
@@ -69,20 +106,23 @@ export class AppGameCard extends LitElement {
             margin: 0 0 15px 0;
             color: var(--polytech-blue, #009EE0);
             font-family: 'Grixel', sans-serif;
-            /* 2. CORRECTION DU TEXTE : Taille réduite */
             font-size: 0.85rem; 
             text-align: center;
             line-height: 1.4;
             
-            /* Passage sur 2 lignes maximum, puis points de suspension */
             display: -webkit-box;
             -webkit-line-clamp: 2;
             -webkit-box-orient: vertical;
             overflow: hidden;
             text-overflow: ellipsis;
-            white-space: normal; /* Autorise le retour à la ligne */
+            white-space: normal;
             
             -webkit-font-smoothing: none;
+            transition: color 0.3s ease;
+        }
+
+        .card:hover .game-title {
+            color: var(--dams-pink, #DE007A);
         }
 
         .btn-edit {
@@ -117,26 +157,31 @@ export class AppGameCard extends LitElement {
     render() {
         if (!this.game) return html``;
 
-        const thumbnailUrl = this.game.url_thumbnail 
-            ? `${this.game.url_thumbnail}` 
-            : null;
+        const thumbnailUrl = this.game.url_thumbnail ? this.game.url_thumbnail : null;
 
         return html`
             <div class="card">
-                <div class="thumbnail-container">
-                    ${thumbnailUrl 
-                        ? html`<img src="${thumbnailUrl}" alt="${this.game.name}" class="thumbnail" loading="lazy">`
-                        : html`<div class="placeholder">Aperçu indisponible</div>`
-                    }
-                </div>
-                
-                <div class="card-info">
-                    <h3 class="game-title" title="${this.game.name}">${this.game.name}</h3>
+                <a href="/play/${this.game.id}" class="play-link">
+                    <div class="thumbnail-container">
+                        ${thumbnailUrl 
+                            ? html`<img src="${thumbnailUrl}" alt="${this.game.name}" class="thumbnail" loading="lazy">`
+                            : html`<div class="placeholder">Aperçu indisponible</div>`
+                        }
+                        <div class="play-overlay">
+                            <div class="play-icon">▶</div>
+                        </div>
+                    </div>
                     
-                    ${this.canEdit ? html`
+                    <div class="card-info">
+                        <h3 class="game-title" title="${this.game.name}">${this.game.name}</h3>
+                    </div>
+                </a>
+
+                ${this.canEdit ? html`
+                    <div style="padding: 0 15px 15px 15px;">
                         <a href="/edit-game?id=${this.game.id}" class="btn-edit">MODIFIER</a>
-                    ` : ''}
-                </div>
+                    </div>
+                ` : ''}
             </div>
         `;
     }
