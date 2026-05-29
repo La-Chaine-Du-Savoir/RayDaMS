@@ -144,7 +144,7 @@ export const apiService = {
         try {
             const headers = data instanceof FormData ? { 'Content-Type': undefined } : {};
             
-            const res = await apiClient.patch(`${resource}/${id}/`, data, { headers });
+            const res = await apiClient.patch(`${resource}/${id}`, data, { headers });
             return { success: true, data: res.data };
         } catch (error) {
             if (error.response?.status === 401 && refreshAllowed) {

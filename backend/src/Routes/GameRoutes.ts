@@ -208,6 +208,94 @@ router.post("/", formDataMiddleware, authMiddleware, async (ctx: Context) => {
 	}
 });
 
+router.patch("/:gameId", formDataMiddleware, authMiddleware, async (ctx) => {
+    const gameId = ctx.params.gameId;
+
+    if (!gameId) {
+        ctx.response.status = 400;
+        ctx.response.body = { success: false, error: "Game ID is required" };
+        return;
+    }
+
+    let game = await gameRepository.getById(gameId);
+    if (!game) {
+        ctx.response.status = 404;
+        ctx.response.body = { success: false, error: "Game not found" };
+        return;
+    }
+
+    // Vérification des droits (Auteur ou Admin)
+    const isAuthor = game.author === ctx.state.user.id;
+    const isAdmin = ctx.state.user.roles?.includes("admin") ?? false;
+    if (!isAuthor && !isAdmin) {
+        ctx.response.status = 403;
+        ctx.response.body = { success: false, error: "You must be the game author or an admin to edit this game" };
+        return;
+    }
+
+    const body = await ctx.request.body.formData();
+    
+    // On ne récupère que ce qui est envoyé
+    const payload: any = {};
+    if (body.has("name")) payload.name = body.get("name");
+    if (body.has("description")) payload.description = body.get("description");
+    if (body.has("url_trailer")) payload.url_trailer = body.get("url_trailer");
+    if (body.has("thumbnail")) payload.thumbnail = body.get("thumbnail");
+    if (body.has("screenshot")) payload.screenshot = body.get("screenshot");
+
+    let validatedData;
+    try {
+        validatedData = UpdateGameSchema.parse(payload);
+    } catch (error) {
+        ctx.response.status = 400;
+        ctx.response.body = { success: false, error: error };
+        return;
+    }
+
+    const updates: Record<string, any> = {};
+    if (validatedData.name !== undefined) updates["name"] = validatedData.name;
+    if (validatedData.description !== undefined) updates["description"] = validatedData.description;
+    if (validatedData.url_trailer !== undefined) updates["url_trailer"] = validatedData.url_trailer;
+
+    // Gestion de la nouvelle miniature
+    if (validatedData.thumbnail) {
+        const extension = validatedData.thumbnail.type.split("/")[1];
+        const thumbnail_path = `games/${game.id}/thumb.${extension}`;
+        try {
+            await cloud.upload(thumbnail_path, new Uint8Array(await validatedData.thumbnail.arrayBuffer()), validatedData.thumbnail.type);
+            updates["thumbnail_path"] = thumbnail_path;
+        } catch (err) {
+            console.error('Error uploading new thumbnail', err);
+        }
+    }
+
+    // Gestion du nouveau screenshot
+    if (validatedData.screenshot) {
+        const extension = validatedData.screenshot.type.split("/")[1];
+        const screenshot_path = `games/${game.id}/screenshot.${extension}`;
+        try {
+            await cloud.upload(screenshot_path, new Uint8Array(await validatedData.screenshot.arrayBuffer()), validatedData.screenshot.type);
+            updates["path_screenshot"] = screenshot_path;
+        } catch (err) {
+            console.error('Error uploading new screenshot', err);
+        }
+    }
+
+    try {
+        const updatedGame = await gameRepository.updateGame(String(game.id), updates) ?? game;
+        ctx.response.status = 200;
+        ctx.response.body = {
+            success: true,
+            message: "Game updated successfully",
+            data: { game: await sanitizeGame(updatedGame) }
+        };
+    } catch (err) {
+        console.error("Error updating game", err);
+        ctx.response.status = 500;
+        ctx.response.body = { success: false, error: "Failed to update game" };
+    }
+});
+
 router.get("/:gameId", authMiddleware, async (ctx) => {
     const gameId = ctx.params.gameId;
 
@@ -534,42 +622,6 @@ router.get("/:gameId/logs", authMiddleware, async (ctx) => {
 	}
 });
 
-router.get("/:gameId", authMiddleware, async (ctx) => {
-	const gameId = ctx.params.gameId;
-
-	if (!gameId) {
-		ctx.response.status = 400;
-		ctx.response.body = { success: false, error: "Game ID is required" };
-		return;
-	}
-
-	const game = await gameRepository.getById(gameId);
-	if (!game) {
-		ctx.response.status = 404;
-		ctx.response.body = { success: false, error: "Game not found" };
-		return;
-	}
-
-	const isAdmin = ctx.state.user.roles?.includes("admin") ?? false;
-
-	try {
-		const group = await groupRepository.getById(game.group_id);
-		const isMember = !!group?.users?.find((u) => u.id === ctx.state.user.id);
-
-		if (!isMember && !isAdmin) {
-			ctx.response.status = 403;
-			ctx.response.body = { success: false, error: "You must be a member of the group or an admin to access this game" };
-			return;
-		}
-
-		ctx.response.status = 200;
-		ctx.response.body = { success: true, data: { game: await sanitizeGame(game) } };
-	} catch (err) {
-		console.error("Error while verifying group membership for game access", err);
-		ctx.response.status = 500;
-		ctx.response.body = { success: false, error: "Failed to verify access rights" };
-	}
-});
 
 export default router;
 
