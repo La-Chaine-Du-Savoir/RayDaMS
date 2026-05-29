@@ -4,7 +4,7 @@ RUN apt-get update && apt-get install -y git make && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /opt
 
-RUN git clone --depth 1 https://github.com/raysan5/raylib.git
+COPY compiler/raylib/ ./raylib/
 
 RUN cd raylib/src && \
     emmake make PLATFORM=PLATFORM_WEB CUSTOM_CFLAGS="-DSUPPORT_FILEFORMAT_JPG=1"
