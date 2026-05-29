@@ -8,6 +8,7 @@ workflow:
 
 variables:
   DOCKER_HOST: unix:///var/run/docker.sock
+  GIT_SUBMODULE_STRATEGY: recursive
 
 before_script:
   - apk add --no-cache git
