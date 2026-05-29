@@ -14,6 +14,7 @@ const router = new Router({ prefix: "/games" });
 
 const ACCEPTED_IMAGE_TYPES = ["png", "jpg", "jpeg", "webp"];
 const MAX_FILE_SIZE = 5 * 1024 * 1024;
+const MAX_SCREENSHOT_SIZE = 10 * 1024 * 1024;
 
 const CreateGameSchema = z.object({
 	name: z.string().trim().min(1),
@@ -33,7 +34,39 @@ const CreateGameSchema = z.object({
 			return ACCEPTED_IMAGE_TYPES.includes(mime.toLowerCase());
 		}, {
 			message: "Format invalide. Seuls les formats .jpg, .jpeg, .png et .webp sont acceptés.",
+		}),
+	screenshot: z
+		.instanceof(File, { message: "La Screenshot doit être un fichier valide." })
+		.optional()
+		.nullable()
+		.refine((file) => !file || file.size <= MAX_SCREENSHOT_SIZE, {
+			message: "L'image est trop lourde. Limite maximale : 10 Mo.",
 		})
+		.refine((file) => {
+			if (!file) return true;
+			const mime = (file.type || "").split("/").pop() || "";
+			return ACCEPTED_IMAGE_TYPES.includes(mime.toLowerCase());
+		}, {
+			message: "Format invalide. Seuls les formats .jpg, .jpeg, .png et .webp sont acceptés.",
+		})
+});
+
+const UpdateGameSchema = z.object({
+    name: z.string().trim().min(1).optional(),
+    description: z.string().optional().nullable(),
+    url_trailer: z.string().optional().nullable(),
+    thumbnail: z.instanceof(File).optional().nullable()
+        .refine((file) => !file || file.size <= MAX_FILE_SIZE, { message: "Thumbnail max 5 Mo." })
+        .refine((file) => {
+            if (!file) return true;
+            return ACCEPTED_IMAGE_TYPES.includes((file.type || "").split("/").pop()?.toLowerCase() || "");
+        }, { message: "Format thumbnail invalide." }),
+    screenshot: z.instanceof(File).optional().nullable()
+        .refine((file) => !file || file.size <= MAX_SCREENSHOT_SIZE, { message: "Screenshot max 10 Mo." })
+        .refine((file) => {
+            if (!file) return true;
+            return ACCEPTED_IMAGE_TYPES.includes((file.type || "").split("/").pop()?.toLowerCase() || "");
+        }, { message: "Format screenshot invalide." })
 });
 
 type CreateGameData = z.infer<typeof CreateGameSchema>;
@@ -51,6 +84,7 @@ router.post("/", formDataMiddleware, authMiddleware, async (ctx: Context) => {
 	const rawGroupId = body.get("group_id") as string | null;
 	const url_trailer = body.get("url_trailer") as string | null;
 	const thumbnailFile = body.get("thumbnail") as File | null;
+	const screenshotFile = body.get("screenshot") as File | null;
 
 	const payload = {
 		name: name,
@@ -58,6 +92,7 @@ router.post("/", formDataMiddleware, authMiddleware, async (ctx: Context) => {
 		group_id: rawGroupId ? Number(rawGroupId) : undefined,
 		url_trailer: url_trailer,
 		thumbnail: thumbnailFile,
+		screenshot: screenshotFile,
 	};
 
 	let validatedData: CreateGameData;
@@ -127,6 +162,22 @@ router.post("/", formDataMiddleware, authMiddleware, async (ctx: Context) => {
 		}
 	}
 
+	if (validatedData.screenshot) {
+		const extension = validatedData.screenshot.type.split("/")[1];
+		const screenshot_path = `games/${game.id}/screenshot.${extension}`;
+
+		try {
+			await cloud.upload(
+				screenshot_path,
+				new Uint8Array(await validatedData.screenshot.arrayBuffer()),
+				validatedData.screenshot.type
+			);
+			updates["path_screenshot"] = screenshot_path;
+		} catch (err) {
+			console.error('Error while uploading screenshot', err);
+		}
+	}
+
 	try {
 		game = await gameRepository.updateGame(String(game.id), updates) ?? game;
 	} catch (err) {
@@ -156,6 +207,33 @@ router.post("/", formDataMiddleware, authMiddleware, async (ctx: Context) => {
 		},
 	}
 });
+
+router.get("/:gameId", authMiddleware, async (ctx) => {
+    const gameId = ctx.params.gameId;
+
+    if (!gameId) {
+        ctx.response.status = 400;
+        ctx.response.body = { success: false, error: "Game ID is required" };
+        return;
+    }
+
+    const game = await gameRepository.getById(gameId);
+    if (!game) {
+        ctx.response.status = 404;
+        ctx.response.body = { success: false, error: "Game not found" };
+        return;
+    }
+
+    try {
+        ctx.response.status = 200;
+        ctx.response.body = { success: true, data: { game: await sanitizeGame(game) } };
+    } catch (err) {
+        console.error("Error while preparing game data", err);
+        ctx.response.status = 500;
+        ctx.response.body = { success: false, error: "Failed to load game" };
+    }
+});
+
 
 router.get("/:gameId/upload-request", authMiddleware, async (ctx) => {
 	const gameId = ctx.params.gameId;
