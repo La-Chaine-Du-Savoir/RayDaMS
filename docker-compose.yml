@@ -12,6 +12,8 @@ services:
       interval: 5s
       timeout: 3s
       retries: 5
+    networks:
+      - backend-network
 
   redis:
     image: redis:8-alpine
@@ -23,6 +25,8 @@ services:
       interval: 5s
       timeout: 3s
       retries: 5
+    networks:
+      - backend-network
 
   minio:
     image: minio/minio:RELEASE.2025-09-07T16-13-09Z
@@ -40,6 +44,8 @@ services:
       interval: 5s
       timeout: 3s
       retries: 5
+    networks:
+      - backend-network
 
   compiler:
     build:
@@ -68,7 +74,7 @@ services:
       S3_PORT: 9000
       S3_USER: ${MINIO_USER}
       S3_PASSWORD: ${MINIO_PASSWORD}
-      PUBLIC_S3_ENDPOINT: http://localhost:9000
+      PUBLIC_S3_ENDPOINT: ${PUBLIC_S3_ENDPOINT}
       S3_STORAGE_BUCKET_NAME: ${MINIO_STORAGE_BUCKET_NAME}
       MAX_CONCURRENT: ${MAX_CONCURRENT}
       BUILD_TIMEOUT_MS: ${BUILD_TIMEOUT_MS}
@@ -85,7 +91,9 @@ services:
         condition: service_healthy
       minio-init:
         condition: service_completed_successfully
-    restart: unless-stopped
+    networks:
+      - backend-network
+      - docker-network
 
   minio-init:
     image: minio/mc
@@ -103,7 +111,8 @@ services:
         mc mb --ignore-existing local/$$MINIO_STORAGE_BUCKET_NAME;
         echo 'Bucket \"$$MINIO_STORAGE_BUCKET_NAME\" configured successfully.'
       "
-
+    networks:
+      - backend-network
 
   api:
     build:
@@ -133,7 +142,7 @@ services:
       S3_PORT: 9000
       S3_USER: ${MINIO_USER}
       S3_PASSWORD: ${MINIO_PASSWORD}
-      PUBLIC_S3_ENDPOINT: http://localhost:9000
+      PUBLIC_S3_ENDPOINT: ${PUBLIC_S3_ENDPOINT}
       S3_STORAGE_BUCKET_NAME: ${MINIO_STORAGE_BUCKET_NAME}
     volumes:
       - ./backend:/app/backend
@@ -146,6 +155,9 @@ services:
         condition: service_healthy
       minio-init:
         condition: service_completed_successfully
+    networks:
+      - backend-network
+      - external-network
 
   frontend:
     build:
@@ -158,7 +170,17 @@ services:
     command: ["deno", "task", "dev"]
     volumes:
       - ./frontend:/app/frontend
+    networks:
+      - frontend-network
+      - external-network
+
 volumes:
   pgdata:
   redis_data:
   miniodata:
+
+networks:
+    backend-network:
+    frontend-network:
+    docker-network:
+    external-network:

@@ -241,7 +241,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 
                 // Bouton de redirection vers le jeu
                 const playBtn = document.createElement('a');
-                playBtn.href = `/play/${gameId}`;
+                playBtn.href = `games/${gameId}/play`;
                 playBtn.className = 'btn-form';
                 playBtn.textContent = 'JOUER MAINTENANT';
                 logsWrapper.appendChild(playBtn);

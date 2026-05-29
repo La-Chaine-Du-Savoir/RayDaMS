@@ -11,6 +11,8 @@ RUN cd raylib/src && \
 
 FROM emscripten/emsdk:5.0.7
 
+RUN groupadd -r appgroup && useradd -r -g appgroup appuser
+
 RUN mkdir -p /opt/raylib/src
 
 COPY --from=builder /opt/raylib/src/libraylib.web.a /opt/raylib/src/libraylib.a
@@ -21,6 +23,11 @@ COPY --from=builder /opt/raylib/src/rlgl.h /opt/raylib/src/
 COPY build.sh /usr/local/bin/build_game.sh
 RUN chmod +x /usr/local/bin/build_game.sh
 
+RUN chown -R appuser:appgroup /opt/raylib /usr/local/bin/build_game.sh
+
 WORKDIR /src
+RUN chown appuser:appgroup /src
+
+USER appuser
 
 CMD ["/bin/bash", "/usr/local/bin/build_game.sh"]
