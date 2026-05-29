@@ -4,7 +4,6 @@ stages:
 workflow:
   rules:
     - if: '$CI_COMMIT_BRANCH == "main"'
-    - if: '$CI_COMMIT_BRANCH == "19-pipelines-ci-cd"'
     - if: '$CI_COMMIT_TAG'
 
 variables:
@@ -42,7 +41,7 @@ build_backend:
     DOCKERFILE_PATH: backend/Dockerfile
     BUILD_CONTEXT: .
   rules:
-    - if: '$CI_COMMIT_BRANCH == "main" || $CI_COMMIT_BRANCH == "19-pipelines-ci-cd"'
+    - if: '$CI_COMMIT_BRANCH == "main"'
       changes:
         - backend/**/*
     - if: '$CI_COMMIT_TAG'
@@ -54,7 +53,7 @@ build_frontend:
     DOCKERFILE_PATH: frontend/Dockerfile
     BUILD_CONTEXT: .
   rules:
-    - if: '$CI_COMMIT_BRANCH == "main" || $CI_COMMIT_BRANCH == "19-pipelines-ci-cd"'
+    - if: '$CI_COMMIT_BRANCH == "main"'
       changes:
         - frontend/**/*
     - if: '$CI_COMMIT_TAG'
@@ -66,7 +65,7 @@ build_worker:
     DOCKERFILE_PATH: compiler/Dockerfile
     BUILD_CONTEXT: compiler/
   rules:
-    - if: '$CI_COMMIT_BRANCH == "main" || $CI_COMMIT_BRANCH == "19-pipelines-ci-cd"'
+    - if: '$CI_COMMIT_BRANCH == "main"'
       changes:
         - compiler/**/*
     - if: '$CI_COMMIT_TAG'
