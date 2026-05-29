@@ -1,5 +1,7 @@
 FROM denoland/deno:alpine-2.7.14
 
+RUN addgroup -S appgroup && adduser -S appuser -G appgroup
+
 WORKDIR /app
 COPY deno.json deno.lock ./
 
@@ -10,7 +12,10 @@ COPY frontend/deno.json ./
 
 RUN deno install --frozen
 
-COPY frontend/src ./src
+COPY --chown=appuser:appgroup frontend/src ./src
+
+RUN chown -R appuser:appgroup /app
+USER appuser
 
 EXPOSE 5173
 
