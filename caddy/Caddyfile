@@ -1,14 +1,11 @@
-10-192-21-244.sslip.io {
-    tls internal
+http://10.111.4.118.nip.io {
     reverse_proxy frontend:5173
 }
 
-api.10-192-21-244.sslip.io {
-    tls internal
+http://api.10.111.4.118.nip.io {
     reverse_proxy api:3000
 }
 
-cloud.10-192-21-244.sslip.io {
-    tls internal
+http://cloud.10.111.4.118.nip.io {
     reverse_proxy minio:9000
 }

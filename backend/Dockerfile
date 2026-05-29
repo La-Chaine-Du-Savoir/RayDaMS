@@ -12,7 +12,8 @@ COPY backend/deno.json ./
 
 RUN deno install --frozen
 
-RUN chown -R appuser:appgroup /app
+RUN chown -R appuser:appgroup /app /deno-dir
+
 USER appuser
 
 COPY --chown=appuser:appgroup backend/src ./src
