@@ -6,6 +6,12 @@ workflow:
     - if: '$CI_COMMIT_BRANCH == "main"'
     - if: '$CI_COMMIT_BRANCH == "19-pipelines-ci-cd"'
 
+variables:
+  DOCKER_HOST: unix:///var/run/docker.sock
+
+before_script:
+  - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" "$CI_REGISTRY"
+
 # TEMPLATE DE BUILD (Mutualisé pour Front, Back et Worker)
 .build_image_template:
   image: docker:24.0.6-cli
@@ -14,23 +20,14 @@ workflow:
   retry:
     max: 1
     when: runner_system_failure
-  services:
-    - name: docker:24.0.6-dind
-      alias: docker
-  variables:
-    DOCKER_HOST: tcp://docker:2376/
-    DOCKER_TLS_CERTDIR: "/certs"
-    DOCKER_TLS_VERIFY: "1"
   script:
-    - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" "$CI_REGISTRY"
-    - TAG="$CI_COMMIT_SHORT_SHA"
     - |
       docker build \
         --cache-from "${IMAGE_NAME}:latest" \
-        -t "${IMAGE_NAME}:$TAG" \
+        -t "${IMAGE_NAME}:$CI_COMMIT_SHORT_SHA" \
         -t "${IMAGE_NAME}:latest" \
         -f "$DOCKERFILE_PATH" "$BUILD_CONTEXT"
-    - docker push "${IMAGE_NAME}:$TAG"
+    - docker push "${IMAGE_NAME}:$CI_COMMIT_SHORT_SHA"
     - docker push "${IMAGE_NAME}:latest"
 
 # JOBS DE BUILD
@@ -41,7 +38,8 @@ build_backend:
     DOCKERFILE_PATH: backend/Dockerfile
     BUILD_CONTEXT: .
   rules:
-    - changes:
+    - if: '$CI_COMMIT_BRANCH == "main" || $CI_COMMIT_BRANCH == "19-pipelines-ci-cd"'
+      changes:
         - backend/**/*
 
 build_frontend:
@@ -51,7 +49,8 @@ build_frontend:
     DOCKERFILE_PATH: frontend/Dockerfile
     BUILD_CONTEXT: .
   rules:
-    - changes:
+    - if: '$CI_COMMIT_BRANCH == "main" || $CI_COMMIT_BRANCH == "19-pipelines-ci-cd"'
+      changes:
         - frontend/**/*
 
 build_worker:
@@ -61,5 +60,6 @@ build_worker:
     DOCKERFILE_PATH: compiler/Dockerfile
     BUILD_CONTEXT: compiler/
   rules:
-    - changes:
+    - if: '$CI_COMMIT_BRANCH == "main" || $CI_COMMIT_BRANCH == "19-pipelines-ci-cd"'
+      changes:
         - compiler/**/*
