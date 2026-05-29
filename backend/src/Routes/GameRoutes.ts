@@ -1,5 +1,5 @@
 import {Context, Router} from "oak";
-import {connect} from "redis";
+import {connect, type XIdInput} from "redis";
 import {z} from "zod";
 import authMiddleware from "../Middlewares/AuthMiddleware.ts";
 import cloud from "../Services/cloud.ts";
@@ -14,7 +14,6 @@ const router = new Router({ prefix: "/games" });
 
 const ACCEPTED_IMAGE_TYPES = ["png", "jpg", "jpeg", "webp"];
 const MAX_FILE_SIZE = 5 * 1024 * 1024;
-const MAX_SCREENSHOT_SIZE = 10 * 1024 * 1024;
 
 const CreateGameSchema = z.object({
 	name: z.string().trim().min(1),
@@ -34,39 +33,7 @@ const CreateGameSchema = z.object({
 			return ACCEPTED_IMAGE_TYPES.includes(mime.toLowerCase());
 		}, {
 			message: "Format invalide. Seuls les formats .jpg, .jpeg, .png et .webp sont acceptés.",
-		}),
-	screenshot: z
-		.instanceof(File, { message: "La Screenshot doit être un fichier valide." })
-		.optional()
-		.nullable()
-		.refine((file) => !file || file.size <= MAX_SCREENSHOT_SIZE, {
-			message: "L'image est trop lourde. Limite maximale : 10 Mo.",
 		})
-		.refine((file) => {
-			if (!file) return true;
-			const mime = (file.type || "").split("/").pop() || "";
-			return ACCEPTED_IMAGE_TYPES.includes(mime.toLowerCase());
-		}, {
-			message: "Format invalide. Seuls les formats .jpg, .jpeg, .png et .webp sont acceptés.",
-		})
-});
-
-const UpdateGameSchema = z.object({
-    name: z.string().trim().min(1).optional(),
-    description: z.string().optional().nullable(),
-    url_trailer: z.string().optional().nullable(),
-    thumbnail: z.instanceof(File).optional().nullable()
-        .refine((file) => !file || file.size <= MAX_FILE_SIZE, { message: "Thumbnail max 5 Mo." })
-        .refine((file) => {
-            if (!file) return true;
-            return ACCEPTED_IMAGE_TYPES.includes((file.type || "").split("/").pop()?.toLowerCase() || "");
-        }, { message: "Format thumbnail invalide." }),
-    screenshot: z.instanceof(File).optional().nullable()
-        .refine((file) => !file || file.size <= MAX_SCREENSHOT_SIZE, { message: "Screenshot max 10 Mo." })
-        .refine((file) => {
-            if (!file) return true;
-            return ACCEPTED_IMAGE_TYPES.includes((file.type || "").split("/").pop()?.toLowerCase() || "");
-        }, { message: "Format screenshot invalide." })
 });
 
 type CreateGameData = z.infer<typeof CreateGameSchema>;
@@ -84,7 +51,6 @@ router.post("/", formDataMiddleware, authMiddleware, async (ctx: Context) => {
 	const rawGroupId = body.get("group_id") as string | null;
 	const url_trailer = body.get("url_trailer") as string | null;
 	const thumbnailFile = body.get("thumbnail") as File | null;
-	const screenshotFile = body.get("screenshot") as File | null;
 
 	const payload = {
 		name: name,
@@ -92,7 +58,6 @@ router.post("/", formDataMiddleware, authMiddleware, async (ctx: Context) => {
 		group_id: rawGroupId ? Number(rawGroupId) : undefined,
 		url_trailer: url_trailer,
 		thumbnail: thumbnailFile,
-		screenshot: screenshotFile,
 	};
 
 	let validatedData: CreateGameData;
@@ -162,22 +127,6 @@ router.post("/", formDataMiddleware, authMiddleware, async (ctx: Context) => {
 		}
 	}
 
-	if (validatedData.screenshot) {
-		const extension = validatedData.screenshot.type.split("/")[1];
-		const screenshot_path = `games/${game.id}/screenshot.${extension}`;
-
-		try {
-			await cloud.upload(
-				screenshot_path,
-				new Uint8Array(await validatedData.screenshot.arrayBuffer()),
-				validatedData.screenshot.type
-			);
-			updates["path_screenshot"] = screenshot_path;
-		} catch (err) {
-			console.error('Error while uploading screenshot', err);
-		}
-	}
-
 	try {
 		game = await gameRepository.updateGame(String(game.id), updates) ?? game;
 	} catch (err) {
@@ -207,33 +156,6 @@ router.post("/", formDataMiddleware, authMiddleware, async (ctx: Context) => {
 		},
 	}
 });
-
-router.get("/:gameId", authMiddleware, async (ctx) => {
-    const gameId = ctx.params.gameId;
-
-    if (!gameId) {
-        ctx.response.status = 400;
-        ctx.response.body = { success: false, error: "Game ID is required" };
-        return;
-    }
-
-    const game = await gameRepository.getById(gameId);
-    if (!game) {
-        ctx.response.status = 404;
-        ctx.response.body = { success: false, error: "Game not found" };
-        return;
-    }
-
-    try {
-        ctx.response.status = 200;
-        ctx.response.body = { success: true, data: { game: await sanitizeGame(game) } };
-    } catch (err) {
-        console.error("Error while preparing game data", err);
-        ctx.response.status = 500;
-        ctx.response.body = { success: false, error: "Failed to load game" };
-    }
-});
-
 
 router.get("/:gameId/upload-request", authMiddleware, async (ctx) => {
 	const gameId = ctx.params.gameId;
@@ -372,11 +294,11 @@ router.post("/:gameId/confirm-upload", authMiddleware, async (ctx) => {
 		}) ?? game;
 
 		await redisClient.lpush("queue:builds", String(game.id));
-			ctx.response.status = 202;
-			ctx.response.body = {
-				success: true,
-				message: "Upload confirmed; compilation queued",
-				game: await sanitizeGame(updated),
+		ctx.response.status = 202;
+		ctx.response.body = {
+			success: true,
+			message: "Upload confirmed; compilation queued",
+			game: await sanitizeGame(updated),
 		};
 	} catch (err) {
 		console.error("Error while marking game as uploaded and queueing compilation", err);
@@ -391,6 +313,14 @@ router.post("/:gameId/confirm-upload", authMiddleware, async (ctx) => {
 	}
 });
 
+/**
+ * GET /:gameId/logs — WebSocket streaming des logs de build.
+ *
+ * Utilise exclusivement Redis Streams (XREAD BLOCK) pour diffuser les logs,
+ * sans pub/sub. Cela évite la duplication des messages : l'historique et
+ * les nouveaux messages sont lus depuis la même source, en séquence,
+ * en trackant le dernier ID consommé.
+ */
 router.get("/:gameId/logs", authMiddleware, async (ctx) => {
 	const gameId = ctx.params.gameId;
 
@@ -431,96 +361,65 @@ router.get("/:gameId/logs", authMiddleware, async (ctx) => {
 	}
 
 	const ws = ctx.upgrade();
-	const channel = `logs:${gameId}`;
-	const streamKey = `stream:${channel}`;
+	const streamKey = `stream:logs:${gameId}`;
 	let closed = false;
 
-	let subRedis;
-	let subscription;
+	const cleanup = () => { closed = true; };
+	ws.onclose = cleanup;
+	ws.onerror = cleanup;
+
+	let streamRedis;
 	try {
-		subRedis = await connect({
+		streamRedis = await connect({
 			hostname: config.redis.host,
 			port: config.redis.port,
 			password: config.redis.password,
 		});
-
-		// Charger l'historique complet du stream
-		try {
-			const history = await subRedis.xrange(streamKey, "-", "+");
-			for (const entry of history) {
-				if (closed || ws.readyState !== WebSocket.OPEN) {
-					break;
-				}
-				const entryObj = entry as unknown as Record<string, unknown>;
-				let message: string | undefined;
-				if (typeof entryObj === "object" && entryObj) {
-					if ("message" in entryObj && typeof entryObj.message === "string") {
-						message = entryObj.message;
-					} else if (entryObj.message && typeof entryObj.message === "object") {
-						const msgMap = entryObj.message as Record<string, unknown>;
-						message = String(msgMap["message"] ?? msgMap["msg"] ?? "");
-					}
-				}
-				if (message) {
-					ws.send(String(message));
-					if (message === "__END__") {
-						// Si le stream contient déjà __END__, fermer
-						ws.close(1000, "Build finished");
-						closed = true;
-						subRedis.close();
-						return;
-					}
-				}
-			}
-		} catch (histErr) {
-			console.warn("Error while loading build history", histErr);
-		}
-
-		// S'abonner pour les nouveaux messages
-		subscription = await subRedis.subscribe(channel);
 	} catch (err) {
-		console.error("Error while creating logs subscription", err);
-		try {
-			ws.close(1011, "Subscription failed");
-		} catch (_closeErr) {
-			// no-op
-		}
-		if (subscription) {
-			subscription.close();
-		}
-		if (subRedis) {
-			subRedis.close();
-		}
+		console.error("Error while connecting to Redis for log streaming", err);
+		// deno-lint-ignore no-empty
+		try { ws.close(1011, "Redis connection failed"); } catch (_) {}
 		return;
 	}
 
-	const cleanup = () => {
-		if (closed) return;
-		closed = true;
-		try {
-			subscription?.close();
-		} catch (_err) {
-			// no-op
-		}
-		try {
-			subRedis?.close();
-		} catch (_err) {
-			// no-op
-		}
-	};
-
-	ws.onclose = cleanup;
-	ws.onerror = cleanup;
-
 	try {
-		for await (const msg of subscription.receive()) {
-			if (closed || ws.readyState !== WebSocket.OPEN) {
-				break;
-			}
-			const line = String(msg.message ?? "");
-			ws.send(line);
-			if (line === "__END__") {
-				ws.close(1000, "Build finished");
+		// On commence à "0-0" pour lire tout l'historique existant,
+		// puis on continue avec XREAD BLOCK pour les nouveaux messages.
+		// Un seul canal, un seul curseur : zéro doublon possible.
+		let lastXid: XIdInput = 0; // 0 = depuis le début du stream
+
+		while (!closed && ws.readyState === WebSocket.OPEN) {
+			try {
+				// XREAD BLOCK 2000 : bloque max 2s en attente de nouveaux messages.
+				// Retourne un tableau vide si timeout, ou les streams lus.
+				const streams = await streamRedis.xread(
+					[{ key: streamKey, xid: lastXid }],
+					{ block: 100, count: 50 }
+				);
+
+				if (!streams || streams.length === 0) continue;
+
+				for (const msg of streams[0].messages) {
+					if (closed || ws.readyState !== WebSocket.OPEN) break;
+
+					// Avance le curseur pour la prochaine itération
+					lastXid = msg.xid;
+
+					const message = msg.fieldValues["message"] ?? "";
+					if (!message) continue;
+
+					ws.send(String(message));
+
+					if (message === "__END__") {
+						ws.close(1000, "Build finished");
+						closed = true;
+						break;
+					}
+				}
+			} catch (err) {
+				if (!closed) {
+					console.warn("Error while reading Redis stream for logs", err);
+				}
 				break;
 			}
 		}
@@ -530,7 +429,8 @@ router.get("/:gameId/logs", authMiddleware, async (ctx) => {
 			ws.close(1011, "Log streaming error");
 		}
 	} finally {
-		cleanup();
+		// deno-lint-ignore no-empty
+		try { streamRedis.close(); } catch (_) {}
 	}
 });
 
@@ -572,4 +472,3 @@ router.get("/:gameId", authMiddleware, async (ctx) => {
 });
 
 export default router;
-
