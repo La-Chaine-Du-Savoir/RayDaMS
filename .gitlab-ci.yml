@@ -45,6 +45,7 @@ build_backend:
     - if: '$CI_COMMIT_BRANCH == "main" || $CI_COMMIT_BRANCH == "19-pipelines-ci-cd"'
       changes:
         - backend/**/*
+    - if: '$CI_COMMIT_TAG'
 
 build_frontend:
   extends: .build_image_template
@@ -56,6 +57,7 @@ build_frontend:
     - if: '$CI_COMMIT_BRANCH == "main" || $CI_COMMIT_BRANCH == "19-pipelines-ci-cd"'
       changes:
         - frontend/**/*
+    - if: '$CI_COMMIT_TAG'
 
 build_worker:
   extends: .build_image_template
@@ -67,3 +69,4 @@ build_worker:
     - if: '$CI_COMMIT_BRANCH == "main" || $CI_COMMIT_BRANCH == "19-pipelines-ci-cd"'
       changes:
         - compiler/**/*
+    - if: '$CI_COMMIT_TAG'
