@@ -5,7 +5,7 @@ import {restrictToAdmin} from "../Middlewares/restrictionMiddleware.ts";
 import {Group, GroupWithUsers, sanitizeGroup} from "../Model/DataObjects/Group.ts";
 import groupRepository from "../Model/Repository/GroupRepository.ts";
 import authMiddleware from "../Middlewares/AuthMiddleware.ts";
-import {Game, sanitizeGame} from "../Model/DataObjects/Game.ts";
+import { Game, sanitizeGame } from "../Model/DataObjects/Game.ts";
 import gameRepository from "../Model/Repository/GameRepository.ts";
 const alphabet = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz';
 const generateGroupCode = customAlphabet(alphabet, 10);
@@ -82,6 +82,49 @@ router.get("/", authMiddleware, async (ctx: Context) => {
     } catch (_err) {
         ctx.response.status = 500;
         ctx.response.body = { success: false, message: "Failed to fetch groups" };
+    }
+});
+
+router.get("/with-games", authMiddleware, async (ctx: Context) => {
+    try {
+        const rawGroups = await groupRepository.getGroupsWithGames();
+
+        const userId = ctx.state.user.id;
+        const isAdmin = ctx.state.user.roles?.includes("admin") ?? false;
+
+        // On nettoie les données et on injecte le booléen canEdit pour le front
+        let groupsWithGames = rawGroups.map((group: any) => {
+            const isMember = group.member_ids.includes(userId);
+
+            return {
+                id: group.id,
+                name: group.name,
+                code: group.code,
+                canEdit: isMember || isAdmin, // Vrai si membre du groupe ou admin
+                games: group.games
+            };
+        });
+
+        groupsWithGames = await Promise.all(
+            groupsWithGames.map(async (group) => {
+                if (group.games && group.games.length > 0) {
+                    // On attend la résolution de toutes les promesses pour les jeux
+                    group.games = await Promise.all(
+                        group.games.map(async (game: Game) => {
+                            return await sanitizeGame(game);
+                        })
+                    );
+                }
+                return group;
+            })
+        );
+
+        ctx.response.status = 200;
+        ctx.response.body = { success: true, groups: groupsWithGames };
+    } catch (err) {
+        console.error("Error fetching groups with games:", err);
+        ctx.response.status = 500;
+        ctx.response.body = { success: false, message: "Failed to fetch dashboard data" };
     }
 });
 

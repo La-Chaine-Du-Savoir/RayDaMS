@@ -151,6 +151,39 @@ export async function getGroupsByUserId(userId: number): Promise<GroupWithUsers[
     return result.rows;
 }
 
-const groupRepository = { create, getById, getAllGroups, deleteGroup, addUserToGroup, removeUserFromGroup, updateGroupName, getByCode, getGroupsByUserId };
+export async function getGroupsWithGames(): Promise<any[]> {
+    const result = await db.queryObject(
+        `SELECT
+             g.id, 
+             g.name, 
+             g.code,
+             -- liste des IDs des membres pour permission d'édition
+             COALESCE(
+                 (SELECT array_agg(user_id) FROM users_groups WHERE group_id = g.id),
+                 '{}'
+             ) AS member_ids,
+             -- On mets les jeux du groupe
+             COALESCE(
+                 json_agg(
+                     json_build_object(
+                         'id', gm.id,
+                         'name', gm.name,
+                         'thumbnail_path', gm.thumbnail_path,
+                         'status', gm.status,
+                         'author', gm.author
+                     )
+                 ) FILTER (WHERE gm.id IS NOT NULL),
+                 '[]'
+             ) AS games
+         FROM groups g
+         LEFT JOIN games gm ON g.id = gm.group_id
+         GROUP BY g.id
+         ORDER BY g.created_at DESC`
+    );
+
+    return result.rows;
+}
+
+const groupRepository = { create, getById, getAllGroups, deleteGroup, addUserToGroup, removeUserFromGroup, updateGroupName, getByCode, getGroupsByUserId, getGroupsWithGames };
 
 export default groupRepository;

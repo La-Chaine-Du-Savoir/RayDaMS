@@ -8,26 +8,29 @@ import config from "./Config/config.ts"
 import groupRoutes from "./Routes/GroupRoutes.ts";
 
 const router = new Router();
-const app = new Application();
+const args = Deno.args;
+const PROXY = args.includes("--proxy");
+const app = new Application({ proxy: PROXY });
 
 router.use(authRoutes.routes());
 router.use(userRoutes.routes());
 router.use(groupRoutes.routes());
 router.use(gameRoutes.routes());
 
-if (Deno.args.length < 1) {
-    console.log(`Usage: $ deno run --allow-net server.ts PORT [CERT_PATH KEY_PATH]`);
+const positionalArgs = args.filter(arg => !arg.startsWith("--"));
+if (positionalArgs.length < 1) {
+    console.log(`Usage: $ deno run --allow-net backend/src/back_server.ts PORT [--proxy] [CERT_PATH KEY_PATH]`);
     Deno.exit();
 }
 
 const listenOptions: Deno.ListenOptions = {
-    port: Number(Deno.args[0]),
+    port: Number(positionalArgs[0]),
 };
 const tlsOptions: { cert?: string; key?: string } = {};
 
-if (Deno.args.length >= 3) {
-    tlsOptions.cert = await Deno.readTextFile(Deno.args[1]);
-    tlsOptions.key = await Deno.readTextFile(Deno.args[2]);
+if (positionalArgs.length >= 3) {
+    tlsOptions.cert = await Deno.readTextFile(positionalArgs[1]);
+    tlsOptions.key = await Deno.readTextFile(positionalArgs[2]);
     console.log(`SSL conf ready (use https)`);
 }
 

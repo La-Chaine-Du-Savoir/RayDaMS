@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Uploader un Jeu - RayDaMS</title>
+    <link rel="stylesheet" href="/assets/styles/style.css">
+    <link rel="stylesheet" href="/assets/styles/upload.css">
+    <script defer type="module" src="/scripts/upload-game.js"></script>
+    <script type="module" src="/components/game-logs.js"></script>
+    <link rel="icon" type="image/x-icon" href="/assets/images/favicon.ico">
+</head>
+<body>
+
+<app-navbar></app-navbar>
+
+<main>
+    <header class="hero">
+        <h1 class="site-title">Uploader un <span class="highlight">Jeu</span></h1>
+        <p class="description">
+            Partage ta dernière création Raylib avec le reste de la communauté DaMS !
+        </p>
+    </header>
+
+    <div class="upload-container">
+        <form id="upload-game-form" class="upload-form">
+            
+            <div class="form-grid">
+                <div class="form-column">
+                    <div class="form-group">
+                        <label for="game-name">Nom du jeu *</label>
+                        <input type="text" id="game-name" class="custom-input" placeholder="Ex: RayDaMS Bros" required>
+                    </div>
+
+                   <div class="form-group">
+                        <label for="game-group">Groupe de projet *</label>
+                        <select id="game-group" class="custom-input" required>
+                            <option value="">Chargement en cours...</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="game-trailer">Lien du Trailer</label>
+                        <input type="url" id="game-trailer" class="custom-input" placeholder="https://youtube.com/...">
+                    </div>
+
+                    <div class="form-group">
+                        <label>Fichier source (.zip) *</label>
+                        <label for="game-file" class="dropzone dz-zip" id="dropzone-zip">
+                            <div class="dropzone-text" id="zip-text">
+                                <span>Sélectionner le ZIP</span><br>Code source du jeu
+                            </div>
+                        </label>
+                        <input type="file" id="game-file" class="hidden-file" accept=".zip">
+                    </div>
+                </div>
+
+                <div class="form-column">
+                    <div class="form-group">
+                        <label style="text-align: center;">Thumbnail / Icône (1:1)</label>
+                        <label for="game-thumbnail" class="dropzone dz-1-1" id="dropzone-thumbnail">
+                            <div class="dropzone-text"><span>Icône</span><br><small>Optionnel (Max 5Mo)</small></div>
+                            <img id="thumbnail-preview-img" src="" alt="Thumbnail">
+                        </label>
+                        <input type="file" id="game-thumbnail" class="hidden-file" accept="image/png, image/jpeg, image/webp">
+                    </div>
+
+                    <div class="form-group">
+                        <label>Screenshot (16:9)</label>
+                        <label for="game-screenshot" class="dropzone dz-16-9" id="dropzone-screenshot">
+                            <div class="dropzone-text"><span>Capture d'écran</span><br><small>Optionnel</small></div>
+                            <img id="screenshot-preview-img" src="" alt="Screenshot">
+                        </label>
+                        <input type="file" id="game-screenshot" class="hidden-file" accept="image/png, image/jpeg, image/webp">
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-group full-width">
+                <label for="game-description">Description</label>
+                <textarea id="game-description" class="custom-input" placeholder="Comment jouer ? Quelle est l'histoire ?"></textarea>
+            </div>
+
+            <div id="upload-message" style="font-weight: bold; text-align: center; margin-bottom: 15px;"></div>
+
+            <button type="submit" class="btn-form" style="font-size: 1.5rem; padding: 1rem;">PUBLIER LE JEU</button>
+        </form>
+
+        <div id="build-logs-wrapper" style="display: none; width: 100%; margin-top: 0.5rem;"></div>
+    </div>
+</main>
+
+<app-footer></app-footer>
+
+</body>
+</html>

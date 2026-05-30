@@ -1,0 +1,81 @@
+.game-detail-container {
+    max-width: 1200px;
+    margin: 2rem auto;
+    padding: 2rem;
+    background-color: var(--card-bg);
+    border: 6px solid #9e9e9e;
+    display: flex;
+    gap: 2rem;
+    flex-wrap: wrap;
+}
+
+/* Colonne de gauche (Actions) */
+.game-sidebar {
+    flex: 0 0 300px;
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.game-thumbnail {
+    width: 100%;
+    aspect-ratio: 1;
+    object-fit: cover;
+    border: 4px solid var(--polytech-blue);
+    background-color: #ddd;
+}
+
+.btn-play {
+    display: block;
+    width: 100%;
+    padding: 1rem;
+    background-color: var(--dams-pink);
+    color: white;
+    text-align: center;
+    text-decoration: none;
+    font-family: 'Grixel', sans-serif;
+    font-size: 1.5rem;
+    border: 4px solid var(--dams-pink);
+    transition: all 0.3s;
+}
+
+.btn-play:hover {
+    background-color: white;
+    color: var(--dams-pink);
+    transform: scale(1.05);
+}
+
+/* Colonne de droite (Infos) */
+.game-content {
+    flex: 1;
+    min-width: 300px;
+}
+
+.game-title {
+    font-size: 3rem;
+    color: var(--polytech-blue-dark);
+    margin-bottom: 0.5rem;
+    text-transform: uppercase;
+}
+
+.game-meta {
+    font-size: 1rem;
+    color: #666;
+    margin-bottom: 2rem;
+    font-weight: bold;
+}
+
+.game-media {
+    width: 100%;
+    aspect-ratio: 16 / 9;
+    background-color: #000;
+    margin-bottom: 2rem;
+    border: 4px solid #9e9e9e;
+}
+
+.game-description {
+    font-size: 1.1rem;
+    line-height: 1.6;
+    color: var(--text-color);
+    white-space: pre-wrap; /* Conserve les sauts de ligne */
+}
