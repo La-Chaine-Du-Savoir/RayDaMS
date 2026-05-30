@@ -33,7 +33,8 @@ document.addEventListener('DOMContentLoaded', async () => {
         submitBtn.disabled = true;
 
         try {
-            const response = await apiService.getAll('users/me/groups');
+            const user = apiService.connectedUser;
+            const response = await apiService.getAll(`users/${user.id}/groups`);
 
             if (response.success && response.data && response.data.length > 0) {
                 groupSelect.innerHTML = '<option value="">-- Sélectionner un groupe --</option>';

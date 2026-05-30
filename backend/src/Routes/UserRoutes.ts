@@ -147,7 +147,7 @@ router.get("/:id/groups", authMiddleware, async (ctx: Context) => {
         ctx.response.status = 200;
         ctx.response.body = {
             success: true,
-            groups: sanitizedGroups
+            results: sanitizedGroups
         };
 
     } catch (err) {
@@ -157,25 +157,5 @@ router.get("/:id/groups", authMiddleware, async (ctx: Context) => {
     }
 });
 
-// Récup les groups du user connecté
-router.get("/me/groups", authMiddleware, async (ctx: Context) => {
-    const currentUser = ctx.state.user;
-
-    try {
-        // On fait appel au repository pour récupérer que les groupes de ce user
-        const userGroups = await groupRepository.getGroupsByUserId(currentUser.id);
-
-        ctx.response.status = 200;
-        ctx.response.body = {
-            success: true,
-            // On renvoie "results" pour matcher avec apiService.getAll
-            results: userGroups
-        };
-    } catch (err) {
-        console.error("Erreur lors de la récupération des groupes de l'utilisateur:", err);
-        ctx.response.status = 500;
-        ctx.response.body = { success: false, error: "Erreur interne du serveur" };
-    }
-});
 
 export default router;

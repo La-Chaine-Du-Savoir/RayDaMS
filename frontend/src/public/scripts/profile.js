@@ -116,7 +116,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (res.success) {
                 groupsContainer.innerHTML = '';
 
-                const groups = res.data?.groups || [];
+                const groups = res.data;
 
                 if (groups.length === 0) {
                     groupsContainer.innerHTML = '<p class="empty-state" style="width: 100%;">Vous n\'êtes membre d\'aucun groupe.</p>';
