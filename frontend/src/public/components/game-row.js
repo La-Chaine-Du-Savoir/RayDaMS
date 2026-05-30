@@ -3,7 +3,8 @@ import './game-card.js';
 
 export class AppGameRow extends LitElement {
     static properties = {
-        group: { type: Object }
+        group: { type: Object },
+        showGroupLink: { type: Boolean }
     };
 
     static styles = css`
@@ -33,6 +34,17 @@ export class AppGameRow extends LitElement {
             border-left: 6px solid var(--dams-pink, #DE007A);
             white-space: nowrap;
             -webkit-font-smoothing: none;
+        }
+
+        .group-link {
+            color: inherit;
+            text-decoration: none;
+            transition: color 0.2s;
+        }
+
+        .group-link:hover {
+            color: var(--dams-pink, #DE007A); /* Petit effet sympa au survol */
+            cursor: pointer;
         }
 
         .separator-line {
@@ -117,6 +129,7 @@ export class AppGameRow extends LitElement {
     constructor() {
         super();
         this.group = null;
+        this.showGroupLink = false;
     }
 
     // faire défiler le conteneur
@@ -139,7 +152,11 @@ export class AppGameRow extends LitElement {
 
         return html`
             <div class="category-header">
-                <h2 class="category-title">${this.group.name}</h2>
+                <h2 class="category-title">
+                    ${this.showGroupLink
+                            ? html`<a href="/groups/${this.group.id}" class="group-link">${this.group.name}</a>`
+                            : this.group.name}
+                </h2>
                 <div class="separator-line"></div>
             </div>
             
