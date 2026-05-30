@@ -18,7 +18,6 @@ export class GroupWidget extends LitElement {
       overflow-y: auto;
       background-color: #ffffff;
       border: 6px solid #9e9e9e;
-      border-radius: 10px;
 
       padding: 1.5rem;
       box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);

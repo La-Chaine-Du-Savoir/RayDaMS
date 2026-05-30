@@ -7,7 +7,7 @@ import '../components/app-avatar.js';
 
 /**
  * Affiche un message d'erreur et masque le contenu du groupe.
- * @param {string} message Le message d'erreur à afficher.
+ * @param {string} message Le message d'erreur Ã  afficher.
  */
 function showError(message) {
     const groupNameEl = document.getElementById('group-name');
@@ -22,11 +22,11 @@ function showError(message) {
 }
 
 /**
- * Gère l'affichage et la logique d'invitation pour les administrateurs.
+ * GÃ¨re l'affichage et la logique d'invitation pour les administrateurs.
  * @param {Object} group L'objet groupe contenant le code d'invitation.
  */
 function setupAdminInvitation(group) {
-    // Vérification backend du rôle admin
+    // VÃ©rification backend du rÃ´le admin
     if (!group.code) return;
 
     const userStr = sessionStorage.getItem('user');
@@ -120,8 +120,8 @@ function loadGroupMembers(members) {
 }
 
 /**
- * Charge les données principales du groupe depuis l'API.
- * @param {string} groupId L'identifiant du groupe à charger.
+ * Charge les donnÃ©es principales du groupe depuis l'API.
+ * @param {string} groupId L'identifiant du groupe Ã  charger.
  */
 async function loadGroupData(groupId) {
     const groupNameEl = document.getElementById('group-name');
@@ -129,7 +129,6 @@ async function loadGroupData(groupId) {
 
     try {
         const groupRes = await apiService.getById(`groups`, groupId);
-        console.log(groupRes);
 
         if (!groupRes.success) {
             showError(groupRes.error || "Impossible de charger les informations du groupe.");
@@ -171,7 +170,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const groupId = segments[segments.length - 1];
 
     if (!groupId) {
-        showError("Aucun identifiant de groupe n'a été spécifié dans l'URL.");
+        showError("Aucun identifiant de groupe n'a Ã©tÃ© spÃ©cifiÃ© dans l'URL.");
         return;
     }
 
