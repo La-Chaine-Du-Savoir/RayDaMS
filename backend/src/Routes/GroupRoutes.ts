@@ -2,7 +2,13 @@ import { Context, Router } from "oak";
 import { z } from "zod";
 import { customAlphabet } from "nanoid";
 import {restrictToAdmin} from "../Middlewares/restrictionMiddleware.ts";
-import {Group, GroupWithUsers, sanitizeGroup} from "../Model/DataObjects/Group.ts";
+import {
+    Group,
+    GroupWithUsers,
+    GroupWithUsersAndGames,
+    sanitizeGroup,
+    sanitizeGroupWithGames
+} from "../Model/DataObjects/Group.ts";
 import groupRepository from "../Model/Repository/GroupRepository.ts";
 import authMiddleware from "../Middlewares/AuthMiddleware.ts";
 import { Game, sanitizeGame } from "../Model/DataObjects/Game.ts";
@@ -140,7 +146,7 @@ router.get("/:id", authMiddleware, async (ctx) => {
 
     try {
 
-        const group:GroupWithUsers|undefined = await groupRepository.getById(groupId);
+        const group:GroupWithUsersAndGames|undefined = await groupRepository.getByIdWithGames(groupId);
 
         if (!group) {
             ctx.response.status = 404;
@@ -149,7 +155,7 @@ router.get("/:id", authMiddleware, async (ctx) => {
         }
 
         ctx.response.status = 200;
-        ctx.response.body = { success: true, group: await sanitizeGroup(group,isAdmin) };
+        ctx.response.body = { success: true, group: await sanitizeGroupWithGames(group,isAdmin) };
     } catch (_err) {
         ctx.response.status = 500;
         ctx.response.body = { success: false, message: "Failed to fetch group details" };
