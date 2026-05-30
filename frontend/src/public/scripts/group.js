@@ -120,6 +120,40 @@ function loadGroupMembers(members) {
 }
 
 /**
+ * Charge et affiche les jeux du groupe via le composant app-game-row.
+ * @param {Object} group L'objet groupe complet renvoyé par l'API.
+ */
+function loadGroupGames(group) {
+    const gamesContainer = document.getElementById('games-container');
+    if (!gamesContainer) return;
+
+    gamesContainer.innerHTML = ''; // Réinitialise le conteneur
+
+    // Détermine si l'utilisateur courant peut éditer (admin ou membre du groupe)
+    let canEdit = false;
+    const userStr = sessionStorage.getItem('user');
+    if (userStr) {
+        const user = JSON.parse(userStr);
+        const isAdmin = user.roles && user.roles.includes('admin');
+        const isMember = group.users && group.users.some(u => u.id === user.id);
+        canEdit = isAdmin || isMember;
+    }
+
+    // Préparation des données pour le composant Lit
+    const rowGroupData = {
+        name: "Jeux du groupe",
+        canEdit: canEdit,
+        games: group.games || []
+    };
+
+    // Création et injection du composant app-game-row
+    const row = document.createElement('app-game-row');
+    row.group = rowGroupData;
+
+    gamesContainer.appendChild(row);
+}
+
+/**
  * Charge les données principales du groupe depuis l'API.
  * @param {string} groupId L'identifiant du groupe à charger.
  */
@@ -149,6 +183,7 @@ async function loadGroupData(groupId) {
         }
 
         loadGroupMembers(groupRes.data.group.users);
+        loadGroupGames(group);
         setupAdminInvitation(group);
 
     } catch (e) {

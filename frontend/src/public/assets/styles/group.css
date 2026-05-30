@@ -61,7 +61,7 @@
     font-weight: bold;
 }
 
-/* --- Conteneurs de gestion des états (Erreur et Chargement) --- */
+/* --- Conteneurs de gestion des ï¿½tats (Erreur et Chargement) --- */
 #error-container {
     display: none;
     padding-top: 0;
@@ -77,6 +77,7 @@
 #group-content {
     display: none;
     margin-top: 2rem;
+    align-items: center;
 }
 
 /* --- Section d'invitation (Admin) --- */
@@ -151,4 +152,13 @@
 /* --- Liste des membres --- */
 #members-container {
     gap: 2rem;
+}
+
+.group-games-section {
+    display: flex;
+    justify-content: center;
+}
+
+#games-container {
+    width: 1200px;
 }
