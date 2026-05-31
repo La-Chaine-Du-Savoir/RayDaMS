@@ -30,31 +30,28 @@ export async function sanitizeGroup(group: GroupWithUsers, isAdmin: boolean = fa
     };
 }
 
-export async function sanitizeGroupWithGames(group: GroupWithUsersAndGames, userId: number, isAdmin: boolean = false): Promise<SanitizedGroupWithUsersAndGames> {
-
-    const canEdit = isAdmin || group.users.some(user => user.id === userId);
-
-    const sanitizedUsers = await Promise.all(
-        group.users.map(user => sanitizeUser(user))
-    );
-
-    let sanitizedGames = [];
-    if (group.games && group.games.length > 0) {
-         sanitizedGames = await Promise.all(
-            group.games.map(async (game: Game) => {
-                return await sanitizeGame(game);
-            })
+    export async function sanitizeGroupWithGames(group: GroupWithUsersAndGames, isAdmin: boolean = false): Promise<SanitizedGroupWithUsersAndGames> {
+        const sanitizedUsers = await Promise.all(
+            group.users.map(user => sanitizeUser(user))
         );
+
+        let sanitizedGames = [];
+        if (group.games && group.games.length > 0) {
+             sanitizedGames = await Promise.all(
+                group.games.map(async (game: Game) => {
+                    return await sanitizeGame(game);
+                })
+            );
+        }
+
+        if (!isAdmin) {
+            group.code = undefined;
+        }
+
+        return {
+            ...group,
+            users: sanitizedUsers,
+            games: sanitizedGames
+        };
+
     }
-
-    if (!isAdmin) {
-        group.code = undefined;
-    }
-
-    return {
-        ...group,
-        users: sanitizedUsers,
-        games: sanitizedGames
-    };
-
-}
