@@ -38,7 +38,8 @@ document.addEventListener('DOMContentLoaded', async () => {
                 // Création de l'élément HTML 
                 const row = document.createElement('app-game-row');
                 // On attache l'objet group complet à la propriété du composant Lit
-                row.group = group; 
+                row.group = group;
+                row.showGroupLink = true; // Affiche le lien vers la page du groupe
                 dashboard.appendChild(row);
             });
 
