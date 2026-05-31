@@ -84,7 +84,7 @@ router.get("/", authMiddleware, async (ctx: Context) => {
             groups.map(group => sanitizeGroup(group))
         );
         ctx.response.status = 200;
-        ctx.response.body = { success: true, sanitizedGroups };
+        ctx.response.body = { success: true, results: sanitizedGroups };
     } catch (_err) {
         ctx.response.status = 500;
         ctx.response.body = { success: false, message: "Failed to fetch groups" };

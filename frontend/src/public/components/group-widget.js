@@ -7,6 +7,9 @@ export class GroupWidget extends LitElement {
   };
 
   static styles = css`
+    * {
+      box-sizing: border-box;
+    }
     :host {
       display: block;
       font-family: sans-serif;
