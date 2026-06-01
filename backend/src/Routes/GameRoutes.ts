@@ -1,5 +1,5 @@
 import {Context, Router} from "oak";
-import {connect} from "redis";
+import {connect, type XIdInput} from "redis";
 import {z} from "zod";
 import authMiddleware from "../Middlewares/AuthMiddleware.ts";
 import cloud from "../Services/cloud.ts";
@@ -549,9 +549,6 @@ router.get("/:gameId/logs", authMiddleware, async (ctx) => {
 	}
 
 	try {
-		// On commence à "0-0" pour lire tout l'historique existant,
-		// puis on continue avec XREAD BLOCK pour les nouveaux messages.
-		// Un seul canal, un seul curseur : zéro doublon possible.
 		let lastXid: XIdInput = 0; // 0 = depuis le début du stream
 
 		while (!closed && ws.readyState === WebSocket.OPEN) {
