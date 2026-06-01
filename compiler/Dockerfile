@@ -4,7 +4,12 @@ RUN apt-get update && apt-get install -y git make && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /opt
 
-COPY raylib/ ./raylib/
+ARG RAYLIB_COMMIT=e7edb181dc070e0abf90792204b4b6b02bcdd508
+
+RUN wget -O raylib.tar.gz https://github.com/raysan5/raylib/archive/${RAYLIB_COMMIT}.tar.gz \
+    && tar -xzf raylib.tar.gz \
+    && mv raylib-${RAYLIB_COMMIT} raylib \
+    && rm raylib.tar.gz
 
 RUN cd raylib/src && \
     emmake make PLATFORM=PLATFORM_WEB CUSTOM_CFLAGS="-DSUPPORT_FILEFORMAT_JPG=1"
