@@ -1,0 +1,164 @@
+.member-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    width: 250px;
+    padding: 2rem 1rem;
+    background-color: #ffffff;
+    border: 6px solid #9e9e9e;
+    border-radius: 10px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    transition: box-shadow 0.3s ease, transform 0.3s ease, border-color 0.3s ease;
+    gap: 0.5rem;
+    text-align: center;
+}
+
+.member-card:hover {
+    box-shadow: 0 8px 12px rgba(0, 0, 0, 0.15);
+    transform: translateY(-2px);
+    border-color: var(--dams-pink, #DE007A);
+}
+
+.member-card-username {
+    font-weight: bold;
+    color: #333;
+    font-size: 1.1rem;
+    margin-top: 0.5rem;
+}
+
+.member-card-email {
+    font-size: 0.9rem;
+    color: #666;
+    font-family: monospace;
+    word-break: break-word;
+
+    background-color: #f5f5f5;
+    padding: 0.2rem 0.6rem;
+    border-radius: 4px;
+    margin-top: 0.4rem;
+    display: inline-block;
+}
+
+/* Style du conteneur du titre */
+#group-name {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+/* Le mot "Groupe" */
+.group-label {
+    color: var(--polytech-blue);
+    font-size: 2.5rem;
+    font-family: 'Grixel', sans-serif;
+}
+
+/* Le nom du groupe */
+#group-name .highlight {
+    color: var(--dams-pink);
+    font-size: 3.5rem;
+    font-weight: bold;
+}
+
+/* --- Conteneurs de gestion des �tats (Erreur et Chargement) --- */
+#error-container {
+    display: none;
+    padding-top: 0;
+    text-align: center;
+}
+
+#error-container .btn-form {
+    display: inline-block;
+    margin-top: 1rem;
+    text-decoration: none;
+}
+
+#group-content {
+    display: none;
+    margin-top: 2rem;
+    align-items: center;
+}
+
+/* --- Section d'invitation (Admin) --- */
+.invite-section-wrapper {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 2rem;
+}
+
+.invite-title-wrapper {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 15px;
+}
+
+.invite-title-wrapper h2 {
+    color: var(--polytech-blue-dark);
+    margin: 0;
+}
+
+#invite-btn {
+    display: none;
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    font-size: 1.5rem;
+    line-height: 1;
+    padding: 0;
+    align-items: center;
+    justify-content: center;
+}
+
+#invite-link-zone {
+    display: none;
+    align-items: center;
+    background-color: #e8e8e8;
+    padding: 0.6rem 1.2rem;
+    border-radius: 5px;
+    border: 2px solid #b0b0b0;
+    max-width: 550px;
+    width: 100%;
+    justify-content: space-between;
+    gap: 15px;
+    margin-top: 5px;
+    box-shadow: inset 0 1px 3px rgba(0,0,0,0.1);
+}
+
+#invite-url-text {
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 0.95rem;
+    font-weight: bold;
+    word-break: break-all;
+    color: var(--text-color);
+    text-align: left;
+    flex: 1;
+    cursor: pointer;
+}
+
+#invite-success-check {
+    color: #2e7d32;
+    font-weight: bold;
+    font-size: 1.4rem;
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+    user-select: none;
+}
+
+/* --- Liste des membres --- */
+#members-container {
+    gap: 2rem;
+}
+
+.group-games-section {
+    display: flex;
+    justify-content: center;
+}
+
+#games-container {
+    width: 1200px;
+}

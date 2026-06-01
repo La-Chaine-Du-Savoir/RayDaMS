@@ -3,6 +3,7 @@ import { z } from "zod";
 import authMiddleware from "../Middlewares/AuthMiddleware.ts";
 import userRepository from "../Model/Repository/UserRepository.ts";
 import groupRepository from "../Model/Repository/GroupRepository.ts";
+import { sanitizeGroup } from "../Model/DataObjects/Group.ts";
 import { sanitizeUser } from "../Model/DataObjects/User.ts";
 import cloud from "../Services/cloud.ts";
 
@@ -133,25 +134,28 @@ router.patch("/me", authMiddleware, async (ctx: Context) => {
     }
 });
 
-// Récup les groups du user connecté
-router.get("/me/groups", authMiddleware, async (ctx: Context) => {
-    const currentUser = ctx.state.user;
+router.get("/:id/groups", authMiddleware, async (ctx: Context) => {
+    const currentUserId = parseInt(ctx.params.id);
 
     try {
-        // On fait appel au repository pour récupérer que les groupes de ce user
-        const userGroups = await groupRepository.getGroupsByUserId(currentUser.id);
+        const userGroups = await groupRepository.getGroupsByUserId(currentUserId);
+
+        const sanitizedGroups = await Promise.all(
+            userGroups.map(group => sanitizeGroup(group))
+        );
 
         ctx.response.status = 200;
         ctx.response.body = {
             success: true,
-            // On renvoie "results" pour matcher avec apiService.getAll
-            results: userGroups 
+            results: sanitizedGroups
         };
+
     } catch (err) {
         console.error("Erreur lors de la récupération des groupes de l'utilisateur:", err);
         ctx.response.status = 500;
         ctx.response.body = { success: false, error: "Erreur interne du serveur" };
     }
 });
+
 
 export default router;
