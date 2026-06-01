@@ -11,7 +11,8 @@ COPY backend/deno.json ./
 
 RUN deno install --frozen
 
-COPY backend/src backend/migrations ./
+COPY backend/src ./src
+COPY backend/migrations ./migrations
 
 EXPOSE 3000
 
