@@ -91,6 +91,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 return;
             }
 
+            document.getElementById('delete-section').style.display = 'block';
             document.getElementById('name').value = game.name || '';
             document.getElementById('description').value = game.description || '';
             document.getElementById('url_trailer').value = game.url_trailer || '';
@@ -124,6 +125,9 @@ document.addEventListener('DOMContentLoaded', async () => {
         messageContainer.className = '';
         messageContainer.textContent = '';
         submitBtn.disabled = true;
+
+        const deleteSection = document.getElementById('delete-section');
+        if (deleteSection) deleteSection.style.display = 'none';
 
         const formData = new FormData(form);
         const zipFile = document.getElementById('source').files[0];
@@ -188,4 +192,49 @@ document.addEventListener('DOMContentLoaded', async () => {
             submitBtn.disabled = false;
         }
     });
+
+    // suppression des jeux
+    const deleteBtn = document.getElementById('btn-delete-game');
+    const deleteModal = document.getElementById('delete-modal');
+    const cancelDeleteBtn = document.getElementById('btn-cancel-delete');
+    const confirmDeleteBtn = document.getElementById('btn-confirm-delete');
+    if (deleteBtn && deleteModal && cancelDeleteBtn && confirmDeleteBtn) {
+        // Ouvrir la modale
+        deleteBtn.addEventListener('click', () => {
+            deleteModal.style.display = 'flex';
+        });
+
+        // annulation
+        cancelDeleteBtn.addEventListener('click', () => {
+            deleteModal.style.display = 'none';
+        });
+
+        // Confirmer la suppression
+        confirmDeleteBtn.addEventListener('click', async () => {
+            confirmDeleteBtn.disabled = true;
+            confirmDeleteBtn.textContent = 'Suppression...';
+            cancelDeleteBtn.disabled = true;
+            
+            try {
+                // Utilisation de la méthode deleteResource de apiService
+                const res = await apiService.deleteResource('games', gameId);
+                
+                if (res.success) {
+                    alert("Le jeu a été supprimé avec succès.");
+                    window.location.href = '/games'; // Redirection vers la liste des jeux
+                } else {
+                    alert("Erreur lors de la suppression : " + res.error);
+                    confirmDeleteBtn.disabled = false;
+                    confirmDeleteBtn.textContent = 'Oui, supprimer';
+                    cancelDeleteBtn.disabled = false;
+                }
+            } catch (err) {
+                console.error(err);
+                alert("Erreur critique lors de la suppression.");
+                confirmDeleteBtn.disabled = false;
+                confirmDeleteBtn.textContent = 'Oui, supprimer';
+                cancelDeleteBtn.disabled = false;
+            }
+        });
+    }
 });
