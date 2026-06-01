@@ -259,7 +259,7 @@ async function compileGame(gameId: string): Promise<void> {
     try {
         await setStatus("running");
 
-        await log("📥 Récupération du fichier projet depuis MinIO...");
+        await log("📥 Récupération du fichier projet depuis le cloud...");
         const game = await gameRepository.getById(gameId);
         if (!game) throw new Error(`Jeu introuvable en base : ${gameId}`);
         if (!game.path_sources) throw new Error(`Aucun chemin de sources configuré pour le jeu ${gameId}`);
