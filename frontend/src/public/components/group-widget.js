@@ -18,6 +18,7 @@ export class GroupWidget extends LitElement {
     .group-widget {
       width: 300px;
       max-height: 500px;
+      overflow-y: auto;
       background-color: #ffffff;
       border: 6px solid #9e9e9e;
 
@@ -82,7 +83,6 @@ export class GroupWidget extends LitElement {
       display: flex;
       flex-direction: column;
       gap: 0.5rem;
-      overflow-y: auto;
     }
 
     .members-label {
