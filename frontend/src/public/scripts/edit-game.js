@@ -126,6 +126,9 @@ document.addEventListener('DOMContentLoaded', async () => {
         messageContainer.textContent = '';
         submitBtn.disabled = true;
 
+        const deleteSection = document.getElementById('delete-section');
+        if (deleteSection) deleteSection.style.display = 'none';
+
         const formData = new FormData(form);
         const zipFile = document.getElementById('source').files[0];
 
