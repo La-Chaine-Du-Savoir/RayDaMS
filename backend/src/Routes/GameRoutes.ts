@@ -390,11 +390,9 @@ router.get("/:gameId/logs", authMiddleware, async (ctx) => {
 
 		while (!closed && ws.readyState === WebSocket.OPEN) {
 			try {
-				// XREAD BLOCK 2000 : bloque max 2s en attente de nouveaux messages.
-				// Retourne un tableau vide si timeout, ou les streams lus.
 				const streams = await streamRedis.xread(
 					[{ key: streamKey, xid: lastXid }],
-					{ block: 100, count: 50 }
+					{ block: 500, count: 50 }
 				);
 
 				if (!streams || streams.length === 0) continue;

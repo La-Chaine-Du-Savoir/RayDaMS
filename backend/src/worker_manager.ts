@@ -139,26 +139,23 @@ async function runCompilation(
     // Attacher le stream AVANT que le conteneur soit terminé
     const logStream = await container.logs({ stdout: true, stderr: true, follow: true });
 
-    // container.wait() surveille la fin du processus
     const waitPromise = container.wait() as Promise<{ StatusCode: number }>;
 
-    // Drain ligne par ligne : chaque chunk est publié dans Redis immédiatement,
-    // ce qui permet au client WebSocket de recevoir les logs en temps réel.
     const drainPromise = (async () => {
+        const pending: Promise<void>[] = [];
         for await (const chunk of logStream as unknown as AsyncIterable<Uint8Array>) {
             const text = new TextDecoder()
                 .decode(chunk)
-                // Retire les en-têtes de multiplexage Docker (8 octets) et les caractères non-imprimables
                 .replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F-\x9F]/g, "");
 
             for (const line of text.split("\n")) {
                 const trimmed = line.trim();
-                if (trimmed) await logFn(trimmed);
+                if (trimmed) pending.push(logFn(trimmed));
             }
         }
+        await Promise.all(pending);
     })();
 
-    // On attend les deux : drain complet des logs ET code de sortie
     const [waitResult] = await Promise.all([waitPromise, drainPromise]);
 
     if (waitResult.StatusCode !== 0) {
@@ -236,11 +233,15 @@ async function compileGame(gameId: string): Promise<void> {
 
     let container: Docker.Container | null = null;
 
+    let streamInitialized = false;
+
     const log = async (msg: string): Promise<void> => {
         try {
             await redisClient.xadd(streamKey, "*", { message: msg });
-            await redisClient.expire(streamKey, 300);
-            // Pas de publish Redis : le client utilise xread BLOCK, pas pub/sub
+            if (!streamInitialized) {
+                streamInitialized = true;
+                await redisClient.expire(streamKey, 300);
+            }
         } catch (err) {
             console.warn(`[Build ${gameId}] Impossible de publier le log : ${err instanceof Error ? err.message : String(err)}`);
         }
@@ -250,7 +251,6 @@ async function compileGame(gameId: string): Promise<void> {
         await gameRepository.updateGame(gameId, { status }).catch((err) => {
             console.warn(`[Build ${gameId}] Impossible de mettre à jour le status (${status}) : ${err instanceof Error ? err.message : String(err)}`);
         });
-        // Réduire la rétention des logs dès que le build est terminé
         if (status === "success" || status === "failed") {
             await redisClient.expire(streamKey, 60).catch(() => {});
         }
@@ -321,7 +321,7 @@ async function compileGameWithTimeout(gameId: string): Promise<void> {
 // ─── Queue listener ───────────────────────────────────────────────────────────
 
 async function startQueueListener(): Promise<void> {
-    console.log(`👂 [Queue] En écoute sur "queue:builds" (max ${maxConcurrent} builds parallèles)...`);
+    console.log(`[Queue] En écoute sur "queue:builds" (max ${maxConcurrent} builds parallèles)...`);
 
     while (!isShuttingDown) {
         if (currentRunningBuilds >= maxConcurrent) {
@@ -334,23 +334,23 @@ async function startQueueListener(): Promise<void> {
             if (!task || task.length < 2) continue;
 
             const gameId = task[1];
-            console.log(`🎯 [Queue] Tâche dépilée : ${gameId} (${currentRunningBuilds + 1}/${maxConcurrent})`);
+            console.log(`[Queue] Tâche dépilée : ${gameId} (${currentRunningBuilds + 1}/${maxConcurrent})`);
             currentRunningBuilds++;
 
             (async () => {
                 try {
                     await compileGameWithTimeout(gameId);
                 } catch (err) {
-                    console.error(`❌ [Queue] Build échoué pour ${gameId} :`, err instanceof Error ? err.message : String(err));
+                    console.error(`[Queue] Build échoué pour ${gameId} :`, err instanceof Error ? err.message : String(err));
                 } finally {
                     currentRunningBuilds--;
-                    console.log(`🔓 [Queue] Slot libéré (${currentRunningBuilds}/${maxConcurrent})`);
+                    console.log(`[Queue] Slot libéré (${currentRunningBuilds}/${maxConcurrent})`);
                 }
             })();
 
         } catch (err) {
             if (!isShuttingDown) {
-                console.error("🚨 [Queue] Erreur lors du dépilage :", err instanceof Error ? err.message : String(err));
+                console.error("[Queue] Erreur lors du dépilage :", err instanceof Error ? err.message : String(err));
                 await new Promise(r => setTimeout(r, 2000));
             }
         }
@@ -364,7 +364,7 @@ async function startQueueListener(): Promise<void> {
 function setupGracefulShutdown() {
     for (const signal of ["SIGTERM", "SIGINT"]) {
         process.on(signal, async () => {
-            console.log(`\n📛 Signal ${signal} reçu, arrêt en cours...`);
+            console.log(`\nSignal ${signal} reçu, arrêt en cours...`);
             isShuttingDown = true;
 
             let waited = 0;
@@ -387,7 +387,7 @@ function setupGracefulShutdown() {
 
 // ─── Point d'entrée ───────────────────────────────────────────────────────────
 
-console.log(`🚀 [Worker] Initialisé. Concurrence max : ${maxConcurrent} | Timeout : ${BUILD_TIMEOUT_MS / 1000}s`);
+console.log(`[Worker] Initialisé. Concurrence max : ${maxConcurrent} | Timeout : ${BUILD_TIMEOUT_MS / 1000}s`);
 
 setupGracefulShutdown();
 startQueueListener();

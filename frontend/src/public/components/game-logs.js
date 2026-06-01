@@ -3,7 +3,6 @@ import { LitElement, html, css } from 'lit';
 export class AppBuildLogs extends LitElement {
     static properties = {
         gameId: { type: Number, attribute: 'game-id' },
-        logs: { type: Array, state: true },
         status: { type: String, state: true } // 'connecting', 'connected', 'finished', 'error'
     };
 
@@ -50,7 +49,7 @@ export class AppBuildLogs extends LitElement {
         }
 
         .terminal-body {
-            background-color: #300a24; 
+            background-color: #300a24;
             color: #ffffff;
             padding: 15px;
             height: 400px;
@@ -88,9 +87,9 @@ export class AppBuildLogs extends LitElement {
     constructor() {
         super();
         this.gameId = null;
-        this.logs = [];
         this.status = 'connecting';
         this.ws = null;
+        this._scrollPending = false;
     }
 
     connectedCallback() {
@@ -150,17 +149,22 @@ export class AppBuildLogs extends LitElement {
     }
 
     addLog(message) {
-        this.logs = [...this.logs, message];
-        this.scrollToBottom();
+        const body = this.shadowRoot?.querySelector('.terminal-body');
+        if (body) {
+            const line = document.createElement('div');
+            line.className = 'log-line';
+            line.textContent = message;
+            body.appendChild(line);
+            this._scheduleScroll(body);
+        }
     }
 
-    scrollToBottom() {
-        // Attend la mise à jour du DOM pour scroller tout en bas
-        this.updateComplete.then(() => {
-            const body = this.shadowRoot.querySelector('.terminal-body');
-            if (body) {
-                body.scrollTop = body.scrollHeight;
-            }
+    _scheduleScroll(body) {
+        if (this._scrollPending) return;
+        this._scrollPending = true;
+        requestAnimationFrame(() => {
+            body.scrollTop = body.scrollHeight;
+            this._scrollPending = false;
         });
     }
 
@@ -175,16 +179,11 @@ export class AppBuildLogs extends LitElement {
                     </div>
                     <div class="terminal-title">raydams@build-server:~</div>
                     <div></div> </div>
-                
+
                 <div class="terminal-body">
                     <div class="log-line">
                         <span class="log-prefix">system@raydams:~$</span> Initialisation de la compilation pour le jeu #${this.gameId}...
                     </div>
-                    ${this.logs.map(log => html`
-                        <div class="log-line">
-                            ${log}
-                        </div>
-                    `)}
                 </div>
 
                 <div class="status-bar status-${this.status}">
