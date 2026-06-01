@@ -1,4 +1,4 @@
-import {Group, GroupWithUsers} from "../DataObjects/Group.ts";
+import {Group, GroupWithUsers, GroupWithUsersAndGames} from "../DataObjects/Group.ts";
 import {User} from "../DataObjects/User.ts";
 
 import db from "../../Services/database.ts";
@@ -40,6 +40,54 @@ export async function getById(id: number): Promise<GroupWithUsers | undefined> {
                   LEFT JOIN users u ON ug.user_id = u.id
          WHERE g.id = $1
          GROUP BY g.id`,
+        [id],
+    );
+
+    return result.rows[0];
+}
+
+export async function getByIdWithGames(id: number): Promise<GroupWithUsersAndGames | undefined> {
+    const result = await db.queryObject<GroupWithUsersAndGames>(
+        `SELECT
+             g.*,
+             COALESCE(u_data.users, '[]') AS users,
+             COALESCE(gm_data.games, '[]') AS games
+         FROM groups g
+          -- Sous-requête ciblée pour les utilisateurs de ce groupe
+          LEFT JOIN (
+             SELECT
+                 ug.group_id,
+                 json_agg(
+                         json_build_object(
+                                 'id', u.id,
+                                 'username', u.username,
+                                 'email', u.email,
+                                 'path_profil_picture', u.path_profil_picture
+                         )
+                 ) AS users
+             FROM users_groups ug
+                      JOIN users u ON ug.user_id = u.id
+             WHERE ug.group_id = $1
+             GROUP BY ug.group_id
+         ) u_data ON g.id = u_data.group_id
+          -- Sous-requête ciblée pour les jeux de ce groupe
+          LEFT JOIN (
+             SELECT
+                 group_id,
+                 json_agg(
+                         json_build_object(
+                                 'id', id,
+                                 'name', name,
+                                 'thumbnail_path', thumbnail_path,
+                                 'status', status,
+                                 'author', author
+                         )
+                 ) AS games
+             FROM games
+             WHERE group_id = $1
+             GROUP BY group_id
+         ) gm_data ON g.id = gm_data.group_id
+         WHERE g.id = $1`,
         [id],
     );
 
@@ -184,6 +232,6 @@ export async function getGroupsWithGames(): Promise<any[]> {
     return result.rows;
 }
 
-const groupRepository = { create, getById, getAllGroups, deleteGroup, addUserToGroup, removeUserFromGroup, updateGroupName, getByCode, getGroupsByUserId, getGroupsWithGames };
+const groupRepository = { create, getById, getByIdWithGames, getAllGroups, deleteGroup, addUserToGroup, removeUserFromGroup, updateGroupName, getByCode, getGroupsByUserId, getGroupsWithGames };
 
 export default groupRepository;

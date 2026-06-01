@@ -2,10 +2,17 @@ import { Context, Router } from "oak";
 import { z } from "zod";
 import { customAlphabet } from "nanoid";
 import {restrictToAdmin} from "../Middlewares/restrictionMiddleware.ts";
-import {Group, GroupWithUsers} from "../Model/DataObjects/Group.ts";
+import {
+    Group,
+    GroupWithUsers,
+    GroupWithUsersAndGames,
+    sanitizeGroup,
+    sanitizeGroupWithGames
+} from "../Model/DataObjects/Group.ts";
 import groupRepository from "../Model/Repository/GroupRepository.ts";
 import authMiddleware from "../Middlewares/AuthMiddleware.ts";
 import { Game, sanitizeGame } from "../Model/DataObjects/Game.ts";
+import gameRepository from "../Model/Repository/GameRepository.ts";
 const alphabet = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz';
 const generateGroupCode = customAlphabet(alphabet, 10);
 
@@ -73,8 +80,11 @@ router.post("/", ...restrictToAdmin, async (ctx: Context) => {
 router.get("/", authMiddleware, async (ctx: Context) => {
     try {
         const groups:GroupWithUsers[] = await groupRepository.getAllGroups();
+        const sanitizedGroups = await Promise.all(
+            groups.map(group => sanitizeGroup(group))
+        );
         ctx.response.status = 200;
-        ctx.response.body = { success: true, groups };
+        ctx.response.body = { success: true, results: sanitizedGroups };
     } catch (_err) {
         ctx.response.status = 500;
         ctx.response.body = { success: false, message: "Failed to fetch groups" };
@@ -84,14 +94,14 @@ router.get("/", authMiddleware, async (ctx: Context) => {
 router.get("/with-games", authMiddleware, async (ctx: Context) => {
     try {
         const rawGroups = await groupRepository.getGroupsWithGames();
-        
+
         const userId = ctx.state.user.id;
         const isAdmin = ctx.state.user.roles?.includes("admin") ?? false;
 
         // On nettoie les données et on injecte le booléen canEdit pour le front
         let groupsWithGames = rawGroups.map((group: any) => {
             const isMember = group.member_ids.includes(userId);
-            
+
             return {
                 id: group.id,
                 name: group.name,
@@ -126,6 +136,7 @@ router.get("/with-games", authMiddleware, async (ctx: Context) => {
 
 router.get("/:id", authMiddleware, async (ctx) => {
     const groupId = parseInt(ctx.params.id);
+    const isAdmin = ctx.state.user.roles?.includes('admin') || false;
 
     if (isNaN(groupId)) {
         ctx.response.status = 400;
@@ -135,7 +146,7 @@ router.get("/:id", authMiddleware, async (ctx) => {
 
     try {
 
-        const group:GroupWithUsers|undefined = await groupRepository.getById(groupId);
+        const group:GroupWithUsersAndGames|undefined = await groupRepository.getByIdWithGames(groupId);
 
         if (!group) {
             ctx.response.status = 404;
@@ -144,10 +155,39 @@ router.get("/:id", authMiddleware, async (ctx) => {
         }
 
         ctx.response.status = 200;
-        ctx.response.body = { success: true, group };
+        ctx.response.body = { success: true, group: await sanitizeGroupWithGames(group,isAdmin) };
     } catch (_err) {
         ctx.response.status = 500;
         ctx.response.body = { success: false, message: "Failed to fetch group details" };
+    }
+});
+
+router.get("/:id/games", authMiddleware, async (ctx) => {
+    const groupId = parseInt(ctx.params.id);
+
+    if (isNaN(groupId)) {
+        ctx.response.status = 400;
+        ctx.response.body = { success: false, message: "Invalid group ID" };
+        return;
+    }
+
+    try {
+
+        const games:Game[] = await gameRepository.getGamesByGroupId(groupId);
+
+        if (games.length === 0) {
+            ctx.response.status = 404;
+            ctx.response.body = { success: false, message: "Games not found" };
+            return;
+        }
+        const sanitizedGames = await Promise.all(
+            games.map(game => sanitizeGame(game))
+        );
+        ctx.response.status = 200;
+        ctx.response.body = { success: true, games: sanitizedGames };
+    } catch (_err) {
+        ctx.response.status = 500;
+        ctx.response.body = { success: false, message: "Failed to fetch games details" };
     }
 });
 

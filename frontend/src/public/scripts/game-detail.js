@@ -1,6 +1,9 @@
 import { apiService } from '../services/apiService.js';
 import '../components/app-navbar.js';
 import '../components/app-footer.js';
+import '../components/group-widget.js';
+
+
 
 document.addEventListener('DOMContentLoaded', async () => {
     if (!apiService.isAuthenticated) {
@@ -81,6 +84,28 @@ document.addEventListener('DOMContentLoaded', async () => {
                 // 4. Rien du tout
                 mediaContainer.innerHTML = `<div style="display:flex; justify-content:center; align-items:center; height:100%; color:#555; font-family:monospace; background-color:#222;">Aperçu non disponible</div>`;
             }
+
+            async function loadGroupData(groupId) {
+
+                try {
+                    const groupRes = await apiService.getById(`groups`, groupId);
+
+                    if (!groupRes.success) {
+                        showError(groupRes.error || "Impossible de charger les informations du groupe.");
+                        return;
+                    }
+
+                    const group = groupRes.data?.group || groupRes.data;
+                    const groupWidget = document.getElementById('game-detail-group');
+                    groupWidget.group = group;
+
+
+                } catch (e) {
+                    console.error('Erreur inattendue lors du chargement du groupe :', e);
+                    showError("Une erreur inattendue est survenue lors du chargement du groupe.");}
+            }
+
+            loadGroupData(game.group_id);
 
             // Affichage de la page
             loadingState.style.display = 'none';

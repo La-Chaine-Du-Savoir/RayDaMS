@@ -193,6 +193,9 @@ export class AppNavbar extends LitElement {
           ${this._user ? html`
             <a href="/upload" class="nav-link">Publier</a>
           ` : ''}
+          ${this._user && this._user.roles?.includes("admin") ? html`
+            <a href="/groups" class="nav-link">Groupes</a>
+          ` : ''}
         </div>
         
         <div class="nav-right">

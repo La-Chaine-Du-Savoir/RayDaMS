@@ -106,6 +106,18 @@ router.get("/edit-game", async (ctx) => {
     await serveHtml(ctx, "pages/edit-game.html");
 });
 
+router.get("/groups", async (ctx) => {
+    await serveHtml(ctx, "pages/groups.html");
+});
+
+router.get("/groups/:id", async (ctx) => {
+    await serveHtml(ctx, "pages/group.html");
+});
+
+router.get("/join/:code", async (ctx) => {
+    await serveHtml(ctx, "pages/join.html");
+});
+
 app.use(router.routes());
 app.use(router.allowedMethods());
 
