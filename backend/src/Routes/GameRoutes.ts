@@ -1,5 +1,5 @@
 import {Context, Router} from "oak";
-import {connect, type XIdInput} from "redis";
+import {connect} from "redis";
 import {z} from "zod";
 import authMiddleware from "../Middlewares/AuthMiddleware.ts";
 import cloud from "../Services/cloud.ts";
@@ -14,6 +14,7 @@ const router = new Router({ prefix: "/games" });
 
 const ACCEPTED_IMAGE_TYPES = ["png", "jpg", "jpeg", "webp"];
 const MAX_FILE_SIZE = 5 * 1024 * 1024;
+const MAX_SCREENSHOT_SIZE = 10 * 1024 * 1024;
 
 const CreateGameSchema = z.object({
 	name: z.string().trim().min(1),
@@ -33,7 +34,39 @@ const CreateGameSchema = z.object({
 			return ACCEPTED_IMAGE_TYPES.includes(mime.toLowerCase());
 		}, {
 			message: "Format invalide. Seuls les formats .jpg, .jpeg, .png et .webp sont acceptés.",
+		}),
+	screenshot: z
+		.instanceof(File, { message: "La Screenshot doit être un fichier valide." })
+		.optional()
+		.nullable()
+		.refine((file) => !file || file.size <= MAX_SCREENSHOT_SIZE, {
+			message: "L'image est trop lourde. Limite maximale : 10 Mo.",
 		})
+		.refine((file) => {
+			if (!file) return true;
+			const mime = (file.type || "").split("/").pop() || "";
+			return ACCEPTED_IMAGE_TYPES.includes(mime.toLowerCase());
+		}, {
+			message: "Format invalide. Seuls les formats .jpg, .jpeg, .png et .webp sont acceptés.",
+		})
+});
+
+const UpdateGameSchema = z.object({
+    name: z.string().trim().min(1).optional(),
+    description: z.string().optional().nullable(),
+    url_trailer: z.string().optional().nullable(),
+    thumbnail: z.instanceof(File).optional().nullable()
+        .refine((file) => !file || file.size <= MAX_FILE_SIZE, { message: "Thumbnail max 5 Mo." })
+        .refine((file) => {
+            if (!file) return true;
+            return ACCEPTED_IMAGE_TYPES.includes((file.type || "").split("/").pop()?.toLowerCase() || "");
+        }, { message: "Format thumbnail invalide." }),
+    screenshot: z.instanceof(File).optional().nullable()
+        .refine((file) => !file || file.size <= MAX_SCREENSHOT_SIZE, { message: "Screenshot max 10 Mo." })
+        .refine((file) => {
+            if (!file) return true;
+            return ACCEPTED_IMAGE_TYPES.includes((file.type || "").split("/").pop()?.toLowerCase() || "");
+        }, { message: "Format screenshot invalide." })
 });
 
 type CreateGameData = z.infer<typeof CreateGameSchema>;
@@ -51,6 +84,7 @@ router.post("/", formDataMiddleware, authMiddleware, async (ctx: Context) => {
 	const rawGroupId = body.get("group_id") as string | null;
 	const url_trailer = body.get("url_trailer") as string | null;
 	const thumbnailFile = body.get("thumbnail") as File | null;
+	const screenshotFile = body.get("screenshot") as File | null;
 
 	const payload = {
 		name: name,
@@ -58,6 +92,7 @@ router.post("/", formDataMiddleware, authMiddleware, async (ctx: Context) => {
 		group_id: rawGroupId ? Number(rawGroupId) : undefined,
 		url_trailer: url_trailer,
 		thumbnail: thumbnailFile,
+		screenshot: screenshotFile,
 	};
 
 	let validatedData: CreateGameData;
@@ -127,6 +162,22 @@ router.post("/", formDataMiddleware, authMiddleware, async (ctx: Context) => {
 		}
 	}
 
+	if (validatedData.screenshot) {
+		const extension = validatedData.screenshot.type.split("/")[1];
+		const screenshot_path = `games/${game.id}/screenshot.${extension}`;
+
+		try {
+			await cloud.upload(
+				screenshot_path,
+				new Uint8Array(await validatedData.screenshot.arrayBuffer()),
+				validatedData.screenshot.type
+			);
+			updates["path_screenshot"] = screenshot_path;
+		} catch (err) {
+			console.error('Error while uploading screenshot', err);
+		}
+	}
+
 	try {
 		game = await gameRepository.updateGame(String(game.id), updates) ?? game;
 	} catch (err) {
@@ -156,6 +207,121 @@ router.post("/", formDataMiddleware, authMiddleware, async (ctx: Context) => {
 		},
 	}
 });
+
+router.patch("/:gameId", formDataMiddleware, authMiddleware, async (ctx) => {
+    const gameId = ctx.params.gameId;
+
+    if (!gameId) {
+        ctx.response.status = 400;
+        ctx.response.body = { success: false, error: "Game ID is required" };
+        return;
+    }
+
+    let game = await gameRepository.getById(gameId);
+    if (!game) {
+        ctx.response.status = 404;
+        ctx.response.body = { success: false, error: "Game not found" };
+        return;
+    }
+
+    // Vérification des droits (Auteur ou Admin)
+    const isAuthor = game.author === ctx.state.user.id;
+    const isAdmin = ctx.state.user.roles?.includes("admin") ?? false;
+    if (!isAuthor && !isAdmin) {
+        ctx.response.status = 403;
+        ctx.response.body = { success: false, error: "You must be the game author or an admin to edit this game" };
+        return;
+    }
+
+    const body = await ctx.request.body.formData();
+
+    // On ne récupère que ce qui est envoyé
+    const payload: any = {};
+    if (body.has("name")) payload.name = body.get("name");
+    if (body.has("description")) payload.description = body.get("description");
+    if (body.has("url_trailer")) payload.url_trailer = body.get("url_trailer");
+    if (body.has("thumbnail")) payload.thumbnail = body.get("thumbnail");
+    if (body.has("screenshot")) payload.screenshot = body.get("screenshot");
+
+    let validatedData;
+    try {
+        validatedData = UpdateGameSchema.parse(payload);
+    } catch (error) {
+        ctx.response.status = 400;
+        ctx.response.body = { success: false, error: error };
+        return;
+    }
+
+    const updates: Record<string, any> = {};
+    if (validatedData.name !== undefined) updates["name"] = validatedData.name;
+    if (validatedData.description !== undefined) updates["description"] = validatedData.description;
+    if (validatedData.url_trailer !== undefined) updates["url_trailer"] = validatedData.url_trailer;
+
+    // Gestion de la nouvelle miniature
+    if (validatedData.thumbnail) {
+        const extension = validatedData.thumbnail.type.split("/")[1];
+        const thumbnail_path = `games/${game.id}/thumb.${extension}`;
+        try {
+            await cloud.upload(thumbnail_path, new Uint8Array(await validatedData.thumbnail.arrayBuffer()), validatedData.thumbnail.type);
+            updates["thumbnail_path"] = thumbnail_path;
+        } catch (err) {
+            console.error('Error uploading new thumbnail', err);
+        }
+    }
+
+    // Gestion du nouveau screenshot
+    if (validatedData.screenshot) {
+        const extension = validatedData.screenshot.type.split("/")[1];
+        const screenshot_path = `games/${game.id}/screenshot.${extension}`;
+        try {
+            await cloud.upload(screenshot_path, new Uint8Array(await validatedData.screenshot.arrayBuffer()), validatedData.screenshot.type);
+            updates["path_screenshot"] = screenshot_path;
+        } catch (err) {
+            console.error('Error uploading new screenshot', err);
+        }
+    }
+
+    try {
+        const updatedGame = await gameRepository.updateGame(String(game.id), updates) ?? game;
+        ctx.response.status = 200;
+        ctx.response.body = {
+            success: true,
+            message: "Game updated successfully",
+            data: { game: await sanitizeGame(updatedGame) }
+        };
+    } catch (err) {
+        console.error("Error updating game", err);
+        ctx.response.status = 500;
+        ctx.response.body = { success: false, error: "Failed to update game" };
+    }
+});
+
+router.get("/:gameId", authMiddleware, async (ctx) => {
+    const gameId = ctx.params.gameId;
+
+    if (!gameId) {
+        ctx.response.status = 400;
+        ctx.response.body = { success: false, error: "Game ID is required" };
+        return;
+    }
+
+    const game = await gameRepository.getById(gameId);
+    if (!game) {
+        ctx.response.status = 404;
+        ctx.response.body = { success: false, error: "Game not found" };
+        return;
+    }
+
+    try {
+        ctx.response.status = 200;
+        ctx.response.body = { success: true, data: { game: await sanitizeGame(game) } };
+    } catch (err) {
+        console.error("Error while preparing game data", err);
+        ctx.response.status = 500;
+        ctx.response.body = { success: false, error: "Failed to load game" };
+    }
+});
+
 
 router.get("/:gameId/upload-request", authMiddleware, async (ctx) => {
 	const gameId = ctx.params.gameId;
@@ -432,41 +598,65 @@ router.get("/:gameId/logs", authMiddleware, async (ctx) => {
 	}
 });
 
-router.get("/:gameId", authMiddleware, async (ctx) => {
-	const gameId = ctx.params.gameId;
+router.delete("/:gameId", authMiddleware, async (ctx) => {
+    const gameId = ctx.params.gameId;
 
-	if (!gameId) {
-		ctx.response.status = 400;
-		ctx.response.body = { success: false, error: "Game ID is required" };
-		return;
-	}
+    if (!gameId) {
+        ctx.response.status = 400;
+        ctx.response.body = { success: false, error: "Game ID is required" };
+        return;
+    }
 
-	const game = await gameRepository.getById(gameId);
-	if (!game) {
-		ctx.response.status = 404;
-		ctx.response.body = { success: false, error: "Game not found" };
-		return;
-	}
+    const game = await gameRepository.getById(gameId);
+    if (!game) {
+        ctx.response.status = 404;
+        ctx.response.body = { success: false, error: "Game not found" };
+        return;
+    }
 
-	const isAdmin = ctx.state.user.roles?.includes("admin") ?? false;
+    // Vérif des droits
+    const isAuthor = game.author === ctx.state.user.id;
+    const isAdmin = ctx.state.user.roles?.includes("admin") ?? false;
+    if (!isAuthor && !isAdmin) {
+        ctx.response.status = 403;
+        ctx.response.body = { success: false, error: "You must be the game author or an admin to delete this game" };
+        return;
+    }
 
-	try {
-		const group = await groupRepository.getById(game.group_id);
-		const isMember = !!group?.users?.find((u) => u.id === ctx.state.user.id);
+    // nettoyage du cloud
+    const pathsToDelete = [
+        game.path_sources,
+        game.thumbnail_path,
+        game.path_screenshot,
+        game.path_js,
+        game.path_wasm,
+        game.path_data
+    ].filter(Boolean) as string[];
 
-		if (!isMember && !isAdmin) {
-			ctx.response.status = 403;
-			ctx.response.body = { success: false, error: "You must be a member of the group or an admin to access this game" };
-			return;
-		}
+    for (const p of pathsToDelete) {
+        try {
+            await cloud.delete(p);
+        } catch (err) {
+            console.warn(`Impossible de supprimer le fichier cloud ${p}:`, err);
+        }
+    }
 
-		ctx.response.status = 200;
-		ctx.response.body = { success: true, data: { game: await sanitizeGame(game) } };
-	} catch (err) {
-		console.error("Error while verifying group membership for game access", err);
-		ctx.response.status = 500;
-		ctx.response.body = { success: false, error: "Failed to verify access rights" };
-	}
+    // Suppression de la bd
+    try {
+        const deleted = await gameRepository.deleteGame(String(game.id));
+        if (deleted) {
+            ctx.response.status = 200;
+            ctx.response.body = { success: true, message: "Game deleted successfully" };
+        } else {
+            throw new Error("Deletion returned false from database");
+        }
+    } catch (err) {
+        console.error("Error deleting game", err);
+        ctx.response.status = 500;
+        ctx.response.body = { success: false, error: "Failed to delete game" };
+    }
 });
 
+
 export default router;
+
