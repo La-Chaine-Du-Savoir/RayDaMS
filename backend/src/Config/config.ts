@@ -60,11 +60,10 @@ const getSameSiteEnv = (key: string, defaultValue: "lax" | "strict" | "none"): "
     return defaultValue;
 };
 
-const rawOrigins = getEnv("ALLOWED_ORIGINS", "");
 const jwtSecretRaw = getEnv("JWT_SECRET", "");
 
 const config: Config = {
-    allowedOrigins: rawOrigins
+    allowedOrigins: getEnv("ALLOWED_ORIGINS", "")
         .split(",")
         .map(origin => origin.trim())
         .filter(origin => origin.length > 0),

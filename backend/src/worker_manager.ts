@@ -18,6 +18,7 @@ const docker = new Docker({ socketPath: "/var/run/docker.sock" });
 // ─── Configuration ────────────────────────────────────────────────────────────
 
 const BUCKET_NAME = config.s3.bucketName || "raydams";
+const COMPILER_IMAGE = Deno.env.get("COMPILER_IMAGE")?.trim() || "emscripten-raylib-builder:latest";
 
 const MAX_CONCURRENT_RAW = Deno.env.get("MAX_CONCURRENT") ?? "5";
 const maxConcurrent = parseInt(MAX_CONCURRENT_RAW, 10);
@@ -223,7 +224,7 @@ async function createSandboxContainer(): Promise<Docker.Container> {
     return dockerBreaker.execute(async () => {
         try {
             return await docker.createContainer({
-                Image: "emscripten-raylib-builder:latest",
+                Image: COMPILER_IMAGE,
                 Cmd: ["/bin/bash", "-c", "ulimit -f 512000 && /usr/local/bin/build_game.sh"],
                 HostConfig: {
                     AutoRemove: false,
@@ -573,7 +574,7 @@ function setupGracefulShutdown() {
 // ─── Point d'entrée ───────────────────────────────────────────────────────────
 
 console.log(
-    `🚀 [Worker Manager] Initialisé. Concurrence max : ${maxConcurrent} | Timeout build : ${BUILD_TIMEOUT_MS / 1000}s`,
+    `🚀 [Worker Manager] Initialisé. Concurrence max : ${maxConcurrent} | Timeout build : ${BUILD_TIMEOUT_MS / 1000}s | Image build : ${COMPILER_IMAGE}`,
 );
 
 setupGracefulShutdown();
