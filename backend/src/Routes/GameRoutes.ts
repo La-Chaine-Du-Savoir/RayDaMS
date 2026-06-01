@@ -622,6 +622,65 @@ router.get("/:gameId/logs", authMiddleware, async (ctx) => {
 	}
 });
 
+router.delete("/:gameId", authMiddleware, async (ctx) => {
+    const gameId = ctx.params.gameId;
+
+    if (!gameId) {
+        ctx.response.status = 400;
+        ctx.response.body = { success: false, error: "Game ID is required" };
+        return;
+    }
+
+    const game = await gameRepository.getById(gameId);
+    if (!game) {
+        ctx.response.status = 404;
+        ctx.response.body = { success: false, error: "Game not found" };
+        return;
+    }
+
+    // Vérif des droits
+    const isAuthor = game.author === ctx.state.user.id;
+    const isAdmin = ctx.state.user.roles?.includes("admin") ?? false;
+    if (!isAuthor && !isAdmin) {
+        ctx.response.status = 403;
+        ctx.response.body = { success: false, error: "You must be the game author or an admin to delete this game" };
+        return;
+    }
+
+    // nettoyage du cloud
+    const pathsToDelete = [
+        game.path_sources,
+        game.thumbnail_path,
+        game.path_screenshot,
+        game.path_js,
+        game.path_wasm,
+        game.path_data
+    ].filter(Boolean) as string[];
+
+    for (const p of pathsToDelete) {
+        try {
+            await cloud.delete(p);
+        } catch (err) {
+            console.warn(`Impossible de supprimer le fichier cloud ${p}:`, err);
+        }
+    }
+
+    // Suppression de la bd
+    try {
+        const deleted = await gameRepository.deleteGame(String(game.id));
+        if (deleted) {
+            ctx.response.status = 200;
+            ctx.response.body = { success: true, message: "Game deleted successfully" };
+        } else {
+            throw new Error("Deletion returned false from database");
+        }
+    } catch (err) {
+        console.error("Error deleting game", err);
+        ctx.response.status = 500;
+        ctx.response.body = { success: false, error: "Failed to delete game" };
+    }
+});
+
 
 export default router;
 
