@@ -1,0 +1,35 @@
+#!/bin/sh
+
+# Récupération des fichiers "staged" (ceux prêts à être commit)
+# Le --diff-filter=ACM ignore les fichiers supprimés pour éviter les erreurs de type "fichier introuvable"
+STAGED_FILES=$(git diff --cached --name-only --diff-filter=ACM | grep -E '\.(ts|tsx|js|jsx|json|md)$')
+
+# S'il n'y a aucun fichier pertinent (ex: on ne commit qu'un .gitignore ou une image), on laisse passer
+if [ -z "$STAGED_FILES" ]; then
+  exit 0
+fi
+
+# Vérification de survie de Docker
+if ! docker info > /dev/null 2>&1; then
+  echo "ERREUR : Docker ne semble pas être lancé. Merci de le démarrer pour le pre-commit."
+  exit 1
+fi
+
+# On met la liste des fichiers sur une seule ligne, séparés par un espace
+FILES_LIST=$(echo "$STAGED_FILES" | tr '\n' ' ')
+
+echo "Vérification Deno (Lint & Format) sur les fichiers modifiés..."
+
+# Une seule exécution Docker à la racine, ciblant uniquement les fichiers modifiés
+docker run --rm -v "$(pwd):/app" -w /app denoland/deno:alpine-2.7.14 sh -c "deno fmt --check $FILES_LIST && deno lint $FILES_LIST"
+
+if [ $? -ne 0 ]; then
+  echo ""
+  echo "ERREUR : Certains fichiers ne sont pas formatés correctement ou contiennent des erreurs de lint."
+  echo "Astuce : Pour formater automatiquement ces fichiers, copie-colle cette commande :"
+  echo "  docker run --rm -v \"\$(pwd):/app\" -w /app denoland/deno:alpine-2.7.14 deno fmt $FILES_LIST"
+  exit 1
+fi
+
+echo "Code propre, commit autorisé !"
+exit 0
