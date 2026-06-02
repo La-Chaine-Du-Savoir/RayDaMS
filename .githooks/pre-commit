@@ -15,17 +15,28 @@ if ! docker info > /dev/null 2>&1; then
   exit 1
 fi
 
-# On met la liste des fichiers sur une seule ligne, séparés par un espace
+# Préparation des listes de fichiers
+# Liste globale (pour fmt et lint)
 FILES_LIST=$(echo "$STAGED_FILES" | tr '\n' ' ')
+# Liste restreinte au code (pour le check de typage)
+TS_JS_FILES=$(echo "$STAGED_FILES" | grep -E '\.(ts|tsx|js|jsx)$' | tr '\n' ' ')
 
-echo "Vérification Deno (Lint & Format) sur les fichiers modifiés..."
+echo "Vérification Deno (Format, Lint & Check) sur les fichiers modifiés..."
+
+# Construction de la commande Deno
+DENO_CMD="deno fmt --check $FILES_LIST && deno lint $FILES_LIST"
+
+# Si on a modifié du code JS/TS, on rajoute l'analyse des types
+if [ -n "$TS_JS_FILES" ]; then
+  DENO_CMD="$DENO_CMD && deno check $TS_JS_FILES"
+fi
 
 # Une seule exécution Docker à la racine, ciblant uniquement les fichiers modifiés
-docker run --rm -v "$(pwd):/app" -w /app denoland/deno:alpine-2.7.14 sh -c "deno fmt --check $FILES_LIST && deno lint $FILES_LIST"
+docker run --rm -v "$(pwd):/app" -w /app denoland/deno:alpine-2.7.14 sh -c "$DENO_CMD"
 
 if [ $? -ne 0 ]; then
   echo ""
-  echo "ERREUR : Certains fichiers ne sont pas formatés correctement ou contiennent des erreurs de lint."
+  echo "ERREUR : Le formatage, le lint ou le typage (check) a échoué."
   echo "Astuce : Pour formater automatiquement ces fichiers, copie-colle cette commande :"
   echo "  docker run --rm -v \"\$(pwd):/app\" -w /app denoland/deno:alpine-2.7.14 deno fmt $FILES_LIST"
   exit 1

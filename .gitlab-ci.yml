@@ -25,6 +25,7 @@ lint_frontend:
     - cd frontend
     - deno fmt --check
     - deno lint
+    - deno check
 
 lint_backend:
   image: denoland/deno:alpine-2.7.14
@@ -37,6 +38,7 @@ lint_backend:
     - cd backend
     - deno fmt --check
     - deno lint
+    - deno check
 
 # TEMPLATE DE BUILD (Mutualisé pour Front, Back et Worker)
 .build_image_template:
