@@ -1,5 +1,5 @@
 import {Context, Router} from "oak";
-import {connect} from "redis";
+import {connect, type XIdInput} from "redis";
 import {z} from "zod";
 import authMiddleware from "../Middlewares/AuthMiddleware.ts";
 import cloud from "../Services/cloud.ts";
@@ -234,7 +234,7 @@ router.patch("/:gameId", formDataMiddleware, authMiddleware, async (ctx) => {
     }
 
     const body = await ctx.request.body.formData();
-    
+
     // On ne récupère que ce qui est envoyé
     const payload: any = {};
     if (body.has("name")) payload.name = body.get("name");
@@ -460,11 +460,11 @@ router.post("/:gameId/confirm-upload", authMiddleware, async (ctx) => {
 		}) ?? game;
 
 		await redisClient.lpush("queue:builds", String(game.id));
-			ctx.response.status = 202;
-			ctx.response.body = {
-				success: true,
-				message: "Upload confirmed; compilation queued",
-				game: await sanitizeGame(updated),
+		ctx.response.status = 202;
+		ctx.response.body = {
+			success: true,
+			message: "Upload confirmed; compilation queued",
+			game: await sanitizeGame(updated),
 		};
 	} catch (err) {
 		console.error("Error while marking game as uploaded and queueing compilation", err);
@@ -479,6 +479,14 @@ router.post("/:gameId/confirm-upload", authMiddleware, async (ctx) => {
 	}
 });
 
+/**
+ * GET /:gameId/logs — WebSocket streaming des logs de build.
+ *
+ * Utilise exclusivement Redis Streams (XREAD BLOCK) pour diffuser les logs,
+ * sans pub/sub. Cela évite la duplication des messages : l'historique et
+ * les nouveaux messages sont lus depuis la même source, en séquence,
+ * en trackant le dernier ID consommé.
+ */
 router.get("/:gameId/logs", authMiddleware, async (ctx) => {
 	const gameId = ctx.params.gameId;
 
@@ -519,96 +527,60 @@ router.get("/:gameId/logs", authMiddleware, async (ctx) => {
 	}
 
 	const ws = ctx.upgrade();
-	const channel = `logs:${gameId}`;
-	const streamKey = `stream:${channel}`;
+	const streamKey = `stream:logs:${gameId}`;
 	let closed = false;
 
-	let subRedis;
-	let subscription;
+	const cleanup = () => { closed = true; };
+	ws.onclose = cleanup;
+	ws.onerror = cleanup;
+
+	let streamRedis;
 	try {
-		subRedis = await connect({
+		streamRedis = await connect({
 			hostname: config.redis.host,
 			port: config.redis.port,
 			password: config.redis.password,
 		});
-
-		// Charger l'historique complet du stream
-		try {
-			const history = await subRedis.xrange(streamKey, "-", "+");
-			for (const entry of history) {
-				if (closed || ws.readyState !== WebSocket.OPEN) {
-					break;
-				}
-				const entryObj = entry as unknown as Record<string, unknown>;
-				let message: string | undefined;
-				if (typeof entryObj === "object" && entryObj) {
-					if ("message" in entryObj && typeof entryObj.message === "string") {
-						message = entryObj.message;
-					} else if (entryObj.message && typeof entryObj.message === "object") {
-						const msgMap = entryObj.message as Record<string, unknown>;
-						message = String(msgMap["message"] ?? msgMap["msg"] ?? "");
-					}
-				}
-				if (message) {
-					ws.send(String(message));
-					if (message === "__END__") {
-						// Si le stream contient déjà __END__, fermer
-						ws.close(1000, "Build finished");
-						closed = true;
-						subRedis.close();
-						return;
-					}
-				}
-			}
-		} catch (histErr) {
-			console.warn("Error while loading build history", histErr);
-		}
-
-		// S'abonner pour les nouveaux messages
-		subscription = await subRedis.subscribe(channel);
 	} catch (err) {
-		console.error("Error while creating logs subscription", err);
-		try {
-			ws.close(1011, "Subscription failed");
-		} catch (_closeErr) {
-			// no-op
-		}
-		if (subscription) {
-			subscription.close();
-		}
-		if (subRedis) {
-			subRedis.close();
-		}
+		console.error("Error while connecting to Redis for log streaming", err);
+		// deno-lint-ignore no-empty
+		try { ws.close(1011, "Redis connection failed"); } catch (_) {}
 		return;
 	}
 
-	const cleanup = () => {
-		if (closed) return;
-		closed = true;
-		try {
-			subscription?.close();
-		} catch (_err) {
-			// no-op
-		}
-		try {
-			subRedis?.close();
-		} catch (_err) {
-			// no-op
-		}
-	};
-
-	ws.onclose = cleanup;
-	ws.onerror = cleanup;
-
 	try {
-		for await (const msg of subscription.receive()) {
-			if (closed || ws.readyState !== WebSocket.OPEN) {
-				break;
-			}
-			const line = String(msg.message ?? "");
-			ws.send(line);
-			if (line === "__END__") {
-				ws.close(1000, "Build finished");
+		let lastXid: XIdInput = 0; // 0 = depuis le début du stream
+
+		while (!closed && ws.readyState === WebSocket.OPEN) {
+			try {
+				const streams = await streamRedis.xread(
+					[{ key: streamKey, xid: lastXid }],
+					{ block: 500, count: 50 }
+				);
+
+				if (!streams || streams.length === 0) continue;
+
+				for (const msg of streams[0].messages) {
+					if (closed || ws.readyState !== WebSocket.OPEN) break;
+
+					// Avance le curseur pour la prochaine itération
+					lastXid = msg.xid;
+
+					const message = msg.fieldValues["message"] ?? "";
+					if (!message) continue;
+
+					ws.send(String(message));
+
+					if (message === "__END__") {
+						ws.close(1000, "Build finished");
+						closed = true;
+						break;
+					}
+				}
+			} catch (err) {
+				if (!closed) {
+					console.warn("Error while reading Redis stream for logs", err);
+				}
 				break;
 			}
 		}
@@ -618,7 +590,8 @@ router.get("/:gameId/logs", authMiddleware, async (ctx) => {
 			ws.close(1011, "Log streaming error");
 		}
 	} finally {
-		cleanup();
+		// deno-lint-ignore no-empty
+		try { streamRedis.close(); } catch (_) {}
 	}
 });
 
