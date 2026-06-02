@@ -3,6 +3,38 @@ import "../components/app-navbar.js";
 import "../components/app-footer.js";
 import "../components/group-widget.js";
 
+
+function getYouTubeId(url) {
+  if (!url) return null;
+  const regExp =
+      /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
+  const match = url.match(regExp);
+  return (match && match[2].length === 11) ? match[2] : null;
+}
+
+async function loadGroupData(groupId) {
+  try {
+    const groupRes = await apiService.getById(`groups`, groupId);
+
+    if (!groupRes.success) {
+      showError(
+          groupRes.error ||
+          "Impossible de charger les informations du groupe.",
+      );
+      return;
+    }
+
+    const group = groupRes.data?.group || groupRes.data;
+    const groupWidget = document.getElementById("game-detail-group");
+    groupWidget.group = group;
+  } catch (e) {
+    console.error("Erreur inattendue lors du chargement du groupe :", e);
+    showError(
+        "Une erreur inattendue est survenue lors du chargement du groupe.",
+    );
+  }
+}
+
 document.addEventListener("DOMContentLoaded", async () => {
   if (!apiService.isAuthenticated) {
     globalThis.location.href = "/login";
@@ -62,13 +94,7 @@ document.addEventListener("DOMContentLoaded", async () => {
           'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100"><rect width="100" height="100" fill="%23ddd"/><text x="50" y="50" dominant-baseline="middle" text-anchor="middle" font-family="monospace" fill="%23888">Sans image</text></svg>';
       }
 
-      function getYouTubeId(url) {
-        if (!url) return null;
-        const regExp =
-          /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
-        const match = url.match(regExp);
-        return (match && match[2].length === 11) ? match[2] : null;
-      }
+
 
       const mediaContainer = document.getElementById("ui-media-container");
       const youtubeId = getYouTubeId(game.url_trailer);
@@ -91,28 +117,7 @@ document.addEventListener("DOMContentLoaded", async () => {
           `<div style="display:flex; justify-content:center; align-items:center; height:100%; color:#555; font-family:monospace; background-color:#222;">Aperçu non disponible</div>`;
       }
 
-      async function loadGroupData(groupId) {
-        try {
-          const groupRes = await apiService.getById(`groups`, groupId);
 
-          if (!groupRes.success) {
-            showError(
-              groupRes.error ||
-                "Impossible de charger les informations du groupe.",
-            );
-            return;
-          }
-
-          const group = groupRes.data?.group || groupRes.data;
-          const groupWidget = document.getElementById("game-detail-group");
-          groupWidget.group = group;
-        } catch (e) {
-          console.error("Erreur inattendue lors du chargement du groupe :", e);
-          showError(
-            "Une erreur inattendue est survenue lors du chargement du groupe.",
-          );
-        }
-      }
 
       loadGroupData(game.group_id);
 

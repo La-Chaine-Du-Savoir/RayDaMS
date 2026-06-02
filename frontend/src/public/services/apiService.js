@@ -77,7 +77,7 @@ export const apiService = {
     return { success: true };
   },
 
-  async refresh() {
+  refresh() {
     if (refreshPromise) return refreshPromise;
 
     refreshPromise = (async () => {
