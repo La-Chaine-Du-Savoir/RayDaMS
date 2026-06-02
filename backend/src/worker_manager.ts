@@ -17,6 +17,8 @@ import process from "node:process";
 
 const docker = new Docker({ socketPath: "/var/run/docker.sock" });
 
+const COMPILER_IMAGE = Deno.env.get("COMPILER_IMAGE")?.trim() ||
+  "emscripten-raylib-builder:latest";
 const BUCKET_NAME = config.s3.bucketName || "raydams";
 const BUILD_TIMEOUT_MS = parseInt(
   Deno.env.get("BUILD_TIMEOUT_MS") ?? "300000",
@@ -139,7 +141,7 @@ async function downloadProjectZip(s3Key: string): Promise<Uint8Array> {
 // deno-lint-ignore require-await
 async function createSandboxContainer(): Promise<Docker.Container> {
   return docker.createContainer({
-    Image: "emscripten-raylib-builder:latest",
+    Image: COMPILER_IMAGE,
     Cmd: [
       "/bin/bash",
       "-c",

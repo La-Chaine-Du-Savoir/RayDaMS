@@ -70,6 +70,7 @@ services:
       REDIS_HOST: redis
       REDIS_PORT: 6379
       REDIS_PASSWORD: ${REDIS_PASSWORD}
+      COMPILER_IMAGE: emscripten-raylib-builder:latest
       S3_ENDPOINT: minio
       S3_PORT: 9000
       S3_USER: ${MINIO_USER}

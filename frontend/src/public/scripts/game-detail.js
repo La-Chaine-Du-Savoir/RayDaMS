@@ -69,13 +69,22 @@ document.addEventListener("DOMContentLoaded", async () => {
       document.getElementById("ui-description").textContent =
         game.description || "Aucune description fournie pour ce jeu.";
 
-      // ID de l'auteur
-      document.getElementById("ui-author").textContent =
-        `Utilisateur #${game.author}`;
+      // nom de l'auteur
+      const authorText = game.author_name
+        ? game.author_name
+        : `Utilisateur #${game.author}`;
+      document.getElementById("ui-author").textContent = authorText;
 
       // Bouton Jouer
       const playBtn = document.getElementById("ui-play-btn");
       playBtn.href = `/games/${game.id}/play`;
+
+      //Bouton télécharger
+      const downloadBtn = document.getElementById("ui-download-btn");
+      if (game.url_sources) {
+        downloadBtn.href = game.url_sources;
+        downloadBtn.style.display = "block";
+      }
 
       // Statut de compilation
       const statusDiv = document.getElementById("ui-status");
