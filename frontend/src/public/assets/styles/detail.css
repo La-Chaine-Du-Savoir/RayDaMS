@@ -79,3 +79,25 @@
     color: var(--text-color);
     white-space: pre-wrap; /* Conserve les sauts de ligne */
 }
+
+.btn-download {
+    display: block;
+    width: 100%;
+    padding: 0.8rem;
+    background-color: transparent;
+    color: var(--polytech-blue);
+    border: 4px solid var(--polytech-blue);
+    text-align: center;
+    text-decoration: none;
+    font-weight: bold;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 1.1rem;
+    transition: all 0.3s;
+    box-sizing: border-box;
+}
+
+.btn-download:hover {
+    background-color: var(--polytech-blue);
+    color: white;
+    transform: translateY(-2px);
+}

@@ -47,6 +47,13 @@ document.addEventListener('DOMContentLoaded', async () => {
             const playBtn = document.getElementById('ui-play-btn');
             playBtn.href = `/games/${game.id}/play`;
 
+            //Bouton télécharger
+            const downloadBtn = document.getElementById('ui-download-btn');
+            if (game.url_sources) {
+                downloadBtn.href = game.url_sources;
+                downloadBtn.style.display = 'block';
+            }
+
             // Statut de compilation
             const statusDiv = document.getElementById('ui-status');
             statusDiv.textContent = `Compilation : ${game.status}`;
