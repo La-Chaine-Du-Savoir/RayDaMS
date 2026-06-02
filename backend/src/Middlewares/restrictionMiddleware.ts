@@ -1,6 +1,6 @@
 import { Context } from "oak";
 import authMiddleware from "./AuthMiddleware.ts";
-import { Middleware } from "https://deno.land/x/oak@v17.1.6/middleware.ts";
+import { Middleware } from "oak/middleware.ts";
 
 const checkRole = (allowedRoles: string[]): Middleware => {
   return async (ctx: Context, next: () => Promise<unknown>) => {

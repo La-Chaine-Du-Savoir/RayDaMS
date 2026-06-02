@@ -195,35 +195,35 @@ export class AppNavbar extends LitElement {
           <a href="/games" class="nav-link">Jeux</a>
 
           ${this._user
-        ? html`
-          <a href="/upload" class="nav-link">Publier</a>
-        `
-        : ""} ${this._user && this._user.roles?.includes("admin")
-        ? html`
-          <a href="/groups" class="nav-link">Groupes</a>
-        `
-        : ""}
+            ? html`
+              <a href="/upload" class="nav-link">Publier</a>
+            `
+            : ""} ${this._user && this._user.roles?.includes("admin")
+            ? html`
+              <a href="/groups" class="nav-link">Groupes</a>
+            `
+            : ""}
         </div>
 
         <div class="nav-right">
           ${this._user
-        ? html`
-          <span class="user-greeting">Salut, ${this._user.username} !</span>
-          <a href="/profile" class="nav-profile-link" title="Mon Profil">
-            <app-avatar
-              url="${this._user.url_profil_picture}"
-              username="${this._user.username}"
-              size="small"
-            >
-            </app-avatar>
-          </a>
-          <button @click="${this
-            ._logout}" class="btn btn-logout">Déconnexion</button>
-        `
-        : html`
-          <a href="/login" class="btn btn-outline">Se connecter</a>
-          <a href="/register" class="btn btn-primary">S'inscrire</a>
-        `}
+            ? html`
+              <span class="user-greeting">Salut, ${this._user.username} !</span>
+              <a href="/profile" class="nav-profile-link" title="Mon Profil">
+                <app-avatar
+                  url="${this._user.url_profil_picture}"
+                  username="${this._user.username}"
+                  size="small"
+                >
+                </app-avatar>
+              </a>
+              <button @click="${this
+                ._logout}" class="btn btn-logout">Déconnexion</button>
+            `
+            : html`
+              <a href="/login" class="btn btn-outline">Se connecter</a>
+              <a href="/register" class="btn btn-primary">S'inscrire</a>
+            `}
         </div>
       </nav>
     `;

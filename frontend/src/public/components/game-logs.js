@@ -206,12 +206,12 @@ export class AppBuildLogs extends LitElement {
 
         <div class="status-bar status-${this.status}">
           ${this.status === "connecting"
-        ? "Connexion en cours..."
-        : ""} ${this.status === "connected"
-        ? "En écoute..."
-        : ""} ${this.status === "finished"
-        ? "Compilation terminée"
-        : ""} ${this.status === "error" ? "Erreur de connexion" : ""}
+            ? "Connexion en cours..."
+            : ""} ${this.status === "connected"
+            ? "En écoute..."
+            : ""} ${this.status === "finished"
+            ? "Compilation terminée"
+            : ""} ${this.status === "error" ? "Erreur de connexion" : ""}
         </div>
       </div>
     `;

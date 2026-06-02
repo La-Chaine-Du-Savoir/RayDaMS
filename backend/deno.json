@@ -13,7 +13,8 @@
     "nanoid": "npm:nanoid@5.1.11",
     "dockerode": "npm:dockerode@3.3.0",
     "tar-stream": "npm:tar-stream@^3.1.7",
-    "fflate": "npm:fflate@^0.8.2"
+    "fflate": "npm:fflate@^0.8.2",
+    "oak/": "https://deno.land/x/oak@v17.1.6/"
   },
   "tasks": {
     "dev": "deno run --watch --allow-net --allow-env --allow-sys --allow-read src/back_server.ts 3000",

@@ -157,49 +157,49 @@ export class AppGameRow extends LitElement {
       <div class="category-header">
         <h2 class="category-title">
           ${this.showGroupLink
-        ? html`
-          <a href="/groups/${this.group.id}" class="group-link">${this.group
-            .name}</a>
-        `
-        : this.group.name}
+            ? html`
+              <a href="/groups/${this.group.id}" class="group-link">${this.group
+                .name}</a>
+            `
+            : this.group.name}
         </h2>
         <div class="separator-line"></div>
       </div>
 
       <div class="row-wrapper">
         ${showArrows
-        ? html`
-          <button class="scroll-btn left" @click="${() =>
-            this._scroll("left")}" title="Défiler à gauche">
-            ❮
-          </button>
-        `
-        : ""}
+          ? html`
+            <button class="scroll-btn left" @click="${() =>
+              this._scroll("left")}" title="Défiler à gauche">
+              ❮
+            </button>
+          `
+          : ""}
 
         <div class="scroll-container">
           ${hasGames
-        ? this.group.games.map((game) =>
-          html`
-            <app-game-card
-              .game="${game}"
-              ?can-edit="${this.group.canEdit}"
-            >
-            </app-game-card>
-          `
-        )
-        : html`
-          <div class="empty-message">Aucun jeu publié dans ce groupe pour le moment.</div>
-        `}
+            ? this.group.games.map((game) =>
+              html`
+                <app-game-card
+                  .game="${game}"
+                  ?can-edit="${this.group.canEdit}"
+                >
+                </app-game-card>
+              `
+            )
+            : html`
+              <div class="empty-message">Aucun jeu publié dans ce groupe pour le moment.</div>
+            `}
         </div>
 
         ${showArrows
-        ? html`
-          <button class="scroll-btn right" @click="${() =>
-            this._scroll("right")}" title="Défiler à droite">
-            ❯
-          </button>
-        `
-        : ""}
+          ? html`
+            <button class="scroll-btn right" @click="${() =>
+              this._scroll("right")}" title="Défiler à droite">
+              ❯
+            </button>
+          `
+          : ""}
       </div>
     `;
   }

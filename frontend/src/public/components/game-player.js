@@ -361,10 +361,10 @@ export class GamePlayer extends LitElement {
       <div class="player-container">
         <div class="status-bar">
           ${!this.isSpinnerHidden
-        ? html`
-          <div class="spinner"></div>
-        `
-        : ""}
+            ? html`
+              <div class="spinner"></div>
+            `
+            : ""}
           <div class="status-text">${this.statusText}</div>
           <progress
             ?hidden="${this.isProgressHidden}"
