@@ -1,10 +1,10 @@
 import type { MigrationExecutor } from "../src/Commands/runMigrations.ts";
 
 const migration = {
-    version: 3,
-    name: "add game storage paths and status enum",
-    async up(db: MigrationExecutor): Promise<void> {
-        await db.queryArray(`
+  version: 3,
+  name: "add game storage paths and status enum",
+  async up(db: MigrationExecutor): Promise<void> {
+    await db.queryArray(`
             DO $$
             BEGIN
                 IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'build_status') THEN
@@ -14,11 +14,11 @@ const migration = {
             $$;
         `);
 
-        await db.queryArray(`
+    await db.queryArray(`
             TRUNCATE TABLE games CASCADE;
         `);
 
-        await db.queryArray(`
+    await db.queryArray(`
             ALTER TABLE games
                 ADD COLUMN IF NOT EXISTS path_sources VARCHAR(255),
                 ADD COLUMN IF NOT EXISTS sources_uploaded BOOLEAN NOT NULL DEFAULT FALSE,
@@ -28,7 +28,7 @@ const migration = {
                 ADD COLUMN IF NOT EXISTS status build_status NOT NULL DEFAULT 'pending',
                 ADD COLUMN IF NOT EXISTS created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP;
         `);
-    },
+  },
 };
 
 export default migration;

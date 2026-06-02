@@ -3,9 +3,12 @@ import db from "../../Services/database.ts";
 
 const table = "users";
 
-export async function create(user: User, roles: string[] = ["member"]): Promise<User & { roles: string[] }> {
-    const result = await db.queryObject<User & { roles: string[] }>(
-        `WITH inserted_user AS (
+export async function create(
+  user: User,
+  roles: string[] = ["member"],
+): Promise<User & { roles: string[] }> {
+  const result = await db.queryObject<User & { roles: string[] }>(
+    `WITH inserted_user AS (
          INSERT INTO ${table}
              (username, email, password_hash, path_profil_picture)
          VALUES
@@ -32,21 +35,21 @@ export async function create(user: User, roles: string[] = ["member"]): Promise<
                     '[]'::json
             ) as roles
         FROM inserted_user iu`,
-        [
-            user.username,
-            user.email,
-            user.password_hash,
-            user.path_profil_picture ?? null,
-            roles,
-        ],
-    );
+    [
+      user.username,
+      user.email,
+      user.password_hash,
+      user.path_profil_picture ?? null,
+      roles,
+    ],
+  );
 
-    return result.rows[0];
+  return result.rows[0];
 }
 
 export async function getById(id: number): Promise<User | undefined> {
-    const result = await db.queryObject<User & { roles: string[] }>(
-        `SELECT
+  const result = await db.queryObject<User & { roles: string[] }>(
+    `SELECT
              u.*,
              COALESCE(JSON_AGG(r.label) FILTER (WHERE r.label IS NOT NULL), '[]') as roles
         FROM users u
@@ -54,27 +57,29 @@ export async function getById(id: number): Promise<User | undefined> {
         LEFT JOIN roles r ON ru.role_id = r.id
         WHERE u.id = $1
         GROUP BY u.id`,
-        [id],
-    );
+    [id],
+  );
 
-    return result.rows[0];
+  return result.rows[0];
 }
 
 export async function getByEmail(email: string): Promise<User | undefined> {
-    const result = await db.queryObject<User>(
-        `SELECT id, username, email, password_hash, path_profil_picture, created_at
+  const result = await db.queryObject<User>(
+    `SELECT id, username, email, password_hash, path_profil_picture, created_at
          FROM ${table}
          WHERE email = $1
          LIMIT 1`,
-        [email],
-    );
+    [email],
+  );
 
-    return result.rows[0];
+  return result.rows[0];
 }
 
-export async function getByUsername(username: string): Promise<User | undefined> {
-    const result = await db.queryObject<User & { roles: string[] }>(
-        `SELECT
+export async function getByUsername(
+  username: string,
+): Promise<User | undefined> {
+  const result = await db.queryObject<User & { roles: string[] }>(
+    `SELECT
              u.*,
              COALESCE(JSON_AGG(r.label) FILTER (WHERE r.label IS NOT NULL), '[]') as roles
          FROM users u
@@ -82,51 +87,69 @@ export async function getByUsername(username: string): Promise<User | undefined>
                   LEFT JOIN roles r ON ru.role_id = r.id
          WHERE u.username = $1
          GROUP BY u.id`,
-        [username],
-    );
+    [username],
+  );
 
-    return result.rows[0];
+  return result.rows[0];
 }
 
-export async function addRoles(userId: number, roleLabels: string[]): Promise<void> {
-    await db.queryObject(
-        `INSERT INTO roles_users (user_id, role_id)
+export async function addRoles(
+  userId: number,
+  roleLabels: string[],
+): Promise<void> {
+  await db.queryObject(
+    `INSERT INTO roles_users (user_id, role_id)
          SELECT $1, id
          FROM roles
          WHERE label = ANY($2)
          ON CONFLICT (user_id, role_id) DO NOTHING`,
-        [userId, roleLabels],
-    );
+    [userId, roleLabels],
+  );
 }
 
-export async function removeRoles(userId: number, roleLabels: string[]): Promise<void> {
-    await db.queryObject(
-        `DELETE FROM roles_users
+export async function removeRoles(
+  userId: number,
+  roleLabels: string[],
+): Promise<void> {
+  await db.queryObject(
+    `DELETE FROM roles_users
          WHERE user_id = $1
          AND role_id IN (
              SELECT id FROM roles WHERE label = ANY($2)
          )`,
-        [userId, roleLabels],
-    );
+    [userId, roleLabels],
+  );
 }
 
-export async function update(userId: number, email?: string, pathProfilPicture?: string): Promise<User | undefined> {
-    const result = await db.queryObject<User>(
-        `UPDATE ${table}
+export async function update(
+  userId: number,
+  email?: string,
+  pathProfilPicture?: string,
+): Promise<User | undefined> {
+  const result = await db.queryObject<User>(
+    `UPDATE ${table}
          SET email = COALESCE($1, email),
              path_profil_picture = COALESCE($2, path_profil_picture)
          WHERE id = $3
          RETURNING id, username, email, password_hash, path_profil_picture, created_at`,
-        [
-            email ?? null,
-            pathProfilPicture ?? null,
-            userId
-        ],
-    );
+    [
+      email ?? null,
+      pathProfilPicture ?? null,
+      userId,
+    ],
+  );
 
-    return result.rows[0];
+  return result.rows[0];
 }
 
-const userRepository = { create, getById, getByEmail, getByUsername, addRoles, removeRoles, update };
+const userRepository = {
+  create,
+  getById,
+  getByEmail,
+  getByUsername,
+  addRoles,
+  removeRoles,
+  update,
+};
 
 export default userRepository;

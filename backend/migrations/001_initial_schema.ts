@@ -1,11 +1,11 @@
 import type { MigrationExecutor } from "../src/Commands/runMigrations.ts";
 
 const migration = {
-    version: 1,
-    name: "initial schema",
-    async up(db: MigrationExecutor): Promise<void> {
-        // Table USERS
-        await db.queryArray(`
+  version: 1,
+  name: "initial schema",
+  async up(db: MigrationExecutor): Promise<void> {
+    // Table USERS
+    await db.queryArray(`
             CREATE TABLE IF NOT EXISTS users (
                 id SERIAL PRIMARY KEY,
                 username VARCHAR(50) NOT NULL UNIQUE,
@@ -16,8 +16,8 @@ const migration = {
             )
         `);
 
-        // Table GROUPS
-        await db.queryArray(`
+    // Table GROUPS
+    await db.queryArray(`
             CREATE TABLE IF NOT EXISTS groups (
                 id SERIAL PRIMARY KEY,
                 name VARCHAR(100) NOT NULL UNIQUE,
@@ -26,16 +26,16 @@ const migration = {
             )
         `);
 
-        // Table ROLES
-        await db.queryArray(`
+    // Table ROLES
+    await db.queryArray(`
             CREATE TABLE IF NOT EXISTS roles (
                 id SERIAL PRIMARY KEY,
                 label VARCHAR(50) NOT NULL UNIQUE
             )
         `);
 
-        // Table GAMES
-        await db.queryArray(`
+    // Table GAMES
+    await db.queryArray(`
             CREATE TABLE IF NOT EXISTS games (
                 id SERIAL PRIMARY KEY,
                 name VARCHAR(128) NOT NULL,
@@ -50,8 +50,8 @@ const migration = {
             )
         `);
 
-        // Table de jointure USERS_GROUPS
-        await db.queryArray(`
+    // Table de jointure USERS_GROUPS
+    await db.queryArray(`
             CREATE TABLE IF NOT EXISTS users_groups (
                 user_id INT REFERENCES users(id) ON DELETE CASCADE,
                 group_id INT REFERENCES groups(id) ON DELETE CASCADE,
@@ -59,8 +59,8 @@ const migration = {
             )
         `);
 
-        // Table de jointure ROLES_USERS
-        await db.queryArray(`
+    // Table de jointure ROLES_USERS
+    await db.queryArray(`
             CREATE TABLE IF NOT EXISTS roles_users (
                 user_id INT REFERENCES users(id) ON DELETE CASCADE,
                 role_id INT REFERENCES roles(id) ON DELETE CASCADE,
@@ -68,13 +68,13 @@ const migration = {
             )
         `);
 
-        // Insertion des roles
-        await db.queryArray(`
+    // Insertion des roles
+    await db.queryArray(`
             INSERT INTO roles (label) VALUES
                 ('admin')
             ON CONFLICT (label) DO NOTHING
-        `)
-    },
+        `);
+  },
 };
 
 export default migration;
