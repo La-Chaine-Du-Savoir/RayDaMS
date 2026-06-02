@@ -87,8 +87,8 @@ deploy_production:
       ssh "$DEPLOY_USER@$DEPLOY_HOST" << 'EOF'
         set -euo pipefail
         cd ~/raydams
-        docker compose -f docker-compose.prod.yaml pull
-        docker compose -f docker-compose.prod.yaml up -d
+        docker compose -f docker-compose.prod.yml pull
+        docker compose -f docker-compose.prod.yml up -d
         docker image prune -f
       EOF
   after_script:
