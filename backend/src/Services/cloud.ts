@@ -155,7 +155,8 @@ const cloud = {
       Bucket: BUCKET_NAME,
       Key: path,
       Expires: lifetime,
-      Conditions: conditions,
+      // deno-lint-ignore no-explicit-any
+      Conditions: conditions as any,
       Fields: fields,
     });
 

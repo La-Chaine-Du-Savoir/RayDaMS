@@ -274,10 +274,10 @@ router.patch("/:gameId", formDataMiddleware, authMiddleware, async (ctx) => {
   const updates: GameUpdate = {};
   if (validatedData.name !== undefined) updates["name"] = validatedData.name;
   if (validatedData.description !== undefined) {
-    updates["description"] = validatedData.description;
+    updates["description"] = validatedData.description ?? undefined;
   }
   if (validatedData.url_trailer !== undefined) {
-    updates["url_trailer"] = validatedData.url_trailer;
+    updates["url_trailer"] = validatedData.url_trailer ?? undefined;
   }
 
   // Gestion de la nouvelle miniature

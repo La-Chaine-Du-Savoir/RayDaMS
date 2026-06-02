@@ -157,7 +157,7 @@ router.patch("/me", authMiddleware, async (ctx: Context) => {
   }
 });
 
-router.get("/:id/groups", authMiddleware, async (ctx: Context) => {
+router.get("/:id/groups", authMiddleware, async (ctx) => {
   const currentUserId = parseInt(ctx.params.id);
 
   try {

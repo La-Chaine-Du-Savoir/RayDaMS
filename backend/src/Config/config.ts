@@ -57,7 +57,7 @@ const getSameSiteEnv = (
   const validValues = ["lax", "strict", "none"];
 
   if (validValues.includes(value)) {
-    return value;
+    return value as "lax" | "strict" | "none";
   }
   return defaultValue;
 };
