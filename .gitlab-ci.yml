@@ -73,7 +73,7 @@ build_worker:
 # ─── STAGE DEPLOY ─────────────────────────────────────────────────────
 deploy_production:
   stage: deploy
-  image: alpine:latest
+  image: alpine:3.22.4
   rules:
     - if: '$CI_COMMIT_BRANCH == "main"'
   before_script:
