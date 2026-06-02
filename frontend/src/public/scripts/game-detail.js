@@ -39,8 +39,9 @@ document.addEventListener('DOMContentLoaded', async () => {
             document.getElementById('ui-title').textContent = game.name;
             document.getElementById('ui-description').textContent = game.description || "Aucune description fournie pour ce jeu.";
             
-            // ID de l'auteur
-            document.getElementById('ui-author').textContent = `Utilisateur #${game.author}`;
+            // nom de l'auteur
+            const authorText = game.author_name ? game.author_name : `Utilisateur #${game.author}`;
+            document.getElementById('ui-author').textContent = authorText;
 
             // Bouton Jouer
             const playBtn = document.getElementById('ui-play-btn');

@@ -35,9 +35,12 @@ export async function create(game: Partial<Game> & { author: number }): Promise<
 /**
  * Récupère un jeu par son ID.
  */
-export async function getById(id: string): Promise<Game | undefined> {
-    const result = await db.queryObject<Game>(
-        `SELECT * FROM games WHERE id = $1`,
+export async function getById(id: string): Promise<Game & { author_name?: string } | undefined> {
+    const result = await db.queryObject<Game & { author_name?: string }>(
+        `SELECT g.*, u.username AS author_name 
+         FROM games g 
+         LEFT JOIN users u ON g.author = u.id 
+         WHERE g.id = $1`,
         [id],
     );
 
