@@ -15,6 +15,7 @@ import { GetObjectCommand, PutObjectCommand } from "client-s3";
 
 const docker = new Docker({ socketPath: "/var/run/docker.sock" });
 
+const COMPILER_IMAGE = Deno.env.get("COMPILER_IMAGE")?.trim() || "emscripten-raylib-builder:latest";
 const BUCKET_NAME = config.s3.bucketName || "raydams";
 const BUILD_TIMEOUT_MS = parseInt(Deno.env.get("BUILD_TIMEOUT_MS") ?? "300000", 10);
 const QUEUE_BRPOP_TIMEOUT_S = 5;
@@ -109,7 +110,7 @@ async function downloadProjectZip(s3Key: string): Promise<Uint8Array> {
 
 async function createSandboxContainer(): Promise<Docker.Container> {
     return docker.createContainer({
-        Image: "emscripten-raylib-builder:latest",
+        Image: COMPILER_IMAGE,
         Cmd: ["/bin/bash", "-c", "ulimit -f 512000 && /usr/local/bin/build_game.sh"],
         HostConfig: {
             AutoRemove: false,
