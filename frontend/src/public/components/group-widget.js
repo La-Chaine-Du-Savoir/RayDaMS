@@ -1,4 +1,4 @@
-import { LitElement, html, css } from "lit";
+import { css, html, LitElement } from "lit";
 import "./app-avatar.js";
 
 export class GroupWidget extends LitElement {
@@ -24,13 +24,15 @@ export class GroupWidget extends LitElement {
       padding: 1.5rem;
       box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 
-      transition: box-shadow 0.3s ease, transform 0.3s ease, border-color 0.3s ease;
+      transition:
+        box-shadow 0.3s ease,
+        transform 0.3s ease,
+        border-color 0.3s ease;
 
       display: flex;
       flex-direction: column;
       overflow-wrap: break-word;
       word-break: break-word;
-
     }
 
     .group-link {
@@ -40,13 +42,13 @@ export class GroupWidget extends LitElement {
     }
 
     .group-link:hover {
-      color: var(--dams-pink, #DE007A);
+      color: var(--dams-pink, #de007a);
     }
 
     .group-widget:hover {
       box-shadow: 0 8px 12px rgba(0, 0, 0, 0.15);
       transform: translateY(-2px);
-      border-color: var(--dams-pink, #DE007A);
+      border-color: var(--dams-pink, #de007a);
     }
 
     .group-header {
@@ -61,7 +63,11 @@ export class GroupWidget extends LitElement {
     .group-icon {
       width: 40px;
       height: 40px;
-      background: linear-gradient(135deg, var(--polytech-blue, #005c97), var(--dams-pink, #e91e63));
+      background: linear-gradient(
+        135deg,
+        var(--polytech-blue, #005c97),
+        var(--dams-pink, #e91e63)
+      );
       border-radius: 50%;
       display: flex;
       align-items: center;
@@ -125,7 +131,11 @@ export class GroupWidget extends LitElement {
       width: 35px;
       height: 35px;
       border-radius: 50%;
-      background: linear-gradient(135deg, var(--dams-pink, #e91e63), var(--polytech-blue, #005c97));
+      background: linear-gradient(
+        135deg,
+        var(--dams-pink, #e91e63),
+        var(--polytech-blue, #005c97)
+      );
       display: flex;
       align-items: center;
       justify-content: center;
@@ -179,21 +189,23 @@ export class GroupWidget extends LitElement {
 
     this._handleAuthChange = (e) => {
       let updatedUser = e.detail;
-      if(!updatedUser) return;
+      if (!updatedUser) return;
       if (!this.group || !this.group.users) return;
 
-      const userIndex = this.group.users.findIndex(u => u.id === updatedUser.id);
+      const userIndex = this.group.users.findIndex((u) =>
+        u.id === updatedUser.id
+      );
 
       if (userIndex !== -1) {
         const newUsers = [...this.group.users];
         newUsers[userIndex] = {
           ...newUsers[userIndex],
-          url_profil_picture: updatedUser.url_profil_picture
+          url_profil_picture: updatedUser.url_profil_picture,
         };
 
         this.group = {
           ...this.group,
-          users: newUsers
+          users: newUsers,
         };
       }
     };
@@ -201,17 +213,19 @@ export class GroupWidget extends LitElement {
 
   connectedCallback() {
     super.connectedCallback();
-    window.addEventListener("auth-change", this._handleAuthChange);
+    globalThis.addEventListener("auth-change", this._handleAuthChange);
   }
 
   disconnectedCallback() {
-    window.removeEventListener("auth-change", this._handleAuthChange);
+    globalThis.removeEventListener("auth-change", this._handleAuthChange);
     super.disconnectedCallback();
   }
 
   render() {
     if (!this.group) {
-      return html`<div class="empty-state">Groupe non disponible</div>`;
+      return html`
+        <div class="empty-state">Groupe non disponible</div>
+      `;
     }
 
     const { id, name, users = [] } = this.group;
@@ -231,25 +245,34 @@ export class GroupWidget extends LitElement {
           <div class="members-label">Membres (${users.length})</div>
 
           ${users.length > 0
-              ? html`
-                <ul class="members-list">
-                  ${users.map(
-                      (member) => html`
-                        <li class="member-item">
-                          <app-avatar
-                              .url="${member.url_profil_picture}"
-                              .username="${member.username}"
-                              .size="small">
-                          </app-avatar>
-                          <div class="member-info">
-                            <div class="member-username">${member.username}</div>
-                            ${member.email ? html`<div class="member-email">${member.email}</div>` : ""}
-                          </div>
-                        </li>
-                      `
-                  )}
-                </ul>`
-              : html`<div class="empty-state">Aucun membre dans ce groupe</div>`}
+        ? html`
+          <ul class="members-list">
+            ${users.map(
+            (member) =>
+              html`
+                <li class="member-item">
+                  <app-avatar
+                    .url="${member.url_profil_picture}"
+                    .username="${member.username}"
+                    .size="small"
+                  >
+                  </app-avatar>
+                  <div class="member-info">
+                    <div class="member-username">${member.username}</div>
+                    ${member.email
+                  ? html`
+                    <div class="member-email">${member.email}</div>
+                  `
+                  : ""}
+                  </div>
+                </li>
+              `,
+          )}
+          </ul>
+        `
+        : html`
+          <div class="empty-state">Aucun membre dans ce groupe</div>
+        `}
         </div>
       </div>
     `;
@@ -257,4 +280,3 @@ export class GroupWidget extends LitElement {
 }
 
 customElements.define("group-widget", GroupWidget);
-

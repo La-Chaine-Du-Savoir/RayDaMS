@@ -1,106 +1,205 @@
 <!DOCTYPE html>
 <html lang="fr">
-<head>
+  <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Modifier le jeu - RayDaMS</title>
     <link rel="stylesheet" href="/assets/styles/style.css">
-    <link rel="stylesheet" href="/assets/styles/upload.css"> <link rel="stylesheet" href="/assets/styles/edit-game.css">
-    
+    <link rel="stylesheet" href="/assets/styles/upload.css">
+    <link rel="stylesheet" href="/assets/styles/edit-game.css">
+
     <script defer type="module" src="/scripts/edit-game.js"></script>
-    <script type="module" src="/components/game-logs.js"></script> </head>
-    <link rel="icon" type="image/x-icon" href="/assets/images/favicon.ico">
-<body>
+    <script type="module" src="/components/game-logs.js"></script>
+  </head>
+  <link rel="icon" type="image/x-icon" href="/assets/images/favicon.ico">
+  <body>
+    <app-navbar></app-navbar>
 
-<app-navbar></app-navbar>
+    <main>
+      <div class="edit-container">
+        <form
+          id="edit-form"
+          class="upload-form"
+          style="padding: 0; border: none; box-shadow: none"
+        >
+          <h2 style="color: var(--polytech-blue-dark); text-align: center; margin-top: 0">
+            Modifier le jeu
+          </h2>
 
-<main>
-    <div class="edit-container">
-        <form id="edit-form" class="upload-form" style="padding: 0; border: none; box-shadow: none;">
-            <h2 style="color: var(--polytech-blue-dark); text-align: center; margin-top: 0;">Modifier le jeu</h2>
-            
-            <div class="form-grid" style="margin-top: 2rem;">
-                <div class="form-column">
-                    <div class="form-group">
-                        <label for="name">Nom du jeu *</label>
-                        <input type="text" id="name" name="name" class="custom-input" required>
-                    </div>
+          <div class="form-grid" style="margin-top: 2rem">
+            <div class="form-column">
+              <div class="form-group">
+                <label for="name">Nom du jeu *</label>
+                <input
+                  type="text"
+                  id="name"
+                  name="name"
+                  class="custom-input"
+                  required
+                >
+              </div>
 
-                    <div class="form-group">
-                        <label for="url_trailer">Lien YouTube (Trailer)</label>
-                        <input type="url" id="url_trailer" name="url_trailer" class="custom-input" placeholder="https://youtube.com/watch?v=...">
-                    </div>
+              <div class="form-group">
+                <label for="url_trailer">Lien YouTube (Trailer)</label>
+                <input
+                  type="url"
+                  id="url_trailer"
+                  name="url_trailer"
+                  class="custom-input"
+                  placeholder="https://youtube.com/watch?v=..."
+                >
+              </div>
 
-                    <div class="form-group" style="margin-top: auto;">
-                        <label>Mettre à jour le jeu (.zip)</label>
-                        <p class="warning-text" style="font-size: 0.8rem; color: #d32f2f; margin: 0 0 5px 0;">⚠️ Écrase la version actuelle et relance une compilation.</p>
-                        <label for="source" class="dropzone dz-zip" id="dropzone-zip">
-                            <div class="dropzone-text" id="zip-text">
-                                <span>Garder l'ancien jeu</span><br><small>Ou cliquer pour remplacer le ZIP</small>
-                            </div>
-                        </label>
-                        <input type="file" id="source" name="source" class="hidden-file" accept=".zip">
-                    </div>
-                </div>
-
-                <div class="form-column">
-                    <div class="form-group">
-                        <label style="text-align: center;">Miniature (1:1)</label>
-                        <label for="thumbnail" class="dropzone dz-1-1" id="dropzone-thumbnail">
-                            <div class="dropzone-text"><span>Changer la miniature</span></div>
-                            <img id="thumbnail-preview-img" src="" alt="Thumbnail">
-                        </label>
-                        <input type="file" id="thumbnail" name="thumbnail" class="hidden-file" accept=".jpg,.jpeg,.png,.webp">
-                    </div>
-
-                    <div class="form-group">
-                        <label>Screenshot (16:9)</label>
-                        <label for="screenshot" class="dropzone dz-16-9" id="dropzone-screenshot">
-                            <div class="dropzone-text"><span>Changer le screenshot</span></div>
-                            <img id="screenshot-preview-img" src="" alt="Screenshot">
-                        </label>
-                        <input type="file" id="screenshot" name="screenshot" class="hidden-file" accept=".jpg,.jpeg,.png,.webp">
-                    </div>
-                </div>
+              <div class="form-group" style="margin-top: auto">
+                <label>Mettre à jour le jeu (.zip)</label>
+                <p
+                  class="warning-text"
+                  style="font-size: 0.8rem; color: #d32f2f; margin: 0 0 5px 0"
+                >
+                  ⚠️ Écrase la version actuelle et relance une compilation.
+                </p>
+                <label for="source" class="dropzone dz-zip" id="dropzone-zip">
+                  <div class="dropzone-text" id="zip-text">
+                    <span>Garder l'ancien jeu</span>
+                    <br>
+                    <small>Ou cliquer pour remplacer le ZIP</small>
+                  </div>
+                </label>
+                <input
+                  type="file"
+                  id="source"
+                  name="source"
+                  class="hidden-file"
+                  accept=".zip"
+                >
+              </div>
             </div>
 
-            <div class="form-group full-width">
-                <label for="description">Description</label>
-                <textarea id="description" name="description" class="custom-input" placeholder="Nouvelle description..."></textarea>
-            </div>
+            <div class="form-column">
+              <div class="form-group">
+                <label style="text-align: center">Miniature (1:1)</label>
+                <label
+                  for="thumbnail"
+                  class="dropzone dz-1-1"
+                  id="dropzone-thumbnail"
+                >
+                  <div class="dropzone-text">
+                    <span>Changer la miniature</span>
+                  </div>
+                  <img id="thumbnail-preview-img" src="" alt="Thumbnail">
+                </label>
+                <input
+                  type="file"
+                  id="thumbnail"
+                  name="thumbnail"
+                  class="hidden-file"
+                  accept=".jpg,.jpeg,.png,.webp"
+                >
+              </div>
 
-            <div id="upload-message" style="font-weight: bold; text-align: center; margin-bottom: 15px;"></div>
-
-            <button type="submit" id="submit-btn" class="btn-form" style="font-size: 1.2rem; padding: 1rem; width: 100%;">Enregistrer les modifications</button>
-            
-            <div style="text-align: center; margin-top: 1.5rem;">
-                <a id="back-link" href="/games" style="color: var(--polytech-blue); font-weight: bold; text-decoration: none;">Annuler et retourner au jeu</a>
+              <div class="form-group">
+                <label>Screenshot (16:9)</label>
+                <label
+                  for="screenshot"
+                  class="dropzone dz-16-9"
+                  id="dropzone-screenshot"
+                >
+                  <div class="dropzone-text">
+                    <span>Changer le screenshot</span>
+                  </div>
+                  <img id="screenshot-preview-img" src="" alt="Screenshot">
+                </label>
+                <input
+                  type="file"
+                  id="screenshot"
+                  name="screenshot"
+                  class="hidden-file"
+                  accept=".jpg,.jpeg,.png,.webp"
+                >
+              </div>
             </div>
+          </div>
+
+          <div class="form-group full-width">
+            <label for="description">Description</label>
+            <textarea
+              id="description"
+              name="description"
+              class="custom-input"
+              placeholder="Nouvelle description..."
+            ></textarea>
+          </div>
+
+          <div
+            id="upload-message"
+            style="font-weight: bold; text-align: center; margin-bottom: 15px"
+          >
+          </div>
+
+          <button
+            type="submit"
+            id="submit-btn"
+            class="btn-form"
+            style="font-size: 1.2rem; padding: 1rem; width: 100%"
+          >
+            Enregistrer les modifications
+          </button>
+
+          <div style="text-align: center; margin-top: 1.5rem">
+            <a
+              id="back-link"
+              href="/games"
+              style="color: var(--polytech-blue); font-weight: bold; text-decoration: none"
+            >Annuler et retourner au jeu</a>
+          </div>
         </form>
 
-        <div id="delete-section" style="border-top: 2px dashed #ccc; margin-top: 2rem; padding-top: 1.5rem; text-align: center; display: none;">
-            <button type="button" id="btn-delete-game" class="btn-delete">Supprimer définitivement ce jeu</button>
+        <div
+          id="delete-section"
+          style="border-top: 2px dashed #ccc; margin-top: 2rem; padding-top: 1.5rem; text-align: center; display: none"
+        >
+          <button type="button" id="btn-delete-game" class="btn-delete">
+            Supprimer définitivement ce jeu
+          </button>
         </div>
 
-        <div id="build-logs-wrapper" style="display: none; width: 100%; margin-top: 1rem;"></div>
-    </div> <div id="delete-modal" class="modal-overlay" style="display: none;">
+        <div
+          id="build-logs-wrapper"
+          style="display: none; width: 100%; margin-top: 1rem"
+        >
+        </div>
+      </div>
+      <div id="delete-modal" class="modal-overlay" style="display: none">
         <div class="modal-content">
-            <h3 style="color: #d32f2f; margin-top: 0;">ATTENTION</h3>
-            <p>Êtes-vous absolument sûr de vouloir supprimer ce jeu ?</p>
-            <p style="font-size: 0.9rem; color: #555;">Toutes les données (miniature, code source, compilation) seront effacées. Cette action est <b>irréversible</b>.</p>
-            
-            <div class="modal-actions">
-                <button type="button" id="btn-cancel-delete" class="btn-cancel">Annuler</button>
-                <button type="button" id="btn-confirm-delete" class="btn-confirm-delete">Oui, supprimer</button>
-            </div>
+          <h3 style="color: #d32f2f; margin-top: 0">ATTENTION</h3>
+          <p>Êtes-vous absolument sûr de vouloir supprimer ce jeu ?</p>
+          <p style="font-size: 0.9rem; color: #555">
+            Toutes les données (miniature, code source, compilation) seront
+            effacées. Cette action est <b>irréversible</b>.
+          </p>
+
+          <div class="modal-actions">
+            <button type="button" id="btn-cancel-delete" class="btn-cancel">
+              Annuler
+            </button>
+            <button
+              type="button"
+              id="btn-confirm-delete"
+              class="btn-confirm-delete"
+            >
+              Oui, supprimer
+            </button>
+          </div>
         </div>
-    </div>
+      </div>
 
-        <div id="build-logs-wrapper" style="display: none; width: 100%; margin-top: 1rem;"></div>
-    </div>
-</main>
+      <div
+        id="build-logs-wrapper"
+        style="display: none; width: 100%; margin-top: 1rem"
+      >
+      </div>
+    </main>
 
-<app-footer></app-footer>
-
-</body>
+    <app-footer></app-footer>
+  </body>
 </html>

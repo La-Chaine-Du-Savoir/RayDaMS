@@ -1,4 +1,4 @@
-import { LitElement, html, css } from "lit";
+import { css, html, LitElement } from "lit";
 
 export class AppFooter extends LitElement {
   static styles = css`
@@ -39,14 +39,26 @@ export class AppFooter extends LitElement {
       <footer>
         <p>Développé avec passion par la Chaine du Savoir :</p>
         <ul class="authors-list">
-          <li><a href="https://www.linkedin.com/in/antoine-argaillot/" target="_blank">Antoine Argaillot</a></li>
-          <li><a href="https://www.linkedin.com/in/norman-fran%C3%A7ois/" target="_blank">Norman François</a></li>
-          <li><a href="https://www.linkedin.com/in/thibaut-scoto-di-suoccio/" target="_blank">Thibaut Scoto Di Suoccio</a></li>
+          <li>
+            <a href="https://www.linkedin.com/in/antoine-argaillot/" target="_blank"
+            >Antoine Argaillot</a>
+          </li>
+          <li>
+            <a
+              href="https://www.linkedin.com/in/norman-fran%C3%A7ois/"
+              target="_blank"
+            >Norman François</a>
+          </li>
+          <li>
+            <a
+              href="https://www.linkedin.com/in/thibaut-scoto-di-suoccio/"
+              target="_blank"
+            >Thibaut Scoto Di Suoccio</a>
+          </li>
         </ul>
       </footer>
     `;
   }
 }
 
-customElements.define('app-footer', AppFooter);
-
+customElements.define("app-footer", AppFooter);

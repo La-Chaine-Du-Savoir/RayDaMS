@@ -7,38 +7,39 @@ const password_input = document.getElementById("password");
 const confirm_password_input = document.getElementById("confirm-password");
 const errorContainer = document.getElementById("errorContainer");
 
-
 registerForm.addEventListener("submit", async (e) => {
-    e.preventDefault();
+  e.preventDefault();
 
-    errorContainer.style.display = "none";
-    errorContainer.textContent = "";
+  errorContainer.style.display = "none";
+  errorContainer.textContent = "";
 
-    const username = username_input.value.trim();
-    const email = email_input.value.trim();
-    const password = password_input.value;
-    const confirmPassword = confirm_password_input.value;
+  const username = username_input.value.trim();
+  const email = email_input.value.trim();
+  const password = password_input.value;
+  const confirmPassword = confirm_password_input.value;
 
-    if (password !== confirmPassword) {
-        showError("Les mots de passe ne correspondent pas.");
-        return;
-    }
+  if (password !== confirmPassword) {
+    showError("Les mots de passe ne correspondent pas.");
+    return;
+  }
 
-    const response = await apiService.createResource('auth/register', {
-        username: username,
-        email: email,
-        password: password
-    }, false);
+  const response = await apiService.createResource("auth/register", {
+    username: username,
+    email: email,
+    password: password,
+  }, false);
 
-    if (response.success) {
-        alert("Inscription réussie ! Vous allez être redirigé vers la page de connexion.");
-        window.location.href = "/login";
-    } else {
-        showError(response.error);
-    }
+  if (response.success) {
+    alert(
+      "Inscription réussie ! Vous allez être redirigé vers la page de connexion.",
+    );
+    globalThis.location.href = "/login";
+  } else {
+    showError(response.error);
+  }
 });
 
 function showError(message) {
-    errorContainer.textContent = message;
-    errorContainer.style.display = "block";
+  errorContainer.textContent = message;
+  errorContainer.style.display = "block";
 }
