@@ -24,11 +24,11 @@ TS_JS_FILES=$(echo "$STAGED_FILES" | grep -E '\.(ts|tsx|js|jsx)$' | tr '\n' ' ')
 echo "Vérification Deno (Format, Lint & Check) sur les fichiers modifiés..."
 
 # Construction de la commande Deno
-DENO_CMD="deno fmt --check $FILES_LIST && deno lint $FILES_LIST"
+DENO_CMD="deno fmt --check $FILES_LIST"
 
 # Si on a modifié du code JS/TS, on rajoute l'analyse des types
 if [ -n "$TS_JS_FILES" ]; then
-  DENO_CMD="$DENO_CMD && deno check $TS_JS_FILES"
+  DENO_CMD="$DENO_CMD && deno lint $TS_JS_FILES && deno check $TS_JS_FILES"
 fi
 
 # Une seule exécution Docker à la racine, ciblant uniquement les fichiers modifiés
