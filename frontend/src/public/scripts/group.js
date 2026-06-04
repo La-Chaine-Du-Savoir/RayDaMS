@@ -35,6 +35,27 @@ function setupAdminInvitation(group) {
   const user = JSON.parse(userStr);
   if (!user.roles || !user.roles.includes("admin")) return;
 
+  const btnPlaceholder = document.getElementById(
+    "admin-invite-btn-placeholder",
+  );
+  const zonePlaceholder = document.getElementById(
+    "admin-invite-zone-placeholder",
+  );
+
+  if (btnPlaceholder) {
+    btnPlaceholder.innerHTML =
+      `<button id="invite-btn" class="btn-primary" title="Générer le lien d'invitation">+</button>`;
+  }
+
+  if (zonePlaceholder) {
+    zonePlaceholder.innerHTML = `
+      <div id="invite-link-zone" style="display: none;">
+        <span id="invite-url-text" title="Cliquez pour copier à nouveau"></span>
+        <span id="invite-success-check" title="Lien copié !">✓</span>
+      </div>
+    `;
+  }
+
   const inviteBtn = document.getElementById("invite-btn");
   const inviteLinkZone = document.getElementById("invite-link-zone");
   const inviteUrlText = document.getElementById("invite-url-text");
@@ -87,7 +108,8 @@ function setupAdminActions(group, groupId) {
   if (!adminActions) return;
 
   // L'utilisateur est admin : on injecte les boutons dans le DOM
-  adminActions.innerHTML = `
+  if (adminActions) {
+    adminActions.innerHTML = `
     <button id="toggle-edit-btn" class="admin-action-btn" title="Modifier le nom">
       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="16 3 21 8 8 21 3 21 3 16 16 3"></polygon></svg>
     </button>
@@ -95,7 +117,29 @@ function setupAdminActions(group, groupId) {
       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
     </button>
   `;
-  if (adminActions) adminActions.style.display = "flex";
+    adminActions.style.display = "flex";
+  }
+
+  // Injection du formulaire d'édition dans le DOM
+  const formPlaceholder = document.getElementById("admin-form-placeholder");
+  if (formPlaceholder) {
+    formPlaceholder.innerHTML = `
+      <div class="action-section" style="margin-top: 1rem; margin-bottom: 2rem;">
+        <div id="edit-group-container" class="auth-container hidden-collapse">
+          <form id="edit-group-form" class="auth-form horizontal-form">
+            <div id="edit-message" style="width: 100%; text-align: center; margin-bottom: 10px"></div>
+            <div class="form-group-horizontal">
+              <label for="edit-group-name">Nouveau nom</label>
+              <div class="form-row">
+                <input type="text" id="edit-group-name" name="edit-group-name" required minlength="3" maxlength="50">
+                <button type="submit" class="btn-form">Valider</button>
+              </div>
+            </div>
+          </form>
+        </div>
+      </div>
+    `;
+  }
 
   const toggleEditBtn = document.getElementById("toggle-edit-btn");
   const deleteBtn = document.getElementById("delete-group-btn");
