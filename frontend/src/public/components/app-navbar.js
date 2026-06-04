@@ -1,4 +1,4 @@
-import { LitElement, html, css } from "lit";
+import { css, html, LitElement } from "lit";
 import { apiService } from "../services/apiService.js";
 import "./app-avatar.js";
 
@@ -95,7 +95,7 @@ export class AppNavbar extends LitElement {
 
     .nav-profile-link app-avatar {
       transition: transform 0.3s ease;
-      transform-origin: center; 
+      transform-origin: center;
     }
 
     .nav-profile-link:hover app-avatar {
@@ -163,11 +163,11 @@ export class AppNavbar extends LitElement {
 
   connectedCallback() {
     super.connectedCallback();
-    window.addEventListener("auth-change", this._handleAuthChange);
+    globalThis.addEventListener("auth-change", this._handleAuthChange);
   }
 
   disconnectedCallback() {
-    window.removeEventListener("auth-change", this._handleAuthChange);
+    globalThis.removeEventListener("auth-change", this._handleAuthChange);
     super.disconnectedCallback();
   }
 
@@ -176,7 +176,7 @@ export class AppNavbar extends LitElement {
     const confirmed = confirm("Voulez-vous vraiment vous déconnecter ?");
     if (confirmed) {
       await apiService.logout();
-      window.location.href = "/";
+      globalThis.location.href = "/";
     }
   }
 
@@ -186,35 +186,44 @@ export class AppNavbar extends LitElement {
         <div class="nav-left">
           <a href="/" class="nav-brand">Ray<span class="highlight">DaMS</span></a>
           <img src="/assets/images/logo-dams.png" alt="Logo DaMS" class="nav-logo" />
-          <img src="/assets/images/logo-polytech.svg" alt="Logo Polytech" class="nav-logo logo-polytech" />
+          <img
+            src="/assets/images/logo-polytech.svg"
+            alt="Logo Polytech"
+            class="nav-logo logo-polytech"
+          />
           <div class="nav-separator"></div>
           <a href="/games" class="nav-link">Jeux</a>
 
-          ${this._user ? html`
-            <a href="/upload" class="nav-link">Publier</a>
-          ` : ''}
-          ${this._user && this._user.roles?.includes("admin") ? html`
-            <a href="/groups" class="nav-link">Groupes</a>
-          ` : ''}
+          ${this._user
+            ? html`
+              <a href="/upload" class="nav-link">Publier</a>
+            `
+            : ""} ${this._user && this._user.roles?.includes("admin")
+            ? html`
+              <a href="/groups" class="nav-link">Groupes</a>
+            `
+            : ""}
         </div>
-        
+
         <div class="nav-right">
           ${this._user
-        ? html`
-                <span class="user-greeting">Salut, ${this._user.username} !</span>
-                <a href="/profile" class="nav-profile-link" title="Mon Profil">
-                  <app-avatar 
-                    url="${this._user.url_profil_picture}" 
-                    username="${this._user.username}" 
-                    size="small">
-                  </app-avatar>
-                </a>
-                <button @click="${this._logout}" class="btn btn-logout">Déconnexion</button>
-              `
-        : html`
-                <a href="/login" class="btn btn-outline">Se connecter</a>
-                <a href="/register" class="btn btn-primary">S'inscrire</a>
-              `}
+            ? html`
+              <span class="user-greeting">Salut, ${this._user.username} !</span>
+              <a href="/profile" class="nav-profile-link" title="Mon Profil">
+                <app-avatar
+                  url="${this._user.url_profil_picture}"
+                  username="${this._user.username}"
+                  size="small"
+                >
+                </app-avatar>
+              </a>
+              <button @click="${this
+                ._logout}" class="btn btn-logout">Déconnexion</button>
+            `
+            : html`
+              <a href="/login" class="btn btn-outline">Se connecter</a>
+              <a href="/register" class="btn btn-primary">S'inscrire</a>
+            `}
         </div>
       </nav>
     `;

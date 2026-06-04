@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="fr">
-<head>
+  <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Rejoindre un groupe - RayDaMS</title>
@@ -8,31 +8,39 @@
     <link rel="stylesheet" href="/assets/styles/style.css">
 
     <script defer type="module" src="/scripts/join.js"></script>
-</head>
-<body>
+  </head>
+  <body>
+    <app-navbar></app-navbar>
 
-<app-navbar></app-navbar>
+    <main>
+      <div class="auth-container" style="padding-top: 0">
+        <div class="auth-form" style="text-align: center">
+          <h2
+            id="status-title"
+            style="color: var(--polytech-blue-dark); margin-bottom: 1.5rem"
+          >
+            Vérification...
+          </h2>
 
-<main>
+          <p
+            id="status-message"
+            style="font-size: 1.1rem; line-height: 1.5; color: var(--text-color); margin-bottom: 2rem"
+          >
+            Veuillez patienter pendant que nous vous ajoutons au groupe.
+          </p>
 
-    <div class="auth-container" style="padding-top: 0;">
-        <div class="auth-form" style="text-align: center;">
-
-            <h2 id="status-title" style="color: var(--polytech-blue-dark); margin-bottom: 1.5rem;">Vérification...</h2>
-
-            <p id="status-message" style="font-size: 1.1rem; line-height: 1.5; color: var(--text-color); margin-bottom: 2rem;">
-                Veuillez patienter pendant que nous vous ajoutons au groupe.
-            </p>
-
-            <a href="/" id="back-btn" class="btn-form" style="display: none; text-decoration: none; width: fit-content; margin: 0 auto; padding: 0.75rem 2rem;">
-                Retour à l'accueil
-            </a>
-
+          <a
+            href="/"
+            id="back-btn"
+            class="btn-form"
+            style="display: none; text-decoration: none; width: fit-content; margin: 0 auto; padding: 0.75rem 2rem"
+          >
+            Retour à l'accueil
+          </a>
         </div>
-    </div>
-</main>
+      </div>
+    </main>
 
-<app-footer></app-footer>
-
-</body>
+    <app-footer></app-footer>
+  </body>
 </html>

@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="fr">
-<head>
+  <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Détails du Groupe - RayDaMS</title>
@@ -9,49 +9,53 @@
 
     <script type="module" src="/components/game-row.js"></script>
     <script defer type="module" src="/scripts/group.js"></script>
-</head>
-<body>
+  </head>
+  <body>
+    <app-navbar></app-navbar>
 
-<app-navbar></app-navbar>
-
-<main>
-    <header class="hero">
+    <main>
+      <header class="hero">
         <h1 class="site-title" id="group-name">Chargement...</h1>
         <p class="description" id="group-description"></p>
-    </header>
+      </header>
 
-    <div id="error-container" class="auth-container">
+      <div id="error-container" class="auth-container">
         <p id="error-message" class="error-message"></p>
         <a href="/profile" class="btn-form">Retour au profil</a>
-    </div>
+      </div>
 
-    <section id="group-content">
+      <section id="group-content">
         <div class="user-groups-section">
-            <div class="invite-section-wrapper">
-                <div class="invite-title-wrapper">
-                    <h2>Membres du groupe</h2>
-                    <button id="invite-btn" class="btn-primary" title="Générer le lien d'invitation">+</button>
-                </div>
-
-                <div id="invite-link-zone">
-                    <span id="invite-url-text" title="Cliquez pour copier à nouveau"></span>
-                    <span id="invite-success-check" title="Lien copié !">✓</span>
-                </div>
+          <div class="invite-section-wrapper">
+            <div class="invite-title-wrapper">
+              <h2>Membres du groupe</h2>
+              <button
+                id="invite-btn"
+                class="btn-primary"
+                title="Générer le lien d'invitation"
+              >
+                +
+              </button>
             </div>
 
-            <div id="members-container" class="cards-container">
+            <div id="invite-link-zone">
+              <span
+                id="invite-url-text"
+                title="Cliquez pour copier à nouveau"
+              ></span>
+              <span id="invite-success-check" title="Lien copié !">✓</span>
             </div>
+          </div>
 
+          <div id="members-container" class="cards-container"></div>
         </div>
 
         <div class="group-games-section">
-            <div id="games-container">
-            </div>
+          <div id="games-container"></div>
         </div>
-    </section>
-</main>
+      </section>
+    </main>
 
-<app-footer></app-footer>
-
-</body>
+    <app-footer></app-footer>
+  </body>
 </html>

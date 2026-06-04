@@ -1,7 +1,7 @@
 import "/components/app-navbar.js";
 import "/components/app-footer.js";
-import { apiService } from '../services/apiService.js';
-import '../components/app-avatar.js';
+import { apiService } from "../services/apiService.js";
+import "../components/app-avatar.js";
 
 // --- FONCTIONS UTILITAIRES ---
 
@@ -10,15 +10,15 @@ import '../components/app-avatar.js';
  * @param {string} message Le message d'erreur à afficher.
  */
 function showError(message) {
-    const groupNameEl = document.getElementById('group-name');
-    const groupDescEl = document.getElementById('group-description');
-    const errorContainer = document.getElementById('error-container');
-    const errorMessageEl = document.getElementById('error-message');
+  const groupNameEl = document.getElementById("group-name");
+  const groupDescEl = document.getElementById("group-description");
+  const errorContainer = document.getElementById("error-container");
+  const errorMessageEl = document.getElementById("error-message");
 
-    if (groupNameEl) groupNameEl.textContent = "Erreur";
-    if (groupDescEl) groupDescEl.style.display = 'none';
-    if (errorMessageEl) errorMessageEl.textContent = message;
-    if (errorContainer) errorContainer.style.display = 'block';
+  if (groupNameEl) groupNameEl.textContent = "Erreur";
+  if (groupDescEl) groupDescEl.style.display = "none";
+  if (errorMessageEl) errorMessageEl.textContent = message;
+  if (errorContainer) errorContainer.style.display = "block";
 }
 
 /**
@@ -26,47 +26,50 @@ function showError(message) {
  * @param {Object} group L'objet groupe contenant le code d'invitation.
  */
 function setupAdminInvitation(group) {
-    // Vérification backend du rôle admin
-    if (!group.code) return;
+  // Vérification backend du rôle admin
+  if (!group.code) return;
 
-    const userStr = sessionStorage.getItem('user');
-    if (!userStr) return;
+  const userStr = sessionStorage.getItem("user");
+  if (!userStr) return;
 
-    const user = JSON.parse(userStr);
-    if (!user.roles || !user.roles.includes('admin')) return;
+  const user = JSON.parse(userStr);
+  if (!user.roles || !user.roles.includes("admin")) return;
 
-    const inviteBtn = document.getElementById('invite-btn');
-    const inviteLinkZone = document.getElementById('invite-link-zone');
-    const inviteUrlText = document.getElementById('invite-url-text');
-    const inviteSuccessCheck = document.getElementById('invite-success-check');
+  const inviteBtn = document.getElementById("invite-btn");
+  const inviteLinkZone = document.getElementById("invite-link-zone");
+  const inviteUrlText = document.getElementById("invite-url-text");
+  const inviteSuccessCheck = document.getElementById("invite-success-check");
 
-    if (!inviteBtn || !inviteLinkZone || !inviteUrlText || !inviteSuccessCheck) return;
+  if (!inviteBtn || !inviteLinkZone || !inviteUrlText || !inviteSuccessCheck) {
+    return;
+  }
 
-    inviteBtn.style.display = 'inline-flex';
+  inviteBtn.style.display = "inline-flex";
 
-    const joinUrl = `${window.location.origin}/join/${group.code}`;
+  const joinUrl = `${globalThis.location.origin}/join/${group.code}`;
 
-    const copyToClipboard = () => {
-        navigator.clipboard.writeText(joinUrl).then(() => {
-            inviteSuccessCheck.style.transform = 'scale(1.3)';
-            inviteSuccessCheck.style.transition = 'transform 0.1s ease';
-            setTimeout(() => { inviteSuccessCheck.style.transform = 'scale(1)'; }, 100);
-        }).catch(err => {
-            console.error('Erreur lors de la copie du lien:', err);
-        });
-    };
-
-    inviteBtn.addEventListener('click', () => {
-        inviteBtn.style.display = 'none';
-        inviteUrlText.textContent = joinUrl;
-        inviteLinkZone.style.display = 'flex';
-        copyToClipboard();
+  const copyToClipboard = () => {
+    navigator.clipboard.writeText(joinUrl).then(() => {
+      inviteSuccessCheck.style.transform = "scale(1.3)";
+      inviteSuccessCheck.style.transition = "transform 0.1s ease";
+      setTimeout(() => {
+        inviteSuccessCheck.style.transform = "scale(1)";
+      }, 100);
+    }).catch((err) => {
+      console.error("Erreur lors de la copie du lien:", err);
     });
+  };
 
-    inviteUrlText.addEventListener('click', copyToClipboard);
-    inviteSuccessCheck.addEventListener('click', copyToClipboard);
+  inviteBtn.addEventListener("click", () => {
+    inviteBtn.style.display = "none";
+    inviteUrlText.textContent = joinUrl;
+    inviteLinkZone.style.display = "flex";
+    copyToClipboard();
+  });
+
+  inviteUrlText.addEventListener("click", copyToClipboard);
+  inviteSuccessCheck.addEventListener("click", copyToClipboard);
 }
-
 
 // --- FONCTIONS DE CHARGEMENT ---
 
@@ -75,48 +78,49 @@ function setupAdminInvitation(group) {
  * @param {Array} members La liste des membres du groupe.
  */
 function loadGroupMembers(members) {
-    const membersContainer = document.getElementById('members-container');
-    if (!membersContainer) return;
+  const membersContainer = document.getElementById("members-container");
+  if (!membersContainer) return;
 
-    membersContainer.innerHTML = '<p>Chargement des membres...</p>';
+  membersContainer.innerHTML = "<p>Chargement des membres...</p>";
 
-    try {
-        if (members.length === 0) {
-            membersContainer.innerHTML = '<p class="empty-state" style="width: 100%;">Il n\'y a aucun membre dans ce groupe.</p>';
-            return;
-        }
-        membersContainer.innerHTML = '';
-
-        members.forEach(member => {
-            const card = document.createElement('div');
-            card.className = 'member-card';
-
-            const avatar = document.createElement('app-avatar');
-            avatar.setAttribute('size', 'large');
-            avatar.username = member.username;
-            if (member.url_profil_picture) {
-                avatar.url = member.url_profil_picture;
-            }
-
-            const nameDiv = document.createElement('div');
-            nameDiv.className = 'member-card-username';
-            nameDiv.textContent = member.username;
-
-            const emailDiv = document.createElement('div');
-            emailDiv.className = 'member-card-email';
-            emailDiv.textContent = member.email;
-
-            card.appendChild(avatar);
-            card.appendChild(nameDiv);
-            card.appendChild(emailDiv);
-
-            membersContainer.appendChild(card);
-        });
-
-    } catch (e) {
-        console.error('Erreur inattendue lors du chargement des membres :', e);
-        membersContainer.innerHTML = '<p class="error-message">Erreur lors du chargement des membres.</p>';
+  try {
+    if (members.length === 0) {
+      membersContainer.innerHTML =
+        '<p class="empty-state" style="width: 100%;">Il n\'y a aucun membre dans ce groupe.</p>';
+      return;
     }
+    membersContainer.innerHTML = "";
+
+    members.forEach((member) => {
+      const card = document.createElement("div");
+      card.className = "member-card";
+
+      const avatar = document.createElement("app-avatar");
+      avatar.setAttribute("size", "large");
+      avatar.username = member.username;
+      if (member.url_profil_picture) {
+        avatar.url = member.url_profil_picture;
+      }
+
+      const nameDiv = document.createElement("div");
+      nameDiv.className = "member-card-username";
+      nameDiv.textContent = member.username;
+
+      const emailDiv = document.createElement("div");
+      emailDiv.className = "member-card-email";
+      emailDiv.textContent = member.email;
+
+      card.appendChild(avatar);
+      card.appendChild(nameDiv);
+      card.appendChild(emailDiv);
+
+      membersContainer.appendChild(card);
+    });
+  } catch (e) {
+    console.error("Erreur inattendue lors du chargement des membres :", e);
+    membersContainer.innerHTML =
+      '<p class="error-message">Erreur lors du chargement des membres.</p>';
+  }
 }
 
 /**
@@ -124,33 +128,33 @@ function loadGroupMembers(members) {
  * @param {Object} group L'objet groupe complet renvoyé par l'API.
  */
 function loadGroupGames(group) {
-    const gamesContainer = document.getElementById('games-container');
-    if (!gamesContainer) return;
+  const gamesContainer = document.getElementById("games-container");
+  if (!gamesContainer) return;
 
-    gamesContainer.innerHTML = ''; // Réinitialise le conteneur
+  gamesContainer.innerHTML = ""; // Réinitialise le conteneur
 
-    // Détermine si l'utilisateur courant peut éditer (admin ou membre du groupe)
-    let canEdit = false;
-    const userStr = sessionStorage.getItem('user');
-    if (userStr) {
-        const user = JSON.parse(userStr);
-        const isAdmin = user.roles && user.roles.includes('admin');
-        const isMember = group.users && group.users.some(u => u.id === user.id);
-        canEdit = isAdmin || isMember;
-    }
+  // Détermine si l'utilisateur courant peut éditer (admin ou membre du groupe)
+  let canEdit = false;
+  const userStr = sessionStorage.getItem("user");
+  if (userStr) {
+    const user = JSON.parse(userStr);
+    const isAdmin = user.roles && user.roles.includes("admin");
+    const isMember = group.users && group.users.some((u) => u.id === user.id);
+    canEdit = isAdmin || isMember;
+  }
 
-    // Préparation des données pour le composant Lit
-    const rowGroupData = {
-        name: "Jeux du groupe",
-        canEdit: canEdit,
-        games: group.games || []
-    };
+  // Préparation des données pour le composant Lit
+  const rowGroupData = {
+    name: "Jeux du groupe",
+    canEdit: canEdit,
+    games: group.games || [],
+  };
 
-    // Création et injection du composant app-game-row
-    const row = document.createElement('app-game-row');
-    row.group = rowGroupData;
+  // Création et injection du composant app-game-row
+  const row = document.createElement("app-game-row");
+  row.group = rowGroupData;
 
-    gamesContainer.appendChild(row);
+  gamesContainer.appendChild(row);
 }
 
 /**
@@ -158,57 +162,57 @@ function loadGroupGames(group) {
  * @param {string} groupId L'identifiant du groupe à charger.
  */
 async function loadGroupData(groupId) {
-    const groupNameEl = document.getElementById('group-name');
-    const groupContentEl = document.getElementById('group-content');
+  const groupNameEl = document.getElementById("group-name");
+  const groupContentEl = document.getElementById("group-content");
 
-    try {
-        const groupRes = await apiService.getById(`groups`, groupId);
+  try {
+    const groupRes = await apiService.getById(`groups`, groupId);
 
-        if (!groupRes.success) {
-            showError(groupRes.error || "Impossible de charger les informations du groupe.");
-            return;
-        }
+    if (!groupRes.success) {
+      showError(
+        groupRes.error || "Impossible de charger les informations du groupe.",
+      );
+      return;
+    }
 
-        const group = groupRes.data?.group || groupRes.data;
+    const group = groupRes.data?.group || groupRes.data;
 
-        if (groupNameEl) {
-            groupNameEl.innerHTML = `
+    if (groupNameEl) {
+      groupNameEl.innerHTML = `
                 <span class="group-label">Groupe</span>
                 <span class="highlight">${group.name}</span>
             `;
-        }
-
-        if (groupContentEl) {
-            groupContentEl.style.display = 'block';
-        }
-
-        loadGroupMembers(groupRes.data.group.users);
-        loadGroupGames(group);
-        setupAdminInvitation(group);
-
-    } catch (e) {
-        console.error('Erreur inattendue lors du chargement du groupe :', e);
-        showError("Une erreur inattendue est survenue.");
     }
-}
 
+    if (groupContentEl) {
+      groupContentEl.style.display = "block";
+    }
+
+    loadGroupMembers(groupRes.data.group.users);
+    loadGroupGames(group);
+    setupAdminInvitation(group);
+  } catch (e) {
+    console.error("Erreur inattendue lors du chargement du groupe :", e);
+    showError("Une erreur inattendue est survenue.");
+  }
+}
 
 // --- INITIALISATION ---
 
-document.addEventListener('DOMContentLoaded', () => {
-    if (!apiService.isAuthenticated) {
-        window.location.href = '/login';
-        return;
-    }
+document.addEventListener("DOMContentLoaded", () => {
+  if (!apiService.isAuthenticated) {
+    globalThis.location.href = "/login";
+    return;
+  }
 
-    const segments = window.location.pathname.split('/').filter(Boolean);
-    const groupId = segments[segments.length - 1];
+  const segments = globalThis.location.pathname.split("/").filter(Boolean);
+  const groupId = segments[segments.length - 1];
 
-    if (!groupId) {
-        showError("Aucun identifiant de groupe n'a été spécifié dans l'URL.");
-        return;
-    }
+  if (!groupId) {
+    showError("Aucun identifiant de groupe n'a été spécifié dans l'URL.");
+    return;
+  }
 
-    // On lance le processus
-    loadGroupData(groupId);
+  // On lance le processus
+  loadGroupData(groupId);
 });

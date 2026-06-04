@@ -1,28 +1,33 @@
-import {Group, GroupWithUsers, GroupWithUsersAndGames} from "../DataObjects/Group.ts";
-import {User} from "../DataObjects/User.ts";
+import {
+  Group,
+  GroupWithUsers,
+  GroupWithUsersAndGames,
+  RawGroupWithGames,
+} from "../DataObjects/Group.ts";
+import { User } from "../DataObjects/User.ts";
 
 import db from "../../Services/database.ts";
 const table = "groups";
 
 export async function create(group: Group): Promise<Group> {
-    const result = await db.queryObject<Group>(
-        `INSERT INTO ${table}
+  const result = await db.queryObject<Group>(
+    `INSERT INTO ${table}
             (name, code)
          VALUES
             ($1, $2)
          RETURNING id, name, code, created_at`,
-        [
-            group.name,
-            group.code,
-        ],
-    );
+    [
+      group.name,
+      group.code,
+    ],
+  );
 
-    return result.rows[0];
+  return result.rows[0];
 }
 
 export async function getById(id: number): Promise<GroupWithUsers | undefined> {
-    const result = await db.queryObject<Group & { users: User[] }>(
-        `SELECT
+  const result = await db.queryObject<Group & { users: User[] }>(
+    `SELECT
              g.*,
              COALESCE(
                      json_agg(
@@ -40,15 +45,17 @@ export async function getById(id: number): Promise<GroupWithUsers | undefined> {
                   LEFT JOIN users u ON ug.user_id = u.id
          WHERE g.id = $1
          GROUP BY g.id`,
-        [id],
-    );
+    [id],
+  );
 
-    return result.rows[0];
+  return result.rows[0];
 }
 
-export async function getByIdWithGames(id: number): Promise<GroupWithUsersAndGames | undefined> {
-    const result = await db.queryObject<GroupWithUsersAndGames>(
-        `SELECT
+export async function getByIdWithGames(
+  id: number,
+): Promise<GroupWithUsersAndGames | undefined> {
+  const result = await db.queryObject<GroupWithUsersAndGames>(
+    `SELECT
              g.*,
              COALESCE(u_data.users, '[]') AS users,
              COALESCE(gm_data.games, '[]') AS games
@@ -88,15 +95,15 @@ export async function getByIdWithGames(id: number): Promise<GroupWithUsersAndGam
              GROUP BY group_id
          ) gm_data ON g.id = gm_data.group_id
          WHERE g.id = $1`,
-        [id],
-    );
+    [id],
+  );
 
-    return result.rows[0];
+  return result.rows[0];
 }
 
 export async function getAllGroups(): Promise<GroupWithUsers[]> {
-    const result = await db.queryObject<Group & { users: User[] }>(
-        `SELECT
+  const result = await db.queryObject<Group & { users: User[] }>(
+    `SELECT
              g.*,
              COALESCE(
                      json_agg(
@@ -113,68 +120,79 @@ export async function getAllGroups(): Promise<GroupWithUsers[]> {
                   LEFT JOIN users_groups ug ON g.id = ug.group_id
                   LEFT JOIN users u ON ug.user_id = u.id
          GROUP BY g.id
-         ORDER BY g.created_at DESC`
-    );
+         ORDER BY g.created_at DESC`,
+  );
 
-    return result.rows;
+  return result.rows;
 }
 
 export async function deleteGroup(id: number): Promise<boolean> {
-    const result = await db.queryObject(
-        `DELETE FROM groups WHERE id = $1`,
-        [id]
-    );
+  const result = await db.queryObject(
+    `DELETE FROM groups WHERE id = $1`,
+    [id],
+  );
 
-    return result.rowCount ? result.rowCount > 0 : false;
+  return result.rowCount ? result.rowCount > 0 : false;
 }
 
-export async function addUserToGroup(groupId: number, userId: number): Promise<boolean> {
-    const result = await db.queryObject(
-        `INSERT INTO users_groups (group_id, user_id) 
+export async function addUserToGroup(
+  groupId: number,
+  userId: number,
+): Promise<boolean> {
+  const result = await db.queryObject(
+    `INSERT INTO users_groups (group_id, user_id) 
          VALUES ($1, $2) 
          ON CONFLICT DO NOTHING`,
-        [groupId, userId]
-    );
+    [groupId, userId],
+  );
 
-    return result.rowCount ? result.rowCount > 0 : false;
+  return result.rowCount ? result.rowCount > 0 : false;
 }
 
-export async function removeUserFromGroup(groupId: number, userId: number): Promise<boolean> {
-    const result = await db.queryObject(
-        `DELETE FROM users_groups 
+export async function removeUserFromGroup(
+  groupId: number,
+  userId: number,
+): Promise<boolean> {
+  const result = await db.queryObject(
+    `DELETE FROM users_groups 
          WHERE group_id = $1 AND user_id = $2`,
-        [groupId, userId]
-    );
+    [groupId, userId],
+  );
 
-    return result.rowCount ? result.rowCount > 0 : false;
+  return result.rowCount ? result.rowCount > 0 : false;
 }
 
-export async function updateGroupName(id: number, newName: string): Promise<Group | undefined> {
-    const result = await db.queryObject<Group>(
-        `UPDATE groups 
+export async function updateGroupName(
+  id: number,
+  newName: string,
+): Promise<Group | undefined> {
+  const result = await db.queryObject<Group>(
+    `UPDATE groups 
          SET name = $1 
          WHERE id = $2 
          RETURNING *`,
-        [newName, id]
-    );
+    [newName, id],
+  );
 
-    return result.rows[0];
+  return result.rows[0];
 }
 
 export async function getByCode(code: string): Promise<Group | undefined> {
-    const result = await db.queryObject<Group>(
-        `SELECT *
+  const result = await db.queryObject<Group>(
+    `SELECT *
          FROM groups
          WHERE code = $1`,
-        [code]
-    );
+    [code],
+  );
 
-    return result.rows[0];
+  return result.rows[0];
 }
 
-export async function getGroupsByUserId(userId: number): Promise<GroupWithUsers[]> {
-    const result = await db.queryObject<GroupWithUsers>(
-        `SELECT
+export async function getGroupsByUserId(
+  userId: number,
+): Promise<GroupWithUsers[]> {
+  const result = await db.queryObject<GroupWithUsers>(
+    `SELECT
              g.*,
              COALESCE(
                      json_agg(
@@ -193,15 +211,15 @@ export async function getGroupsByUserId(userId: number): Promise<GroupWithUsers[
          WHERE g.id IN (SELECT group_id FROM users_groups WHERE user_id = $1)
          GROUP BY g.id
          ORDER BY g.created_at DESC`,
-        [userId]
-    );
+    [userId],
+  );
 
-    return result.rows;
+  return result.rows;
 }
 
-export async function getGroupsWithGames(): Promise<any[]> {
-    const result = await db.queryObject(
-        `SELECT
+export async function getGroupsWithGames(): Promise<RawGroupWithGames[]> {
+  const result = await db.queryObject<RawGroupWithGames>(
+    `SELECT
              g.id, 
              g.name, 
              g.code,
@@ -226,12 +244,24 @@ export async function getGroupsWithGames(): Promise<any[]> {
          FROM groups g
          LEFT JOIN games gm ON g.id = gm.group_id
          GROUP BY g.id
-         ORDER BY g.created_at DESC`
-    );
+         ORDER BY g.created_at DESC`,
+  );
 
-    return result.rows;
+  return result.rows;
 }
 
-const groupRepository = { create, getById, getByIdWithGames, getAllGroups, deleteGroup, addUserToGroup, removeUserFromGroup, updateGroupName, getByCode, getGroupsByUserId, getGroupsWithGames };
+const groupRepository = {
+  create,
+  getById,
+  getByIdWithGames,
+  getAllGroups,
+  deleteGroup,
+  addUserToGroup,
+  removeUserFromGroup,
+  updateGroupName,
+  getByCode,
+  getGroupsByUserId,
+  getGroupsWithGames,
+};
 
 export default groupRepository;

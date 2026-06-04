@@ -6,10 +6,10 @@ import config from "../Config/config.ts";
  * Génère un helper pour combiner le password et le pepper de manière sûre.
  */
 function pepperPassword(password: string): string {
-    return crypto
-        .createHmac("sha256", config.pepperSecret)
-        .update(password)
-        .digest("hex");
+  return crypto
+    .createHmac("sha256", config.pepperSecret)
+    .update(password)
+    .digest("hex");
 }
 
 /**
@@ -20,14 +20,17 @@ function pepperPassword(password: string): string {
  * Plus il est élevé, plus le hachage est lent et sécurisé.
  * @returns Une promesse contenant le hash généré.
  */
-export async function hashPassword(password: string, saltRounds: number = 10): Promise<string> {
-    try {
-        const salt = await bcrypt.genSalt(saltRounds);
-        return await bcrypt.hash(pepperPassword(password), salt);
-    } catch (error) {
-        const message = error instanceof Error ? error.message : String(error);
-        throw new Error(`Erreur lors du hachage : ${message}`);
-    }
+export async function hashPassword(
+  password: string,
+  saltRounds: number = 10,
+): Promise<string> {
+  try {
+    const salt = await bcrypt.genSalt(saltRounds);
+    return await bcrypt.hash(pepperPassword(password), salt);
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    throw new Error(`Erreur lors du hachage : ${message}`);
+  }
 }
 
 /**
@@ -37,11 +40,14 @@ export async function hashPassword(password: string, saltRounds: number = 10): P
  * @param hash - Le hash bcrypt précédemment généré et stocké.
  * @returns Une promesse résolue à true si le mot de passe correspond.
  */
-export async function verifyPassword(password: string, hash: string): Promise<boolean> {
-    try {
-        return await bcrypt.compare(pepperPassword(password), hash);
-    } catch (error) {
-        const message = error instanceof Error ? error.message : String(error);
-        throw new Error(`Erreur lors de la vérification : ${message}`);
-    }
+export async function verifyPassword(
+  password: string,
+  hash: string,
+): Promise<boolean> {
+  try {
+    return await bcrypt.compare(pepperPassword(password), hash);
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    throw new Error(`Erreur lors de la vérification : ${message}`);
+  }
 }

@@ -1,4 +1,4 @@
-import { LitElement, html, css } from "lit";
+import { css, html, LitElement } from "lit";
 
 export class AppAvatar extends LitElement {
   static properties = {
@@ -57,13 +57,17 @@ export class AppAvatar extends LitElement {
     // Si on a une URL d'image valide
     if (this.url) {
       return html`
-        <img src="${this.url}" alt="Avatar de ${this.username}" class="avatar ${this.size}" />
+        <img src="${this.url}" alt="Avatar de ${this
+          .username}" class="avatar ${this.size}" />
       `;
     }
 
     // Sinon, fallback avec la première lettre du pseudo
     return html`
-      <div class="avatar ${this.size}" style="background-color: var(--dams-pink, #e91e63); color: white;">
+      <div
+        class="avatar ${this.size}"
+        style="background-color: var(--dams-pink, #e91e63); color: white;"
+      >
         ${this.username ? this.username.charAt(0) : "?"}
       </div>
     `;

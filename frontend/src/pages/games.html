@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="fr">
-<head>
+  <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Librairie de Jeux - RayDaMS</title>
@@ -9,23 +9,23 @@
     <script type="module" src="/components/game-row.js"></script>
     <script defer type="module" src="/scripts/games.js"></script>
     <link rel="icon" type="image/x-icon" href="/assets/images/favicon.ico">
-</head>
-<body>
+  </head>
+  <body>
+    <app-navbar></app-navbar>
 
-<app-navbar></app-navbar>
-
-<main>
-    <header class="hero">
+    <main>
+      <header class="hero">
         <h1 class="site-title">La <span class="highlight">Librairie</span></h1>
-        <p class="description">Découvrez les créations de la communauté DaMS, triées par groupe.</p>
-    </header>
+        <p class="description">
+          Découvrez les créations de la communauté DaMS, triées par groupe.
+        </p>
+      </header>
 
-    <div id="games-dashboard" class="games-container">
+      <div id="games-dashboard" class="games-container">
         <div class="loader">Chargement des jeux en cours...</div>
-    </div>
-</main>
+      </div>
+    </main>
 
-<app-footer></app-footer>
-
-</body>
+    <app-footer></app-footer>
+  </body>
 </html>

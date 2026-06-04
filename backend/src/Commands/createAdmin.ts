@@ -30,7 +30,9 @@ function parseArgs(argv: string[]): Partial<CreateAdminArgs> {
 }
 
 function printUsage(): void {
-  console.error("Usage: deno task create-admin --username <username> --email <email> --password <password>");
+  console.error(
+    "Usage: deno task create-admin --username <username> --email <email> --password <password>",
+  );
 }
 
 async function main(): Promise<void> {
@@ -52,7 +54,9 @@ async function main(): Promise<void> {
 
   const existingByUsername = await userRepository.getByUsername(username);
   if (existingByUsername) {
-    console.error(`Cannot create admin: username already in use (${username}).`);
+    console.error(
+      `Cannot create admin: username already in use (${username}).`,
+    );
     Deno.exit(1);
   }
 
@@ -62,15 +66,19 @@ async function main(): Promise<void> {
     password_hash: await hashPassword(password),
   };
 
-  const createdUser = await userRepository.create(userToCreate, ["member", "admin"]);
+  const createdUser = await userRepository.create(userToCreate, [
+    "member",
+    "admin",
+  ]);
   if (!createdUser.id) {
     throw new Error("User created without id.");
   }
 
-  console.log(`Admin user created successfully: id=${createdUser.id}, username=${createdUser.username}`);
+  console.log(
+    `Admin user created successfully: id=${createdUser.id}, username=${createdUser.username}`,
+  );
 }
 
 if (import.meta.main) {
   await main();
 }
-

@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="fr">
-<head>
+  <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Mon Profil - RayDaMS</title>
@@ -8,54 +8,71 @@
     <script defer type="module" src="/scripts/index.js"></script>
     <script defer type="module" src="/scripts/profile.js"></script>
     <link rel="icon" type="image/x-icon" href="/assets/images/favicon.ico">
-</head>
-<body>
+  </head>
+  <body>
+    <app-navbar></app-navbar>
 
-<app-navbar></app-navbar>
-
-<main>
-    <header class="hero">
+    <main>
+      <header class="hero">
         <h1 class="site-title">Mon <span class="highlight">Profil</span></h1>
-    </header>
+      </header>
 
-    <div class="auth-container" style="padding-top: 0;">
+      <div class="auth-container" style="padding-top: 0">
         <form class="auth-form" id="profile-form">
-            
-            <div id="profile-message"></div>
+          <div id="profile-message"></div>
 
-            <!-- Zone de la photo de profil -->
-            <div class="form-group" style="text-align: center; margin-bottom: 2rem;">
-                <!-- image par défaut si l'utilisateur n'en a pas -->
-                <app-avatar id="avatar-preview" size="large"></app-avatar>
-                
-                <br>
-                <label for="avatar-input" class="btn-upload">Changer la photo</label>
-                <!-- L'input est caché -->
-                <input type="file" id="avatar-input" name="avatar" accept="image/png, image/jpeg, image/webp" style="display: none;">
-            </div>
+          <!-- Zone de la photo de profil -->
+          <div
+            class="form-group"
+            style="text-align: center; margin-bottom: 2rem"
+          >
+            <!-- image par défaut si l'utilisateur n'en a pas -->
+            <app-avatar id="avatar-preview" size="large"></app-avatar>
 
-            <div class="form-group">
-                <label for="username">Nom d'utilisateur</label>
-                <input type="text" id="username" name="username" disabled style="background-color: #eee; cursor: not-allowed;">
-            </div>
+            <br>
+            <label for="avatar-input" class="btn-upload"
+            >Changer la photo</label>
+            <!-- L'input est caché -->
+            <input
+              type="file"
+              id="avatar-input"
+              name="avatar"
+              accept="image/png, image/jpeg, image/webp"
+              style="display: none"
+            >
+          </div>
 
-            <div class="form-group">
-                <label for="email">Adresse Email</label>
-                <input type="email" id="email" name="email" required>
-            </div>
+          <div class="form-group">
+            <label for="username">Nom d'utilisateur</label>
+            <input
+              type="text"
+              id="username"
+              name="username"
+              disabled
+              style="background-color: #eee; cursor: not-allowed"
+            >
+          </div>
 
-            <button type="submit" class="btn-form">Enregistrer les modifications</button>
+          <div class="form-group">
+            <label for="email">Adresse Email</label>
+            <input type="email" id="email" name="email" required>
+          </div>
+
+          <button type="submit" class="btn-form">
+            Enregistrer les modifications
+          </button>
         </form>
-    </div>
-    <section class="user-groups-section" style="margin-top: 4rem;">
-        <h2 style="color: var(--polytech-blue-dark); margin-bottom: 2rem;">Mes Groupes</h2>
+      </div>
+      <section class="user-groups-section" style="margin-top: 4rem">
+        <h2 style="color: var(--polytech-blue-dark); margin-bottom: 2rem">
+          Mes Groupes
+        </h2>
 
-        <div id="groups-container" class="cards-container" style="gap: 2rem;">
+        <div id="groups-container" class="cards-container" style="gap: 2rem">
         </div>
-    </section>
-</main>
+      </section>
+    </main>
 
-<app-footer></app-footer>
-
-</body>
+    <app-footer></app-footer>
+  </body>
 </html>

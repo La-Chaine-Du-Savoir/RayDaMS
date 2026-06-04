@@ -1,65 +1,65 @@
 body {
-    display: flex;
-    flex-direction: column;
-    min-height: 100vh;
-    margin: 0;
-    background-color: var(--bg-color);
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  margin: 0;
+  background-color: var(--bg-color);
 }
 
 main {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    padding: 0;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  padding: 0;
 }
 
 /* Conteneur pour le header du jeu (Titre et bouton retour) */
 .play-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 1rem 2rem;
-    background-color: var(--polytech-blue-dark);
-    color: white;
-    border-bottom: 4px solid var(--dams-pink);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem 2rem;
+  background-color: var(--polytech-blue-dark);
+  color: white;
+  border-bottom: 4px solid var(--dams-pink);
 }
 
 .play-title {
-    font-family: 'Grixel', sans-serif;
-    font-size: 1.5rem;
-    margin: 0;
-    color: white;
-    -webkit-font-smoothing: none;
+  font-family: "Grixel", sans-serif;
+  font-size: 1.5rem;
+  margin: 0;
+  color: white;
+  -webkit-font-smoothing: none;
 }
 
 .btn-back {
-    text-decoration: none;
-    color: white;
-    border: 2px solid white;
-    padding: 0.5rem 1rem;
-    border-radius: 4px;
-    font-family: 'Courier New', Courier, monospace;
-    font-weight: bold;
-    transition: all 0.3s;
+  text-decoration: none;
+  color: white;
+  border: 2px solid white;
+  padding: 0.5rem 1rem;
+  border-radius: 4px;
+  font-family: "Courier New", Courier, monospace;
+  font-weight: bold;
+  transition: all 0.3s;
 }
 
 .btn-back:hover {
-    background-color: white;
-    color: var(--polytech-blue-dark);
+  background-color: white;
+  color: var(--polytech-blue-dark);
 }
 
 /* Le conteneur du composant game-player */
 #player-container {
-    flex: 1;
-    display: flex;
-    width: 100%;
+  flex: 1;
+  display: flex;
+  width: 100%;
 }
-        
+
 .error-box {
-    text-align: center;
-    padding: 3rem;
-    color: var(--dams-pink);
-    font-size: 1.2rem;
-    font-weight: bold;
-    width: 100%;
+  text-align: center;
+  padding: 3rem;
+  color: var(--dams-pink);
+  font-size: 1.2rem;
+  font-weight: bold;
+  width: 100%;
 }

@@ -1,4 +1,4 @@
-import { Application, Router, send, Context } from "oak";
+import { Application, Context, Router, send } from "oak";
 import { join } from "path";
 
 const args = Deno.args;
@@ -9,7 +9,7 @@ const ROOT = import.meta.dirname || join(Deno.cwd(), "src");
 const PUBLIC_DIR = join(ROOT, "public");
 
 const appConfig = {
-    API_URL: Deno.env.get("API_URL") || "http://localhost:3000",
+  API_URL: Deno.env.get("API_URL") || "http://localhost:3000",
 };
 
 const rawConfig = JSON.stringify(appConfig);
@@ -26,126 +26,133 @@ const INJECTIONS = `
     </script>`;
 
 if (args.length < 1) {
-    console.log("Usage: $ deno run --allow-net --allow-read=./ src/front_server.ts PORT [--cache] [--proxy] [CERT_PATH KEY_PATH]");
-    Deno.exit(1);
+  console.log(
+    "Usage: $ deno run --allow-net --allow-read=./ src/front_server.ts PORT [--cache] [--proxy] [CERT_PATH KEY_PATH]",
+  );
+  Deno.exit(1);
 }
 
 const USE_CACHE = args.includes("--cache");
 
-const positionalArgs = args.filter(arg => !arg.startsWith("--"));
+const positionalArgs = args.filter((arg) => !arg.startsWith("--"));
 const PORT = Number(positionalArgs[0]);
 
 const htmlCache = new Map<string, string>();
 
 async function serveHtml(ctx: Context, fileName: string) {
-    try {
-        if (USE_CACHE && htmlCache.has(fileName)) {
-            ctx.response.type = "text/html";
-            ctx.response.body = htmlCache.get(fileName);
-            return;
-        }
-
-        const filePath = join(ROOT, fileName);
-        let content = await Deno.readTextFile(filePath);
-
-        if (content.includes('<meta charset="UTF-8">')) {
-            content = content.replace('<meta charset="UTF-8">', `<meta charset="UTF-8">\n${INJECTIONS}`);
-        } else {
-            content = content.replace("<head>", `<head>\n${INJECTIONS}`);
-        }
-
-        if (USE_CACHE) {
-            htmlCache.set(fileName, content);
-        }
-
-        ctx.response.type = "text/html";
-        ctx.response.body = content;
-    } catch (_error) {
-        ctx.response.status = 404;
-        ctx.response.body = "404 - Page non trouvée";
+  try {
+    if (USE_CACHE && htmlCache.has(fileName)) {
+      ctx.response.type = "text/html";
+      ctx.response.body = htmlCache.get(fileName);
+      return;
     }
+
+    const filePath = join(ROOT, fileName);
+    let content = await Deno.readTextFile(filePath);
+
+    if (content.includes('<meta charset="UTF-8">')) {
+      content = content.replace(
+        '<meta charset="UTF-8">',
+        `<meta charset="UTF-8">\n${INJECTIONS}`,
+      );
+    } else {
+      content = content.replace("<head>", `<head>\n${INJECTIONS}`);
+    }
+
+    if (USE_CACHE) {
+      htmlCache.set(fileName, content);
+    }
+
+    ctx.response.type = "text/html";
+    ctx.response.body = content;
+  } catch (_error) {
+    ctx.response.status = 404;
+    ctx.response.body = "404 - Page non trouvée";
+  }
 }
 
 router.get("/", async (ctx) => {
-    await serveHtml(ctx, "pages/index.html");
+  await serveHtml(ctx, "pages/index.html");
 });
 
 router.get("/login", async (ctx) => {
-    await serveHtml(ctx, "pages/login.html");
+  await serveHtml(ctx, "pages/login.html");
 });
 
 router.get("/register", async (ctx) => {
-    await serveHtml(ctx, "pages/register.html");
+  await serveHtml(ctx, "pages/register.html");
 });
 
 router.get("/about", async (ctx) => {
-    await serveHtml(ctx, "pages/about.html");
+  await serveHtml(ctx, "pages/about.html");
 });
 
 router.get("/profile", async (ctx) => {
-    await serveHtml(ctx, "pages/profile.html");
+  await serveHtml(ctx, "pages/profile.html");
 });
 
 router.get("/upload", async (ctx) => {
-    await serveHtml(ctx, "pages/upload-game.html");
+  await serveHtml(ctx, "pages/upload-game.html");
 });
 
 router.get("/games", async (ctx) => {
-    await serveHtml(ctx, "pages/games.html");
+  await serveHtml(ctx, "pages/games.html");
 });
 
 router.get("/games/:id", async (ctx) => {
-    await serveHtml(ctx, "pages/game-detail.html");
+  await serveHtml(ctx, "pages/game-detail.html");
 });
 
 router.get("/games/:id/play", async (ctx) => {
-    await serveHtml(ctx, "pages/play.html");
+  await serveHtml(ctx, "pages/play.html");
 });
 
 router.get("/edit-game", async (ctx) => {
-    await serveHtml(ctx, "pages/edit-game.html");
+  await serveHtml(ctx, "pages/edit-game.html");
 });
 
 router.get("/groups", async (ctx) => {
-    await serveHtml(ctx, "pages/groups.html");
+  await serveHtml(ctx, "pages/groups.html");
 });
 
 router.get("/groups/:id", async (ctx) => {
-    await serveHtml(ctx, "pages/group.html");
+  await serveHtml(ctx, "pages/group.html");
 });
 
 router.get("/join/:code", async (ctx) => {
-    await serveHtml(ctx, "pages/join.html");
+  await serveHtml(ctx, "pages/join.html");
 });
 
 app.use(router.routes());
 app.use(router.allowedMethods());
 
 app.use(async (ctx) => {
-    try {
-        await send(ctx, ctx.request.url.pathname, {
-            root: PUBLIC_DIR,
-        });
-    } catch {
-        ctx.response.status = 404;
-        ctx.response.body = "404 File not found";
-    }
+  try {
+    await send(ctx, ctx.request.url.pathname, {
+      root: PUBLIC_DIR,
+    });
+  } catch {
+    ctx.response.status = 404;
+    ctx.response.body = "404 File not found";
+  }
 });
 
 const listenOptions: Deno.ListenOptions = {
-    port: PORT,
-    hostname: "0.0.0.0",
+  port: PORT,
+  hostname: "0.0.0.0",
 };
 
 const tlsOptions: { cert?: string; key?: string } = {};
 
 if (positionalArgs.length >= 3) {
-    tlsOptions.cert = await Deno.readTextFile(positionalArgs[1]);
-    tlsOptions.key = await Deno.readTextFile(positionalArgs[2]);
-    console.log("SSL conf ready (use https)");
+  tlsOptions.cert = await Deno.readTextFile(positionalArgs[1]);
+  tlsOptions.key = await Deno.readTextFile(positionalArgs[2]);
+  console.log("SSL conf ready (use https)");
 }
 
-console.log(`Oak front server running on port ${listenOptions.port} for files in ${ROOT}`);
+console.log(
+  `Oak front server running on port ${listenOptions.port} for files in ${ROOT}`,
+);
 console.log(`Cache mode: ${USE_CACHE ? "ENABLED ✅" : "DISABLED ❌"}`);
 
 await app.listen({ ...listenOptions, ...tlsOptions });

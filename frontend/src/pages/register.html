@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="fr">
-<head>
+  <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>S'inscrire - RayDaMS</title>
@@ -8,48 +8,73 @@
     <script defer type="module" src="/scripts/index.js"></script>
     <script defer type="module" src="/scripts/register.js"></script>
     <link rel="icon" type="image/x-icon" href="/assets/images/favicon.ico">
-</head>
-<body>
+  </head>
+  <body>
+    <app-navbar></app-navbar>
 
-<app-navbar></app-navbar>
-
-<main>
-    <div class="auth-container">
+    <main>
+      <div class="auth-container">
         <form class="auth-form" id="registerForm">
-            <h2>Inscription</h2>
+          <h2>Inscription</h2>
 
-            <div id="errorContainer" class="error-message" style="display: none;"></div>
+          <div id="errorContainer" class="error-message" style="display: none">
+          </div>
 
-            <div class="form-group">
-                <label for="username">Nom d'utilisateur</label>
-                <input type="text" id="username" name="username" required placeholder="votre_nom">
-            </div>
+          <div class="form-group">
+            <label for="username">Nom d'utilisateur</label>
+            <input
+              type="text"
+              id="username"
+              name="username"
+              required
+              placeholder="votre_nom"
+            >
+          </div>
 
-            <div class="form-group">
-                <label for="email">Email</label>
-                <input type="email" id="email" name="email" required placeholder="votre@email.com">
-            </div>
+          <div class="form-group">
+            <label for="email">Email</label>
+            <input
+              type="email"
+              id="email"
+              name="email"
+              required
+              placeholder="votre@email.com"
+            >
+          </div>
 
-            <div class="form-group">
-                <label for="password">Mot de passe</label>
-                <input type="password" id="password" name="password" minlength="8" required placeholder="••••••••">
-            </div>
+          <div class="form-group">
+            <label for="password">Mot de passe</label>
+            <input
+              type="password"
+              id="password"
+              name="password"
+              minlength="8"
+              required
+              placeholder="••••••••"
+            >
+          </div>
 
-            <div class="form-group">
-                <label for="confirm-password">Confirmer le mot de passe</label>
-                <input type="password" id="confirm-password" name="confirm-password" minlength="8" required placeholder="••••••••">
-            </div>
+          <div class="form-group">
+            <label for="confirm-password">Confirmer le mot de passe</label>
+            <input
+              type="password"
+              id="confirm-password"
+              name="confirm-password"
+              minlength="8"
+              required
+              placeholder="••••••••"
+            >
+          </div>
 
-            <button type="submit" class="btn-form">S'inscrire</button>
+          <button type="submit" class="btn-form">S'inscrire</button>
 
-            <div class="auth-link">
-                Vous avez déjà un compte ? <a href="/login">Se connecter</a>
-            </div>
+          <div class="auth-link">
+            Vous avez déjà un compte ? <a href="/login">Se connecter</a>
+          </div>
         </form>
-    </div>
-</main>
+      </div>
+    </main>
 
-<app-footer></app-footer>
-
-</body>
+    <app-footer></app-footer>
+  </body>
 </html>

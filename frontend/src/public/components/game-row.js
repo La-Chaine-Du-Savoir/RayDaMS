@@ -1,188 +1,208 @@
-import { LitElement, html, css } from 'lit';
-import './game-card.js';
+import { css, html, LitElement } from "lit";
+import "./game-card.js";
 
 export class AppGameRow extends LitElement {
-    static properties = {
-        group: { type: Object },
-        showGroupLink: { type: Boolean }
-    };
+  static properties = {
+    group: { type: Object },
+    showGroupLink: { type: Boolean },
+  };
 
-    static styles = css`
-        * {
-            box-sizing: border-box;
-        }
+  static styles = css`
+    * {
+      box-sizing: border-box;
+    }
 
-        :host {
-            display: block;
-            margin-bottom: 3.5rem;
-            width: 100%;
-        }
+    :host {
+      display: block;
+      margin-bottom: 3.5rem;
+      width: 100%;
+    }
 
-        .category-header {
-            display: flex;
-            align-items: center;
-            margin-bottom: 1.5rem;
-            padding-right: 1rem;
-        }
+    .category-header {
+      display: flex;
+      align-items: center;
+      margin-bottom: 1.5rem;
+      padding-right: 1rem;
+    }
 
-        .category-title {
-            color: var(--polytech-blue-dark, #007BB5);
-            font-family: 'Grixel', sans-serif;
-            font-size: 1.5rem;
-            margin: 0;
-            padding-left: 1rem;
-            border-left: 6px solid var(--dams-pink, #DE007A);
-            white-space: nowrap;
-            -webkit-font-smoothing: none;
-        }
+    .category-title {
+      color: var(--polytech-blue-dark, #007bb5);
+      font-family: "Grixel", sans-serif;
+      font-size: 1.5rem;
+      margin: 0;
+      padding-left: 1rem;
+      border-left: 6px solid var(--dams-pink, #de007a);
+      white-space: nowrap;
+      -webkit-font-smoothing: none;
+    }
 
-        .group-link {
-            color: inherit;
-            text-decoration: none;
-            transition: color 0.2s;
-        }
+    .group-link {
+      color: inherit;
+      text-decoration: none;
+      transition: color 0.2s;
+    }
 
-        .group-link:hover {
-            color: var(--dams-pink, #DE007A); /* Petit effet sympa au survol */
-            cursor: pointer;
-        }
+    .group-link:hover {
+      color: var(--dams-pink, #de007a); /* Petit effet sympa au survol */
+      cursor: pointer;
+    }
 
-        .separator-line {
-            flex-grow: 1;
-            height: 3px;
-            background-color: #e0e0e0;
-            margin-left: 1.5rem;
-            border-radius: 2px;
-        }
+    .separator-line {
+      flex-grow: 1;
+      height: 3px;
+      background-color: #e0e0e0;
+      margin-left: 1.5rem;
+      border-radius: 2px;
+    }
 
-        /* Conteneur principal pour positionner les boutons */
-        .row-wrapper {
-            position: relative;
-            display: flex;
-            align-items: center;
-        }
+    /* Conteneur principal pour positionner les boutons */
+    .row-wrapper {
+      position: relative;
+      display: flex;
+      align-items: center;
+    }
 
-        .scroll-container {
-            display: flex;
-            overflow-x: auto;
-            padding: 10px 5px 20px 5px; 
-            gap: 20px;
-            scroll-behavior: smooth; /* Permet un défilement fluide lors du clic */
-            width: 100%;
-            
-            scrollbar-width: none;
-            -ms-overflow-style: none;
-        }
+    .scroll-container {
+      display: flex;
+      overflow-x: auto;
+      padding: 10px 5px 20px 5px;
+      gap: 20px;
+      scroll-behavior: smooth; /* Permet un défilement fluide lors du clic */
+      width: 100%;
 
-        .scroll-container::-webkit-scrollbar {
-            display: none;
-        }
+      scrollbar-width: none;
+      -ms-overflow-style: none;
+    }
 
-        /* Boutons de navigation  */
-        .scroll-btn {
-            position: absolute;
-            z-index: 10;
-            background-color: rgba(0, 0, 0, 0.6);
-            color: white;
-            border: 2px solid white;
-            border-radius: 50%;
-            width: 40px;
-            height: 40px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            cursor: pointer;
-            font-weight: bold;
-            font-size: 1.2rem;
-            opacity: 0; /* Cachés par défaut */
-            transition: opacity 0.3s, background-color 0.3s, transform 0.2s;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
-        }
+    .scroll-container::-webkit-scrollbar {
+      display: none;
+    }
 
-        /* Apparition des boutons au survol de la rangée */
-        .row-wrapper:hover .scroll-btn {
-            opacity: 1;
-        }
+    /* Boutons de navigation  */
+    .scroll-btn {
+      position: absolute;
+      z-index: 10;
+      background-color: rgba(0, 0, 0, 0.6);
+      color: white;
+      border: 2px solid white;
+      border-radius: 50%;
+      width: 40px;
+      height: 40px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      cursor: pointer;
+      font-weight: bold;
+      font-size: 1.2rem;
+      opacity: 0; /* Cachés par défaut */
+      transition: opacity 0.3s, background-color 0.3s, transform 0.2s;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+    }
 
-        .scroll-btn:hover {
-            background-color: var(--dams-pink, #DE007A);
-            border-color: var(--dams-pink, #DE007A);
-            transform: scale(1.1);
-        }
+    /* Apparition des boutons au survol de la rangée */
+    .row-wrapper:hover .scroll-btn {
+      opacity: 1;
+    }
 
-        .scroll-btn.left {
-            left: -15px; /* Déborde un peu sur la gauche */
-        }
+    .scroll-btn:hover {
+      background-color: var(--dams-pink, #de007a);
+      border-color: var(--dams-pink, #de007a);
+      transform: scale(1.1);
+    }
 
-        .scroll-btn.right {
-            right: -15px; /* Déborde un peu sur la droite */
-        }
+    .scroll-btn.left {
+      left: -15px; /* Déborde un peu sur la gauche */
+    }
 
-        .empty-message {
-            color: #888;
-            font-style: italic;
-            padding-left: 1rem;
-            font-family: 'Courier New', Courier, monospace;
-        }
+    .scroll-btn.right {
+      right: -15px; /* Déborde un peu sur la droite */
+    }
+
+    .empty-message {
+      color: #888;
+      font-style: italic;
+      padding-left: 1rem;
+      font-family: "Courier New", Courier, monospace;
+    }
+  `;
+
+  constructor() {
+    super();
+    this.group = null;
+    this.showGroupLink = false;
+  }
+
+  // faire défiler le conteneur
+  _scroll(direction) {
+    const container = this.shadowRoot.querySelector(".scroll-container");
+    if (container) {
+      // 300 px de décalage par clic sur un bouton
+      const scrollAmount = direction === "left" ? -300 : 300;
+      container.scrollBy({ left: scrollAmount, behavior: "smooth" });
+    }
+  }
+
+  render() {
+    if (!this.group) {
+      return html`
+
+      `;
+    }
+
+    const hasGames = this.group.games && this.group.games.length > 0;
+
+    const showArrows = hasGames && this.group.games.length > 3;
+
+    return html`
+      <div class="category-header">
+        <h2 class="category-title">
+          ${this.showGroupLink
+            ? html`
+              <a href="/groups/${this.group.id}" class="group-link">${this.group
+                .name}</a>
+            `
+            : this.group.name}
+        </h2>
+        <div class="separator-line"></div>
+      </div>
+
+      <div class="row-wrapper">
+        ${showArrows
+          ? html`
+            <button class="scroll-btn left" @click="${() =>
+              this._scroll("left")}" title="Défiler à gauche">
+              ❮
+            </button>
+          `
+          : ""}
+
+        <div class="scroll-container">
+          ${hasGames
+            ? this.group.games.map((game) =>
+              html`
+                <app-game-card
+                  .game="${game}"
+                  ?can-edit="${this.group.canEdit}"
+                >
+                </app-game-card>
+              `
+            )
+            : html`
+              <div class="empty-message">Aucun jeu publié dans ce groupe pour le moment.</div>
+            `}
+        </div>
+
+        ${showArrows
+          ? html`
+            <button class="scroll-btn right" @click="${() =>
+              this._scroll("right")}" title="Défiler à droite">
+              ❯
+            </button>
+          `
+          : ""}
+      </div>
     `;
-
-    constructor() {
-        super();
-        this.group = null;
-        this.showGroupLink = false;
-    }
-
-    // faire défiler le conteneur
-    _scroll(direction) {
-        const container = this.shadowRoot.querySelector('.scroll-container');
-        if (container) {
-            // 300 px de décalage par clic sur un bouton
-            const scrollAmount = direction === 'left' ? -300 : 300;
-            container.scrollBy({ left: scrollAmount, behavior: 'smooth' });
-        }
-    }
-
-    render() {
-        if (!this.group) return html``;
-
-        const hasGames = this.group.games && this.group.games.length > 0;
-        
-
-        const showArrows = hasGames && this.group.games.length > 3;
-
-        return html`
-            <div class="category-header">
-                <h2 class="category-title">
-                    ${this.showGroupLink
-                            ? html`<a href="/groups/${this.group.id}" class="group-link">${this.group.name}</a>`
-                            : this.group.name}
-                </h2>
-                <div class="separator-line"></div>
-            </div>
-            
-            <div class="row-wrapper">
-                ${showArrows ? html`
-                    <button class="scroll-btn left" @click="${() => this._scroll('left')}" title="Défiler à gauche">❮</button>
-                ` : ''}
-
-                <div class="scroll-container">
-                    ${hasGames 
-                        ? this.group.games.map(game => html`
-                            <app-game-card 
-                                .game="${game}" 
-                                ?can-edit="${this.group.canEdit}">
-                            </app-game-card>
-                          `)
-                        : html`<div class="empty-message">Aucun jeu publié dans ce groupe pour le moment.</div>`
-                    }
-                </div>
-
-                ${showArrows ? html`
-                    <button class="scroll-btn right" @click="${() => this._scroll('right')}" title="Défiler à droite">❯</button>
-                ` : ''}
-            </div>
-        `;
-    }
+  }
 }
 
-customElements.define('app-game-row', AppGameRow);
+customElements.define("app-game-row", AppGameRow);

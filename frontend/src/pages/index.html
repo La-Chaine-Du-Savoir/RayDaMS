@@ -1,47 +1,73 @@
 <!DOCTYPE html>
 <html lang="fr">
-<head>
+  <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>RayDaMS - Jeux Raylib en navigateur</title>
     <link rel="stylesheet" href="/assets/styles/style.css">
     <script defer type="module" src="/scripts/index.js"></script>
     <link rel="icon" type="image/x-icon" href="/assets/images/favicon.ico">
-</head>
-<body>
+  </head>
+  <body>
+    <app-navbar></app-navbar>
 
-<app-navbar></app-navbar>
-
-<main>
-    <header class="hero">
+    <main>
+      <header class="hero">
         <h1 class="site-title">Ray<span class="highlight">DaMS</span></h1>
         <p class="description">
-            La plateforme ultime pour découvrir et jouer à nos jeux développés avec <strong>Raylib</strong>.
-            Aucune installation requise, lancez vos jeux préférés directement depuis votre navigateur !
+          La plateforme ultime pour découvrir et jouer à nos jeux développés
+          avec <strong>Raylib</strong>. Aucune installation requise, lancez vos
+          jeux préférés directement depuis votre navigateur !
         </p>
-    </header>
+      </header>
 
-    <section class="partners">
+      <section class="partners">
         <h2>Université de Montpellier</h2>
         <div class="cards-container">
+          <a
+            href="https://www.polytech.umontpellier.fr/"
+            class="custom-card"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            <img
+              src="/assets/images/logo-polytech.svg"
+              alt="Logo Polytech"
+              class="card-media"
+            >
+          </a>
 
-            <a href="https://www.polytech.umontpellier.fr/" class="custom-card" target="_blank" rel="noopener noreferrer">
-                <img src="/assets/images/logo-polytech.svg" alt="Logo Polytech" class="card-media">
-            </a>
+          <a
+            href="https://www.polytech.umontpellier.fr/formation/cycle-ingenieur/data-science-management-software"
+            class="custom-card"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            <img
+              src="/assets/images/logo-dams.png"
+              alt="Logo DaMS"
+              class="card-media"
+              id="logo-dams-index"
+            >
+          </a>
 
-            <a href="https://www.polytech.umontpellier.fr/formation/cycle-ingenieur/data-science-management-software" class="custom-card" target="_blank" rel="noopener noreferrer">
-                <img src="/assets/images/logo-dams.png" alt="Logo DaMS" class="card-media" id="logo-dams-index">
-            </a>
-
-            <a href="https://www.umontpellier.fr" class="custom-card" target="_blank" rel="noopener noreferrer">
-                <img src="/assets/images/logo-um.png" alt="Logo UM" class="card-media" id="logo-um-index">
-            </a>
-
+          <a
+            href="https://www.umontpellier.fr"
+            class="custom-card"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            <img
+              src="/assets/images/logo-um.png"
+              alt="Logo UM"
+              class="card-media"
+              id="logo-um-index"
+            >
+          </a>
         </div>
-    </section>
-</main>
+      </section>
+    </main>
 
-<app-footer></app-footer>
-
-</body>
+    <app-footer></app-footer>
+  </body>
 </html>
