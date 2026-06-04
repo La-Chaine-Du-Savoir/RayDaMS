@@ -15,7 +15,13 @@ import process from "node:process";
 
 // ─── Docker & Configuration ───────────────────────────────────────────────────
 
-const docker = new Docker({ socketPath: "/var/run/docker.sock" });
+const dockerHostEnv = Deno.env.get("DOCKER_HOST") ?? "tcp://docker-proxy:2375";
+
+const dockerUrl = new URL(dockerHostEnv);
+const docker = new Docker({
+  host: dockerUrl.hostname,
+  port: Number(dockerUrl.port),
+});
 
 const COMPILER_IMAGE = Deno.env.get("COMPILER_IMAGE")?.trim() ||
   "emscripten-raylib-builder:latest";

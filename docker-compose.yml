@@ -64,6 +64,23 @@ services:
     command: ["true"]
     pull_policy: never
 
+  docker-proxy:
+    image: tecnativa/docker-socket-proxy:v0.4.2
+    environment:
+      CONTAINERS: 1
+      POST: 1
+      DELETE: 1
+      PING: 1
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    healthcheck:
+      test: [ "CMD", "wget", "-q", "-O", "-", "http://localhost:2375/_ping" ]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+    networks:
+      - docker-network
+
   worker:
     build:
       context: .
@@ -89,9 +106,9 @@ services:
       MAX_CONCURRENT: ${MAX_CONCURRENT}
       BUILD_TIMEOUT_MS: ${BUILD_TIMEOUT_MS}
       PEPPER_SECRET: ${PEPPER_SECRET}
+      DOCKER_HOST: "tcp://docker-proxy:2375"
     volumes:
       - ./backend:/app/backend
-      - /var/run/docker.sock:/var/run/docker.sock
     depends_on:
       db:
         condition: service_healthy
@@ -101,12 +118,14 @@ services:
         condition: service_healthy
       minio-init:
         condition: service_completed_successfully
+      docker-proxy:
+        condition: service_healthy
     networks:
       - backend-network
       - docker-network
 
   minio-init:
-    image: minio/mc
+    image: minio/mc:RELEASE.2025-08-13T08-35-41Z
     depends_on:
       minio:
         condition: service_healthy
@@ -167,7 +186,6 @@ services:
         condition: service_completed_successfully
     networks:
       - backend-network
-      - external-network
 
   frontend:
     build:
@@ -182,7 +200,6 @@ services:
       - ./frontend:/app/frontend
     networks:
       - frontend-network
-      - external-network
 
 volumes:
   pgdata:
@@ -193,4 +210,4 @@ networks:
   backend-network:
   frontend-network:
   docker-network:
-  external-network:
+    internal: true
