@@ -193,8 +193,8 @@ document.addEventListener("DOMContentLoaded", () => {
       return;
     }
 
-    // Appel à l'API (PATCH sur /users/me/password)
-    const response = await apiService.updateResource("users", "me/password", {
+    // Appel à l'API (PATCH sur /auth/password)
+    const response = await apiService.updateResource("auth", "password", {
       oldPassword: oldPassword,
       newPassword: newPassword,
     });
