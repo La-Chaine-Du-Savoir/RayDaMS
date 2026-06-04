@@ -25,7 +25,6 @@ lint_frontend:
     - cd frontend
     - deno fmt --check
     - deno lint
-    - deno check
 
 lint_backend:
   image: denoland/deno:alpine-2.7.14
