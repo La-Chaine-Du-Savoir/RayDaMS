@@ -71,6 +71,122 @@ function setupAdminInvitation(group) {
   inviteSuccessCheck.addEventListener("click", copyToClipboard);
 }
 
+/**
+ * Gère les actions d'édition et de suppression pour les administrateurs.
+ * @param {Object} group L'objet groupe.
+ * @param {string} groupId L'identifiant du groupe.
+ */
+function setupAdminActions(group, groupId) {
+  const userStr = sessionStorage.getItem("user");
+  if (!userStr) return;
+
+  const user = JSON.parse(userStr);
+  if (!user.roles || !user.roles.includes("admin")) return;
+
+  const adminActions = document.getElementById("admin-actions");
+  if (!adminActions) return;
+
+  // L'utilisateur est admin : on injecte les boutons dans le DOM
+  adminActions.innerHTML = `
+    <button id="toggle-edit-btn" class="admin-action-btn" title="Modifier le nom">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="16 3 21 8 8 21 3 21 3 16 16 3"></polygon></svg>
+    </button>
+    <button id="delete-group-btn" class="admin-action-btn" title="Supprimer le groupe">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
+    </button>
+  `;
+  if (adminActions) adminActions.style.display = "flex";
+
+  const toggleEditBtn = document.getElementById("toggle-edit-btn");
+  const deleteBtn = document.getElementById("delete-group-btn");
+  const editContainer = document.getElementById("edit-group-container");
+  const editForm = document.getElementById("edit-group-form");
+  const editInput = document.getElementById("edit-group-name");
+  const editMessage = document.getElementById("edit-message");
+
+  //  LOGIQUE DE BASCULE (TOGGLE)
+  toggleEditBtn.addEventListener("click", () => {
+    const isHidden = editContainer.classList.contains("hidden-collapse");
+
+    if (isHidden) {
+      // Ouvrir le formulaire
+      editContainer.classList.remove("hidden-collapse");
+      toggleEditBtn.style.backgroundColor = "white";
+      toggleEditBtn.style.color = "#007bff";
+
+      editInput.value = group.name; // Pré-remplir
+      editInput.focus();
+    } else {
+      // Fermer le formulaire (Annuler)
+      editContainer.classList.add("hidden-collapse");
+      toggleEditBtn.style.backgroundColor = "#007bff";
+      toggleEditBtn.style.color = "white";
+
+      editForm.reset();
+      editMessage.textContent = "";
+    }
+  });
+
+  // LOGIQUE DE PATCH
+  editForm.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    editMessage.className = "";
+    editMessage.textContent = "Modification en cours...";
+
+    const newName = editInput.value.trim();
+
+    try {
+      const response = await apiService.updateResource("groups", groupId, {
+        name: newName,
+      });
+
+      if (response.success) {
+        group.name = newName;
+        const groupNameEl = document.getElementById("group-name");
+        if (groupNameEl) {
+          groupNameEl.textContent = group.name;
+        }
+
+        // Fermer le formulaire et réinitialiser le bouton
+        editContainer.classList.add("hidden-collapse");
+        toggleEditBtn.style.backgroundColor = "#007bff";
+        toggleEditBtn.style.color = "white";
+        editMessage.textContent = "";
+      } else {
+        editMessage.className = "error-message";
+        editMessage.textContent = response.error || response.message ||
+          "Erreur de modification.";
+      }
+    } catch (err) {
+      console.error(err);
+      editMessage.className = "error-message";
+      editMessage.textContent = "Erreur de connexion au serveur.";
+    }
+  });
+
+  //  LOGIQUE DE DELETE
+  deleteBtn.addEventListener("click", async () => {
+    if (
+      confirm(
+        `Es-tu sûr de vouloir supprimer le groupe "${group.name}" ? Cette action est irréversible.`,
+      )
+    ) {
+      try {
+        const response = await apiService.deleteResource("groups", groupId);
+
+        if (response.success) {
+          globalThis.location.href = "/groups";
+        } else {
+          alert(response.message || "Erreur lors de la suppression.");
+        }
+      } catch (err) {
+        console.error(err);
+        alert("Erreur de connexion au serveur.");
+      }
+    }
+  });
+}
+
 // --- FONCTIONS DE CHARGEMENT ---
 
 /**
@@ -178,10 +294,7 @@ async function loadGroupData(groupId) {
     const group = groupRes.data?.group || groupRes.data;
 
     if (groupNameEl) {
-      groupNameEl.innerHTML = `
-                <span class="group-label">Groupe</span>
-                <span class="highlight">${group.name}</span>
-            `;
+      groupNameEl.textContent = group.name;
     }
 
     if (groupContentEl) {
@@ -191,6 +304,7 @@ async function loadGroupData(groupId) {
     loadGroupMembers(groupRes.data.group.users);
     loadGroupGames(group);
     setupAdminInvitation(group);
+    setupAdminActions(group, groupId);
   } catch (e) {
     console.error("Erreur inattendue lors du chargement du groupe :", e);
     showError("Une erreur inattendue est survenue.");

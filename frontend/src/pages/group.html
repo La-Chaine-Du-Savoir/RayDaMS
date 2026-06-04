@@ -14,10 +14,44 @@
     <app-navbar></app-navbar>
 
     <main>
-      <header class="hero">
-        <h1 class="site-title" id="group-name">Chargement...</h1>
-        <p class="description" id="group-description"></p>
+      <header class="hero group-hero">
+        <span class="group-label">Groupe</span>
+
+        <div class="group-name-wrapper">
+          <h1 class="site-title" id="group-name">
+            Chargement...
+          </h1>
+
+          <span id="admin-actions"></span>
+        </div>
       </header>
+
+      <div class="action-section" style="margin-top: 1rem; margin-bottom: 2rem">
+        <div id="edit-group-container" class="auth-container hidden-collapse">
+          <form id="edit-group-form" class="auth-form horizontal-form">
+            <div
+              id="edit-message"
+              style="width: 100%; text-align: center; margin-bottom: 10px"
+            >
+            </div>
+
+            <div class="form-group-horizontal">
+              <label for="edit-group-name">Nouveau nom</label>
+              <div class="form-row">
+                <input
+                  type="text"
+                  id="edit-group-name"
+                  name="edit-group-name"
+                  required
+                  minlength="3"
+                  maxlength="50"
+                >
+                <button type="submit" class="btn-form">Valider</button>
+              </div>
+            </div>
+          </form>
+        </div>
+      </div>
 
       <div id="error-container" class="auth-container">
         <p id="error-message" class="error-message"></p>
