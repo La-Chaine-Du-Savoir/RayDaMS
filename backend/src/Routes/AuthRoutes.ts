@@ -6,6 +6,7 @@ import { sanitizeUser, User } from "../Model/DataObjects/User.ts";
 import { hashPassword, verifyPassword } from "../Services/passwordService.ts";
 import config from "../Config/config.ts";
 import redis from "../Services/redis.ts";
+import authMiddleware from "../Middlewares/AuthMiddleware.ts";
 
 const router = new Router({ prefix: "/auth" });
 
@@ -309,6 +310,122 @@ router.post("/token/refresh", async (ctx: Context) => {
     ctx.response.body = { success: false, error: "Internal server error" };
   } finally {
     await redis.del(lockKey);
+  }
+});
+
+router.patch("/password", authMiddleware, async (ctx: Context) => {
+  const currentUser = ctx.state.user;
+
+  try {
+    const body = await ctx.request.body.json();
+    const { oldPassword, newPassword } = body;
+
+    if (!oldPassword || !newPassword) {
+      ctx.response.status = 400;
+      ctx.response.body = {
+        success: false,
+        error: "Tous les champs sont requis.",
+      };
+      return;
+    }
+
+    if (newPassword.length < 8) {
+      ctx.response.status = 400;
+      ctx.response.body = {
+        success: false,
+        error: "Le nouveau mot de passe doit faire au moins 8 caractères.",
+      };
+      return;
+    }
+
+    const userInDb = await userRepository.getById(currentUser.id);
+    if (!userInDb) {
+      ctx.response.status = 404;
+      ctx.response.body = { success: false, error: "Utilisateur introuvable." };
+      return;
+    }
+
+    const isValid = await verifyPassword(oldPassword, userInDb.password_hash);
+    if (!isValid) {
+      ctx.response.status = 401;
+      ctx.response.body = {
+        success: false,
+        error: "Mot de passe actuel incorrect.",
+      };
+      return;
+    }
+
+    const newHash = await hashPassword(newPassword);
+    const updated = await userRepository.updatePassword(
+      currentUser.id,
+      newHash,
+    );
+
+    if (!updated) {
+      throw new Error("Échec de la mise à jour en BDD.");
+    }
+
+    // invalidation de tous les anciens tokens (redis)
+    const userIdStr = String(currentUser.id);
+    const tokens = await redis.zrange(`user_tokens:${userIdStr}`, 0, -1); // Récupère toute la liste
+
+    if (tokens && tokens.length > 0) {
+      const delPipe = redis.pipeline();
+      for (const token of tokens) {
+        delPipe.del(`refresh_tokens:${token}`); // Supprime chaque relation refresh_token -> userId
+      }
+      delPipe.del(`user_tokens:${userIdStr}`); // Supprime la liste de l'utilisateur
+      await delPipe.flush();
+    }
+
+    // Création de nouveaux tokens pour la session en cours
+    const newAccessExp = getNumericDate(config.accessTokenLifetime);
+    const newRefreshExp = getNumericDate(config.refreshTokenLifetime);
+    const newRefreshToken = crypto.randomUUID();
+
+    const createPipe = redis.pipeline();
+    createPipe.set(`refresh_tokens:${newRefreshToken}`, userIdStr, {
+      ex: config.refreshTokenLifetime,
+    });
+    createPipe.zadd(`user_tokens:${userIdStr}`, newRefreshExp, newRefreshToken);
+    createPipe.expire(`user_tokens:${userIdStr}`, config.refreshTokenLifetime);
+    await createPipe.flush();
+
+    const accessToken = await create(
+      { alg: "HS512", typ: "JWT" },
+      { userId: currentUser.id, exp: newAccessExp },
+      config.jwtSecret!,
+    );
+
+    // écrasement des cookie sur le navigateur
+    const cookieOptions = {
+      httpOnly: true,
+      secure: config.cookieSecure,
+      sameSite: config.cookieSamesite,
+      ignoreInsecure: true,
+    };
+
+    ctx.cookies.set("access_token", accessToken, {
+      ...cookieOptions,
+      maxAge: config.accessTokenLifetime,
+      path: "/",
+    });
+
+    ctx.cookies.set("refresh_token", newRefreshToken, {
+      ...cookieOptions,
+      maxAge: config.refreshTokenLifetime,
+      path: "/auth/token/refresh", // le path doit être identique pour écraser le cookie
+    });
+
+    ctx.response.status = 200;
+    ctx.response.body = {
+      success: true,
+      message: "Mot de passe mis à jour et sessions réinitialisées.",
+    };
+  } catch (err) {
+    console.error("Erreur update password:", err);
+    ctx.response.status = 500;
+    ctx.response.body = { success: false, error: "Erreur interne du serveur." };
   }
 });
 

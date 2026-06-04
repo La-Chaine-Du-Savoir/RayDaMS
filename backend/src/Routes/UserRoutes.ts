@@ -6,7 +6,6 @@ import groupRepository from "../Model/Repository/GroupRepository.ts";
 import { sanitizeGroup } from "../Model/DataObjects/Group.ts";
 import { sanitizeUser } from "../Model/DataObjects/User.ts";
 import cloud from "../Services/cloud.ts";
-import { hashPassword, verifyPassword } from "../Services/passwordService.ts";
 
 const router = new Router({ prefix: "/users" });
 
@@ -180,73 +179,6 @@ router.get("/:id/groups", authMiddleware, async (ctx) => {
     );
     ctx.response.status = 500;
     ctx.response.body = { success: false, error: "Erreur interne du serveur" };
-  }
-});
-
-router.patch("/me/password", authMiddleware, async (ctx: Context) => {
-  const currentUser = ctx.state.user;
-
-  try {
-    const body = await ctx.request.body.json();
-    const { oldPassword, newPassword } = body;
-
-    if (!oldPassword || !newPassword) {
-      ctx.response.status = 400;
-      ctx.response.body = {
-        success: false,
-        error: "Tous les champs sont requis.",
-      };
-      return;
-    }
-
-    if (newPassword.length < 8) {
-      ctx.response.status = 400;
-      ctx.response.body = {
-        success: false,
-        error: "Le nouveau mot de passe doit faire au moins 8 caractères.",
-      };
-      return;
-    }
-
-    // Récupérer l'utilisateur complet en BDD pour avoir son password_hash actuel
-    const userInDb = await userRepository.getById(currentUser.id);
-    if (!userInDb) {
-      ctx.response.status = 404;
-      ctx.response.body = { success: false, error: "Utilisateur introuvable." };
-      return;
-    }
-
-    // Vérifier l'ancien mot de passe
-    const isValid = await verifyPassword(oldPassword, userInDb.password_hash);
-    if (!isValid) {
-      ctx.response.status = 401;
-      ctx.response.body = {
-        success: false,
-        error: "Mot de passe actuel incorrect.",
-      };
-      return;
-    }
-
-    // Hasher et sauvegarder le nouveau mot de passe
-    const newHash = await hashPassword(newPassword);
-    const updated = await userRepository.updatePassword(
-      currentUser.id,
-      newHash,
-    );
-
-    if (updated) {
-      ctx.response.status = 200;
-      ctx.response.body = {
-        success: true,
-        message: "Mot de passe mis à jour.",
-      };
-    } else {
-      throw new Error("Échec de la mise à jour en BDD.");
-    }
-  } catch (err) {
-    console.error("Erreur update password:", err);
-    ctx.response.status = 500;
-    ctx.response.body = { success: false, error: "Erreur interne du serveur." };
   }
 });
 
