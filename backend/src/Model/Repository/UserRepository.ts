@@ -142,6 +142,17 @@ export async function update(
   return result.rows[0];
 }
 
+export async function updatePassword(userId: number, passwordHash: string): Promise<boolean> {
+  const result = await db.queryObject(
+    `UPDATE ${table}
+     SET password_hash = $1
+     WHERE id = $2`,
+    [passwordHash, userId],
+  );
+
+  return result.rowCount ? result.rowCount > 0 : false;
+}
+
 const userRepository = {
   create,
   getById,
@@ -150,6 +161,7 @@ const userRepository = {
   addRoles,
   removeRoles,
   update,
+  updatePassword
 };
 
 export default userRepository;

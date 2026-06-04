@@ -154,6 +154,68 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
+  // Gestion du changement de mot de passe
+  const pwdForm = document.getElementById("password-form");
+  const pwdMessage = document.getElementById("password-message");
+  const togglePasswordLink = document.getElementById("toggle-password-link");
+  const passwordSection = document.getElementById("password-section");
+
+  // affichage/masquage du formulaire
+  if (togglePasswordLink && passwordSection) {
+    togglePasswordLink.addEventListener("click", (e) => {
+      e.preventDefault(); // Évite que la page ne remonte tout en haut
+      
+      if (passwordSection.style.display === "none") {
+        passwordSection.style.display = "";
+        togglePasswordLink.textContent = "Masquer le formulaire de mot de passe";
+        passwordSection.scrollIntoView({ behavior: 'smooth' }); // défilement
+      } else {
+        passwordSection.style.display = "none";
+        togglePasswordLink.textContent = "Changer de mot de passe ?";
+      }
+    });
+  }
+
+  pwdForm.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    pwdMessage.className = "";
+    pwdMessage.textContent = "";
+
+    const oldPassword = document.getElementById("old-password").value;
+    const newPassword = document.getElementById("new-password").value;
+    const confirmPassword = document.getElementById("confirm-password").value;
+
+    if (newPassword !== confirmPassword) {
+      pwdMessage.textContent = "Les nouveaux mots de passe ne correspondent pas.";
+      pwdMessage.className = "error-message";
+      return;
+    }
+
+    // Appel à l'API (PATCH sur /users/me/password)
+    const response = await apiService.updateResource("users", "me/password", {
+      oldPassword: oldPassword,
+      newPassword: newPassword
+    });
+
+    if (response.success) {
+      pwdMessage.textContent = "Mot de passe modifié avec succès !";
+      pwdMessage.className = "success-message";
+      pwdForm.reset();
+      
+      // cacher le formulaire automatiquement après 2 secondes de succès
+      setTimeout(() => {
+        passwordSection.style.display = "none";
+        togglePasswordLink.textContent = "Changer de mot de passe ?";
+        pwdMessage.textContent = "";
+        pwdMessage.className = "";
+      }, 2000);
+      
+    } else {
+      pwdMessage.textContent = response.error || "Erreur lors de la modification.";
+      pwdMessage.className = "error-message";
+    }
+  });
+
   // On lance le chargement des groupes au démarrage de la page
   loadUserGroups();
 });
