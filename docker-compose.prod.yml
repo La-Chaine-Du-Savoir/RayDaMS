@@ -9,7 +9,7 @@ services:
     volumes:
       - pgdata:/var/lib/postgresql
     healthcheck:
-      test: [ "CMD", "pg_isready", "-U", "${DB_USER}", "-d", "${DB_NAME}" ]
+      test: ["CMD", "pg_isready", "-U", "${DB_USER}", "-d", "${DB_NAME}"]
       interval: 5s
       timeout: 3s
       retries: 5
@@ -19,11 +19,20 @@ services:
   redis:
     image: redis:8-alpine
     restart: unless-stopped
-    command: ["redis-server", "--requirepass", "${REDIS_PASSWORD}", "--save", "60", "1", "--appendonly", "yes"]
+    command: [
+      "redis-server",
+      "--requirepass",
+      "${REDIS_PASSWORD}",
+      "--save",
+      "60",
+      "1",
+      "--appendonly",
+      "yes",
+    ]
     volumes:
       - redis_data:/data
     healthcheck:
-      test: [ "CMD", "redis-cli", "-a", "${REDIS_PASSWORD}", "ping" ]
+      test: ["CMD", "redis-cli", "-a", "${REDIS_PASSWORD}", "ping"]
       interval: 5s
       timeout: 3s
       retries: 5
@@ -51,7 +60,7 @@ services:
 
   compiler:
     image: gitlab.polytech.umontpellier.fr:5050/norman.francois/raydams/worker:latest
-    command: [ "true" ]
+    command: ["true"]
 
   worker:
     image: gitlab.polytech.umontpellier.fr:5050/norman.francois/raydams/api:latest
@@ -169,6 +178,6 @@ volumes:
   miniodata:
 
 networks:
-    backend-network:
-    frontend-network:
-    docker-network:
+  backend-network:
+  frontend-network:
+  docker-network:

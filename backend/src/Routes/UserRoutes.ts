@@ -192,13 +192,19 @@ router.patch("/me/password", authMiddleware, async (ctx: Context) => {
 
     if (!oldPassword || !newPassword) {
       ctx.response.status = 400;
-      ctx.response.body = { success: false, error: "Tous les champs sont requis." };
+      ctx.response.body = {
+        success: false,
+        error: "Tous les champs sont requis.",
+      };
       return;
     }
 
     if (newPassword.length < 8) {
       ctx.response.status = 400;
-      ctx.response.body = { success: false, error: "Le nouveau mot de passe doit faire au moins 8 caractères." };
+      ctx.response.body = {
+        success: false,
+        error: "Le nouveau mot de passe doit faire au moins 8 caractères.",
+      };
       return;
     }
 
@@ -214,21 +220,29 @@ router.patch("/me/password", authMiddleware, async (ctx: Context) => {
     const isValid = await verifyPassword(oldPassword, userInDb.password_hash);
     if (!isValid) {
       ctx.response.status = 401;
-      ctx.response.body = { success: false, error: "Mot de passe actuel incorrect." };
+      ctx.response.body = {
+        success: false,
+        error: "Mot de passe actuel incorrect.",
+      };
       return;
     }
 
     // Hasher et sauvegarder le nouveau mot de passe
     const newHash = await hashPassword(newPassword);
-    const updated = await userRepository.updatePassword(currentUser.id, newHash);
+    const updated = await userRepository.updatePassword(
+      currentUser.id,
+      newHash,
+    );
 
     if (updated) {
       ctx.response.status = 200;
-      ctx.response.body = { success: true, message: "Mot de passe mis à jour." };
+      ctx.response.body = {
+        success: true,
+        message: "Mot de passe mis à jour.",
+      };
     } else {
       throw new Error("Échec de la mise à jour en BDD.");
     }
-
   } catch (err) {
     console.error("Erreur update password:", err);
     ctx.response.status = 500;
