@@ -301,6 +301,8 @@ async function compileGame(gameId: string): Promise<void> {
 
   console.log(`📦 [Build ${gameId}] Début du traitement.`);
 
+  await redisClient.del(streamKey).catch(() => {});
+
   let container: Docker.Container | null = null;
 
   let streamInitialized = false;
@@ -332,7 +334,7 @@ async function compileGame(gameId: string): Promise<void> {
       );
     });
     if (status === "success" || status === "failed") {
-      await redisClient.expire(streamKey, 60).catch(() => {});
+      await redisClient.expire(streamKey, 15).catch(() => {});
     }
   };
 
