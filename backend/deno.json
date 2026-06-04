@@ -26,6 +26,6 @@
     "db:setup-dev": "deno task db:migrate && deno task db:populate",
     "worker:start": "deno run --allow-net --allow-env --allow-sys --allow-read --allow-write --allow-run src/worker_manager.ts",
     "test": "DENO_ENV=test deno test --env=.env.test --allow-net --allow-env --allow-read",
-    "test:ci": "DENO_ENV=test deno test --env=.env.test --allow-net --allow-env --allow-read --reporter junit > /tmp/test-results.xml"
+    "test:ci": "DENO_ENV=test deno test --env=.env.test --allow-net --allow-env --allow-read --junit-path=$JUNIT_PATH"
   }
 }
