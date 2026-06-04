@@ -14,10 +14,19 @@
     <app-navbar></app-navbar>
 
     <main>
-      <header class="hero">
-        <h1 class="site-title" id="group-name">Chargement...</h1>
-        <p class="description" id="group-description"></p>
+      <header class="hero group-hero">
+        <span class="group-label">Groupe</span>
+
+        <div class="group-name-wrapper">
+          <h1 class="site-title" id="group-name">
+            Chargement...
+          </h1>
+
+          <span id="admin-actions"></span>
+        </div>
       </header>
+
+      <div id="admin-form-placeholder"></div>
 
       <div id="error-container" class="auth-container">
         <p id="error-message" class="error-message"></p>
@@ -29,22 +38,10 @@
           <div class="invite-section-wrapper">
             <div class="invite-title-wrapper">
               <h2>Membres du groupe</h2>
-              <button
-                id="invite-btn"
-                class="btn-primary"
-                title="Générer le lien d'invitation"
-              >
-                +
-              </button>
+              <span id="admin-invite-btn-placeholder"></span>
             </div>
 
-            <div id="invite-link-zone">
-              <span
-                id="invite-url-text"
-                title="Cliquez pour copier à nouveau"
-              ></span>
-              <span id="invite-success-check" title="Lien copié !">✓</span>
-            </div>
+            <div id="admin-invite-zone-placeholder"></div>
           </div>
 
           <div id="members-container" class="cards-container"></div>
