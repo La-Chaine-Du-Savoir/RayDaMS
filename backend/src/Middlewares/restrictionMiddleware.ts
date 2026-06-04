@@ -1,6 +1,6 @@
 import { Context } from "oak";
 import authMiddleware from "./AuthMiddleware.ts";
-import { Middleware } from "oak/middleware.ts";
+import type { Middleware } from "oak";
 
 const checkRole = (allowedRoles: string[]): Middleware => {
   return async (ctx: Context, next: () => Promise<unknown>) => {

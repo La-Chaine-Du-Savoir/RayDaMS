@@ -14,7 +14,7 @@
     "dockerode": "npm:dockerode@3.3.0",
     "tar-stream": "npm:tar-stream@^3.1.7",
     "fflate": "npm:fflate@^0.8.2",
-    "oak/": "https://deno.land/x/oak@v17.1.6/"
+    "app/": "./src/"
   },
   "tasks": {
     "dev": "deno run --watch --allow-net --allow-env --allow-sys --allow-read src/back_server.ts 3000",
@@ -24,6 +24,8 @@
     "db:populate": "deno run --allow-net --allow-env src/Commands/populateDB.ts",
     "db:prune": "deno run --allow-net --allow-env src/Commands/pruneDB.ts",
     "db:setup-dev": "deno task db:migrate && deno task db:populate",
-    "worker:start": "deno run --allow-net --allow-env --allow-sys --allow-read --allow-write --allow-run src/worker_manager.ts"
+    "worker:start": "deno run --allow-net --allow-env --allow-sys --allow-read --allow-write --allow-run src/worker_manager.ts",
+    "test": "DENO_ENV=test deno test --env=.env.test --allow-net --allow-env --allow-read",
+    "test:ci": "DENO_ENV=test deno test --env=.env.test --allow-net --allow-env --allow-read --junit-path=$JUNIT_PATH"
   }
 }

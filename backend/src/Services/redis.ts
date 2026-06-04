@@ -1,18 +1,22 @@
 import { connect, Redis } from "redis";
 import config from "../Config/config.ts";
 
-let redis: Redis;
+let redis: Redis | undefined;
 
-try {
-  redis = await connect({
-    hostname: config.redis.host,
-    port: config.redis.port,
-    password: config.redis.password,
-  });
-  console.log("Connected to Redis");
-} catch (err) {
-  console.error("Could not connect to Redis:", err);
-  throw err;
+if (Deno.env.get("DENO_ENV") !== "test") {
+  try {
+    redis = await connect({
+      hostname: config.redis.host,
+      port: config.redis.port,
+      password: config.redis.password,
+    });
+    console.log("Connected to Redis");
+  } catch (err) {
+    console.error("Could not connect to Redis:", err);
+    throw err;
+  }
+} else {
+  console.log("Skipping Redis connect in test mode (DENO_ENV=test)");
 }
 
-export default redis;
+export default redis as Redis;

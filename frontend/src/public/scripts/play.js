@@ -26,7 +26,6 @@ document.addEventListener("DOMContentLoaded", async () => {
       response.game;
 
     if (response.success && game) {
-      // Mise à jour de l'UI
       document.title = `Jouer : ${game.name} - RayDaMS`;
       titleUi.textContent = game.name;
       backBtn.href = `/games/${game.id}`;
@@ -38,19 +37,15 @@ document.addEventListener("DOMContentLoaded", async () => {
         return;
       }
 
-      // Création dynamique du composant de votre collègue
       const playerElement = document.createElement("game-player");
 
-      // On lui passe les URLs signées fournies par minio
       playerElement.setAttribute("js-url", game.url_js);
       playerElement.setAttribute("wasm-url", game.url_wasm);
 
-      // Si le jeu a un fichier .data, on le passe, sinon on met une chaîne vide
       if (game.url_data) {
         playerElement.setAttribute("data-url", game.url_data);
       }
 
-      // On vide le conteneur et on injecte le composant
       container.innerHTML = "";
       container.appendChild(playerElement);
     } else {
