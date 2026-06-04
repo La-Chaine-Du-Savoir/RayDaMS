@@ -50,7 +50,7 @@ test_backend:
         - backend/**/*
   script:
     - cd backend
-    - JUNIT_PATH=backend/junit-report.xml deno task test:ci
+    - JUNIT_PATH=junit-report.xml deno task test:ci
   artifacts:
     when: always
     expire_in: 1 week
