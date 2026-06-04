@@ -62,6 +62,24 @@ services:
     image: gitlab.polytech.umontpellier.fr:5050/norman.francois/raydams/worker:latest
     command: ["true"]
 
+  docker-proxy:
+    image: tecnativa/docker-socket-proxy:v0.4.2
+    restart: unless-stopped
+    environment:
+      CONTAINERS: 1
+      POST: 1
+      DELETE: 1
+      PING: 1
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    healthcheck:
+      test: ["CMD", "wget", "-q", "-O", "-", "http://localhost:2375/_ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+    networks:
+      - docker-network
+
   worker:
     image: gitlab.polytech.umontpellier.fr:5050/norman.francois/raydams/api:latest
     command: ["deno", "task", "worker:start"]
@@ -86,8 +104,7 @@ services:
       MAX_CONCURRENT: ${MAX_CONCURRENT}
       BUILD_TIMEOUT_MS: ${BUILD_TIMEOUT_MS}
       PEPPER_SECRET: ${PEPPER_SECRET}
-    volumes:
-      - /var/run/docker.sock:/var/run/docker.sock
+      DOCKER_HOST: "tcp://docker-proxy:2375"
     depends_on:
       db:
         condition: service_healthy
@@ -97,6 +114,8 @@ services:
         condition: service_healthy
       minio-init:
         condition: service_completed_successfully
+      docker-proxy:
+        condition: service_healthy
     networks:
       - backend-network
       - docker-network
@@ -181,3 +200,4 @@ networks:
   backend-network:
   frontend-network:
   docker-network:
+    internal: true
