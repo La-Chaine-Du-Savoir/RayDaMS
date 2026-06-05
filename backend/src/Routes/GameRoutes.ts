@@ -1,5 +1,5 @@
 import { Context, Router } from "oak";
-import { connect, type XIdInput } from "redis";
+import { Redis } from "redis";
 import { z } from "zod";
 import authMiddleware from "../Middlewares/AuthMiddleware.ts";
 import cloud from "../Services/cloud.ts";
@@ -599,13 +599,15 @@ router.get("/:gameId/logs", authMiddleware, async (ctx) => {
   ws.onclose = cleanup;
   ws.onerror = cleanup;
 
-  let streamRedis;
+  let streamRedis: Redis | null = null;
   try {
-    streamRedis = await connect({
-      hostname: config.redis.host,
+    streamRedis = new Redis({
+      host: config.redis.host,
       port: config.redis.port,
       password: config.redis.password,
+      lazyConnect: true,
     });
+    await streamRedis.connect();
   } catch (err) {
     console.error("Error while connecting to Redis for log streaming", err);
     try {
@@ -616,25 +618,36 @@ router.get("/:gameId/logs", authMiddleware, async (ctx) => {
     return;
   }
 
+  if (!streamRedis) return;
+
   try {
-    let lastXid: XIdInput = 0; // 0 = depuis le début du stream
+    let lastXid = "0"; // 0 = depuis le début du stream
 
     while (!closed && ws.readyState === WebSocket.OPEN) {
       try {
         const streams = await streamRedis.xread(
-          [{ key: streamKey, xid: lastXid }],
-          { block: 500, count: 50 },
+          "COUNT",
+          50,
+          "BLOCK",
+          500,
+          "STREAMS",
+          streamKey,
+          lastXid,
         );
 
         if (!streams || streams.length === 0) continue;
 
-        for (const msg of streams[0].messages) {
+        const [, messages] = streams[0] as [string, Array<[string, string[]]>];
+
+        for (const [xid, fieldValues] of messages) {
           if (closed || ws.readyState !== WebSocket.OPEN) break;
 
-          // Avance le curseur pour la prochaine itération
-          lastXid = msg.xid;
+          lastXid = xid;
 
-          const message = msg.fieldValues["message"] ?? "";
+          const messageIndex = fieldValues.indexOf("message");
+          const message = messageIndex >= 0
+            ? fieldValues[messageIndex + 1] ?? ""
+            : "";
           if (!message) continue;
 
           ws.send(String(message));
@@ -659,7 +672,7 @@ router.get("/:gameId/logs", authMiddleware, async (ctx) => {
     }
   } finally {
     try {
-      streamRedis.close();
+      streamRedis?.disconnect();
     } catch (error) {
       console.error("Erreur lors de la fermeture du flux Redis :", error);
     } finally {

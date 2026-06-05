@@ -309,7 +309,7 @@ async function compileGame(gameId: string): Promise<void> {
 
   const log = async (msg: string): Promise<void> => {
     try {
-      await redisClient.xadd(streamKey, "*", { message: msg });
+      await redisClient.xadd(streamKey, "*", "message", msg);
       if (!streamInitialized) {
         streamInitialized = true;
         await redisClient.expire(streamKey, 300);
@@ -430,8 +430,8 @@ async function startQueueListener(): Promise<void> {
 
     try {
       const task = await redisClient.brpop(
-        QUEUE_BRPOP_TIMEOUT_S,
         "queue:builds",
+        QUEUE_BRPOP_TIMEOUT_S,
       );
       if (!task || task.length < 2) continue;
 

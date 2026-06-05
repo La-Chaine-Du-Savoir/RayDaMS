@@ -131,13 +131,13 @@ deploy_production:
   script:
     - scp docker-compose.prod.yml "$DEPLOY_USER@$DEPLOY_HOST":~/raydams/docker-compose.prod.yml
     - |
-      ssh "$DEPLOY_USER@$DEPLOY_HOST" << 'EOF'
-        set -euo pipefail
-        cd ~/raydams
-        docker compose -f docker-compose.prod.yml pull
-        docker compose -f docker-compose.prod.yml up -d
-        docker image prune -f
-      EOF
+        ssh "$DEPLOY_USER@$DEPLOY_HOST" << 'EOF'
+          set -euo pipefail
+          cd ~/raydams
+          docker compose -f docker-compose.prod.yml pull
+          docker compose -f docker-compose.prod.yml up -d
+          docker image prune -f
+        EOF
   after_script:
     - ssh-agent -k || true
   environment:

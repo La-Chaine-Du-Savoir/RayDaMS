@@ -1,12 +1,12 @@
-import { connect, Redis } from "redis";
+import { Redis } from "redis";
 import config from "../Config/config.ts";
 
 let redis: Redis | undefined;
 
 if (Deno.env.get("DENO_ENV") !== "test") {
   try {
-    redis = await connect({
-      hostname: config.redis.host,
+    redis = new Redis({
+      host: config.redis.host,
       port: config.redis.port,
       password: config.redis.password,
     });
