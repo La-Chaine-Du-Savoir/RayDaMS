@@ -1,6 +1,7 @@
 import { Context, Router } from "oak";
 import { z } from "zod";
 import { create, getNumericDate } from "djwt";
+import { Redis } from "redis";
 import { sanitizeUser, User } from "../Model/DataObjects/User.ts";
 import { hashPassword, verifyPassword } from "../Services/passwordService.ts";
 import config from "../Config/config.ts";
@@ -14,25 +15,9 @@ interface UserRepositoryType {
   getById(id: number): Promise<User | undefined>;
 }
 
-interface RedisPipelineType {
-  set(key: string, value: string | number, options?: { ex: number }): unknown;
-  zadd(key: string, score: number, member: string): unknown;
-  zrem(key: string, member: string): unknown;
-  expire(key: string, seconds: number): unknown;
-  del(key: string): unknown;
-  flush(): Promise<unknown>;
-}
-
-export interface RedisClientType {
-  get(key: string): Promise<string | number | null>;
-  del(key: string): Promise<unknown>;
-  sendCommand(command: string, ...args: string[]): Promise<unknown>;
-  pipeline(): RedisPipelineType;
-}
-
 export function createAuthRouter(
   userRepository: UserRepositoryType,
-  redis: RedisClientType,
+  redis: Redis,
 ) {
   const router = new Router({ prefix: "/auth" });
 
@@ -87,16 +72,19 @@ export function createAuthRouter(
     // Création du refresh token
     const refreshToken = crypto.randomUUID();
     const pipe = redis.pipeline();
-    pipe.set(`refresh_tokens:${refreshToken}`, user.id!, {
-      ex: config.refreshTokenLifetime,
-    });
+    pipe.set(
+      `refresh_tokens:${refreshToken}`,
+      user.id!,
+      "EX",
+      config.refreshTokenLifetime,
+    );
     pipe.zadd(
       `user_tokens:${user.id}`,
       getNumericDate(config.refreshTokenLifetime),
       refreshToken,
     );
     pipe.expire(`user_tokens:${user.id}`, config.refreshTokenLifetime);
-    await pipe.flush();
+    await pipe.exec();
     ctx.cookies.set("refresh_token", refreshToken, {
       httpOnly: true,
       sameSite: config.cookieSamesite,
@@ -125,7 +113,7 @@ export function createAuthRouter(
           const pipe = redis.pipeline();
           pipe.del(`refresh_tokens:${refreshToken}`);
           pipe.zrem(`user_tokens:${userId}`, refreshToken);
-          await pipe.flush();
+          await pipe.exec();
         }
       } catch (err) {
         console.error("Redis logout error:", err);
@@ -259,14 +247,7 @@ export function createAuthRouter(
     const userIdStr = String(userId);
     const lockKey = `lock:refresh:${userIdStr}`;
 
-    const lockResult = await redis.sendCommand(
-      "SET",
-      lockKey,
-      "locked",
-      "EX",
-      "5",
-      "NX",
-    );
+    const lockResult = await redis.set(lockKey, "locked", "EX", 5, "NX");
 
     if (lockResult === null || lockResult === undefined) {
       ctx.response.status = 429;
@@ -292,12 +273,15 @@ export function createAuthRouter(
       const pipe = redis.pipeline();
       pipe.del(`refresh_tokens:${oldRefreshToken}`);
       pipe.zrem(`user_tokens:${userIdStr}`, oldRefreshToken);
-      pipe.set(`refresh_tokens:${newRefreshToken}`, userIdStr, {
-        ex: config.refreshTokenLifetime,
-      });
+      pipe.set(
+        `refresh_tokens:${newRefreshToken}`,
+        userIdStr,
+        "EX",
+        config.refreshTokenLifetime,
+      );
       pipe.zadd(`user_tokens:${userIdStr}`, newRefreshExp, newRefreshToken);
       pipe.expire(`user_tokens:${userIdStr}`, config.refreshTokenLifetime);
-      await pipe.flush();
+      await pipe.exec();
 
       const accessToken = await create(
         { alg: "HS512", typ: "JWT" },
@@ -342,4 +326,4 @@ export function createAuthRouter(
   return router;
 }
 
-export default createAuthRouter(userRepository, redis as RedisClientType);
+export default createAuthRouter(userRepository, redis);
