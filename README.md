@@ -33,15 +33,7 @@ _Développée pour la filière **DaMS** (Data Science, Management & Software) de
 [![MinIO](https://img.shields.io/badge/MinIO_S3-C72E49?style=flat-square&logo=minio&logoColor=white)](https://min.io/)
 [![Docker](https://img.shields.io/badge/Docker-2496ED?style=flat-square&logo=docker&logoColor=white)](https://www.docker.com/)
 
-<p align="center">
-    <a href="#-à-propos-du-projet">À propos</a> •
-    <a href="#-fonctionnalités-clés">Fonctionnalités</a> •
-    <a href="#️-architecture--flux-de-compilation">Architecture</a> •
-    <a href="#-démarrage-rapide">Installation</a> •
-    <a href="#-guide--préparer-son-jeu-raylib">Guide Raylib</a> •
-    <a href="#-documentation-api">API</a> •
-    <a href="#-contribuer">Contribuer</a>
-  </p>
+[À propos](#-à-propos-du-projet) • [Fonctionnalités](#-fonctionnalités-clés) • [Architecture](#️-architecture--flux-de-compilation) • [Installation](#-démarrage-rapide) • [Guide Raylib](#-guide--préparer-son-jeu-raylib) • [API](#-documentation-api) • [Contribuer](#-contribuer)
 
 </div>
 
