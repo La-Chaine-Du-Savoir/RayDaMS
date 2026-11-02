@@ -18,7 +18,7 @@ _Développée pour la filière **DaMS** (Data Science, Management & Software) de
 [![GitHub Forks](https://img.shields.io/github/forks/La-Chaine-Du-Savoir/RayDaMS?style=for-the-badge&logo=github&color=blue)](https://github.com/La-Chaine-Du-Savoir/RayDaMS/network/members)
 [![GitHub Issues](https://img.shields.io/github/issues/La-Chaine-Du-Savoir/RayDaMS?style=for-the-badge&logo=github&color=orange)](https://github.com/La-Chaine-Du-Savoir/RayDaMS/issues)
 [![GitHub Last Commit](https://img.shields.io/github/last-commit/La-Chaine-Du-Savoir/RayDaMS?style=for-the-badge&logo=git&color=informational)](https://github.com/La-Chaine-Du-Savoir/RayDaMS/commits/main)
-[![License: MIT](https://img.shields.io/badge/License-MIT-success?style=for-the-badge)](https://opensource.org/licenses/MIT)
+[![License: AGPL v3](https://img.shields.io/badge/License-AGPL_v3-blue.svg?style=for-the-badge&logo=gnu&logoColor=white)](https://www.gnu.org/licenses/agpl-3.0)
 
 <!-- Tech Stack Badges -->
 
@@ -33,7 +33,11 @@ _Développée pour la filière **DaMS** (Data Science, Management & Software) de
 [![MinIO](https://img.shields.io/badge/MinIO_S3-C72E49?style=flat-square&logo=minio&logoColor=white)](https://min.io/)
 [![Docker](https://img.shields.io/badge/Docker-2496ED?style=flat-square&logo=docker&logoColor=white)](https://www.docker.com/)
 
-[À propos](#-à-propos-du-projet) • [Fonctionnalités](#-fonctionnalités-clés) • [Architecture](#️-architecture--flux-de-compilation) • [Installation](#-démarrage-rapide) • [Guide Raylib](#-guide--préparer-son-jeu-raylib) • [API](#-documentation-api) • [Contribuer](#-contribuer)
+[À propos](#-à-propos-du-projet) • [Fonctionnalités](#-fonctionnalités-clés) •
+[Architecture](#️-architecture--flux-de-compilation) •
+[Installation](#-démarrage-rapide) •
+[Guide Raylib](#-guide--préparer-son-jeu-raylib) • [API](#-documentation-api) •
+[Contribuer](#-contribuer)
 
 </div>
 
@@ -556,8 +560,7 @@ Développé avec passion par **La Chaîne du Savoir** (Étudiants ingénieurs à
 
 - **Antoine Argaillot** —
   [LinkedIn](https://www.linkedin.com/in/antoine-argaillot/)
-- **Norman François** —
-  [LinkedIn](https://www.linkedin.com/in/norman-francois/)
+- **Norman François** — [LinkedIn](https://www.linkedin.com/in/norman-francois/)
 - **Thibaut Scoto Di Suoccio** —
   [LinkedIn](https://www.linkedin.com/in/thibaut-scoto-di-suoccio/)
 
@@ -574,6 +577,17 @@ Développé avec passion par **La Chaîne du Savoir** (Étudiants ingénieurs à
 
 ## 📄 Licence
 
-Ce projet est distribué sous la licence **MIT**. Voir le fichier `LICENSE` ou la
-[définition officielle MIT](https://opensource.org/licenses/MIT) pour plus
-d'informations.
+Ce projet est distribué sous la licence **GNU Affero General Public License v3.0
+(AGPL-3.0)**.
+
+En vertu de cette licence :
+
+- Vous êtes libre d'exécuter, étudier, modifier et redistribuer la plateforme.
+- Toute version modifiée ou tout service réseau/Cloud (SaaS) basé sur ce code
+  doit obligatoirement **publier l'intégralité de son code source** sous cette
+  même licence AGPLv3.
+- Les mentions d'auteurs et de copyright d'origine doivent impérativement être
+  conservées.
+
+Pour plus d'informations, consultez le fichier [`LICENSE`](LICENSE) ou le
+[texte officiel de la GNU AGPLv3](https://www.gnu.org/licenses/agpl-3.0.html).
