@@ -45,7 +45,7 @@ export class AppFooter extends LitElement {
           </li>
           <li>
             <a
-              href="https://www.linkedin.com/in/norman-fran%C3%A7ois/"
+              href="https://www.linkedin.com/in/norman-francois/"
               target="_blank"
             >Norman François</a>
           </li>
